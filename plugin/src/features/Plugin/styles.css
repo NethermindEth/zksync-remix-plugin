@@ -1,0 +1,12 @@
+.plugin-wrapper {
+  height: 100%;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  max-height: 100vh;
+}
+
+
+.plugin-main-wrapper {
+  overflow-y: scroll;
+  height: 100%;
+}

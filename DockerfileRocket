@@ -1,0 +1,36 @@
+FROM ubuntu:20.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV DEBCONF_NONINTERACTIVE_SEEN=true
+
+RUN apt-get update
+RUN apt-get install -y curl \
+                       git \
+                       cmake \
+                       build-essential \
+                       gcc
+
+WORKDIR /opt/app
+
+COPY . /opt/app
+
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain stable -y
+
+RUN whoami
+
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+RUN git submodule update --init
+
+# Build the API service
+WORKDIR /opt/app/api
+RUN cargo build
+
+# Build the cairo compiler
+WORKDIR /opt/app/api/cairo
+RUN cargo run -q --bin cairo-compile -- --version
+
+EXPOSE 8000
+
+WORKDIR /opt/app/api
+ENTRYPOINT [ "cargo", "run" ]
