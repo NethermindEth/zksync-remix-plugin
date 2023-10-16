@@ -1,8 +1,8 @@
-# Welcome to the Starknet Remix Plugin Contribution Guide!
+# Welcome to the zkSync Remix Plugin Contribution Guide!
 
 ## Getting Started
 
-Welcome to the `starknet-remix-plugin` contribution guide! This project is aimed at creating an easy way to onboard developers to the Starknet Ecosystem. For a detailed introduction and setup instructions, please refer to the [README.md](./README.md) file.
+Welcome to the `zkSync-remix-plugin` contribution guide! This project is aimed at creating an easy way to onboard developers to the zkSync Ecosystem. For a detailed introduction and setup instructions, please refer to the [README.md](./README.md) file.
 
 ## New Contributor Guide
 
@@ -34,4 +34,4 @@ We welcome and appreciate pull requests. Here's how you can submit one:
 
 ## Thank You!
 
-We truly appreciate your interest in contributing to `starknet-remix-plugin`. Every contribution, no matter how small, helps us improve and grow the project.
+We truly appreciate your interest in contributing to `zkSync-remix-plugin`. Every contribution, no matter how small, helps us improve and grow the project.
