@@ -3,8 +3,8 @@ on:
   push:
     branches:
       - develop
-    paths:
-      - 'api/**'
+    # paths:
+    #   - 'api/**'
 
 permissions:
       id-token: write
