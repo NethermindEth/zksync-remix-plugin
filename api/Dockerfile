@@ -1,6 +1,3 @@
-# Use the official Python 3.9 image as the base image
-FROM python:3.9
-
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
@@ -17,28 +14,12 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 # Install the stable version of Rust
 RUN rustup install stable
 
-# Create and activate a Python virtual environment
-RUN python -m venv ~/cairo_venv
-RUN source ~/cairo_venv/bin/activate
-ENV PATH="/root/cairo_venv/bin:${PATH}"
-
-# Install cairo-lang
-RUN pip install cairo-lang
-
 # Set the working directory
 WORKDIR /app
 
 # Copy the existing Rust application
 COPY . .
 
-# Compile necessary Rust packages
-# If you have to specify a specific version of cairo
-# RUN rm cairo -rf
-# RUN git clone https://github.com/starkware-libs/cairo.git
-# RUN cd cairo; git checkout v1.0.0-alpha.6
-# Or if you chose to copy the whole repo
-# RUN git submodule update --init
-RUN cd cairo; cargo build --bin starknet-compile; cargo build --bin starknet-sierra-compile
 RUN cargo build --release
 
 EXPOSE 8000:80
