@@ -1,96 +1,16 @@
 /* eslint-disable multiline-ternary */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import React, { useContext, useEffect, useState } from 'react'
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 import {
-  type ConnectOptions,
-  type DisconnectOptions,
-  type StarknetWindowObject
-} from 'get-starknet'
-
-import copy from 'copy-to-clipboard'
+  useConnectModal,
+  useAccountModal,
+  useChainModal,
+} from '@rainbow-me/rainbowkit';
 import './wallet.css'
-import { MdCopyAll } from 'react-icons/md'
-import { Provider } from 'starknet'
-import {
-  type Network,
-  networkEquivalents,
-  networkEquivalentsRev,
-  networkNameEquivalents
-} from '../../utils/constants'
-import { ConnectionContext } from '../../contexts/ConnectionContext'
-import ExplorerSelector, { useCurrentExplorer } from '../ExplorerSelector'
-import { getExplorerUrl, trimStr } from '../../utils/utils'
-
-interface WalletProps {
-  starknetWindowObject: StarknetWindowObject | null
-  connectWalletHandler: (options?: ConnectOptions) => void
-  disconnectWalletHandler: (options?: DisconnectOptions) => void
-  setPrevEnv: (newEnv: string) => void
-}
-
-const Wallet: React.FC<WalletProps> = (props) => {
-  const [showCopied, setCopied] = useState(false)
-
-  const { setProvider } = useContext(ConnectionContext)
-
-  const refreshWalletConnection = (e: any): void => {
-    e.preventDefault()
-    console.log('refreshWalletConnection')
-    if (props.starknetWindowObject !== null) props.disconnectWalletHandler()
-    props.connectWalletHandler()
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [availableNetworks] = useState<string[]>(
-    Array.from(networkEquivalents.keys())
-  )
-
-  const [currentChain, setCurrentChain] = useState<string>(
-    'goerli-alpha'
-  )
-
-  useEffect(() => {
-    props.starknetWindowObject?.on('accountsChanged', (accounts: string[]) => {
-      console.log('accountsChanged', accounts)
-    })
-    props.starknetWindowObject?.on('networkChanged', (network?: string) => {
-      console.log('networkChanged', network)
-    })
-  }, [props.starknetWindowObject])
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleNetworkChange = async (
-    event: any,
-    chainName: string
-  ): Promise<void> => {
-    event.preventDefault()
-    const networkName = networkNameEquivalents.get(chainName)
-    const chainId = networkEquivalents.get(chainName)
-    if (chainName.length > 0 && chainId && networkName) {
-      const resp = await props.starknetWindowObject?.request({
-        type: 'wallet_switchStarknetChain',
-        params: { chainId }
-      })
-      console.log('wallet_switchStarknetChain', resp)
-      setProvider(
-        new Provider({
-          sequencer: {
-            network: networkName,
-            chainId
-          }
-        })
-      )
-    }
-  }
-
-  useEffect(() => {
-    setTimeout(async () => {
-      const currChainId = await props.starknetWindowObject?.provider?.getChainId()
-      if (currChainId !== undefined) setCurrentChain(networkEquivalentsRev.get(currChainId) ?? 'goerli-alpha')
-    }, 100)
-  }, [props.starknetWindowObject])
-
-  const explorerHook = useCurrentExplorer()
+const Wallet = () => {
+  const { openConnectModal } = useConnectModal();
+  const { openAccountModal } = useAccountModal();
+  const { openChainModal } = useChainModal();
 
   return (
     <div
@@ -103,74 +23,100 @@ const Wallet: React.FC<WalletProps> = (props) => {
       }}
     >
       <div className="wallet-actions">
-        <button
-          className="btn btn-primary w-100"
-          onClick={(e) => {
-            refreshWalletConnection(e)
-          }}
-        >
-          Reconnect
-        </button>
+      <ConnectButton.Custom>
+      {({
+        account,
+        chain,
+        openAccountModal,
+        openChainModal,
+        openConnectModal,
+        authenticationStatus,
+        mounted,
+      }) => {
+        // Note: If your app doesn't use authentication, you
+        // can remove all 'authenticationStatus' checks
+        const ready = mounted && authenticationStatus !== 'loading';
+        const connected =
+          ready &&
+          account &&
+          chain &&
+          (!authenticationStatus ||
+            authenticationStatus === 'authenticated');
+        return (
+          <div
+            {...(!ready && {
+              'aria-hidden': true,
+              'style': {
+                opacity: 0,
+                pointerEvents: 'none',
+                userSelect: 'none',
+              },
+            })}
+          >
+            {(() => {
+              if (!connected) {
+                return (
+                  <button onClick={openConnectModal} 
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }} 
+                  className="btn btn-primary w-100" 
+                  type="button">
+                    Reconnect
+                  </button>
+                );
+              }
+
+              if (chain.unsupported) {
+                return (
+                  <button onClick={openChainModal} type="button">
+                    Wrong network
+                  </button>
+                );
+              }
+
+              return (
+                <div style={{ display: 'flex', gap: 12 }}>
+                  <button
+                    onClick={openChainModal}
+                    style={{ display: 'flex', alignItems: 'center' }}
+                    type="button"
+                  >
+                    {chain.hasIcon && (
+                      <div
+                        style={{
+                          background: chain.iconBackground,
+                          width: 12,
+                          height: 12,
+                          borderRadius: 999,
+                          overflow: 'hidden',
+                          marginRight: 4,
+                        }}
+                      >
+                        {chain.iconUrl && (
+                          <img
+                            alt={chain.name ?? 'Chain icon'}
+                            src={chain.iconUrl}
+                            style={{ width: 12, height: 12 }}
+                          />
+                        )}
+                      </div>
+                    )}
+                    {chain.name}
+                  </button>
+
+                  <button onClick={openAccountModal} type="button">
+                    {account.displayName}
+                    {account.displayBalance
+                      ? ` (${account.displayBalance})`
+                      : ''}
+                  </button>
+                </div>
+              );
+            })()}
+          </div>
+        );
+      }}
+    </ConnectButton.Custom>
       </div>
-      {props.starknetWindowObject != null ? (
-        <>
-          <div className="wallet-row-wrapper">
-            <div className="wallet-wrapper">
-              <img src={props.starknetWindowObject?.icon} alt="wallet icon" />
-              <p className="text"> {props.starknetWindowObject?.id}</p>
-              <p className="text text-right text-secondary"> {currentChain}</p>
-            </div>
-            <div className="account-network-wrapper">
-              <ExplorerSelector
-                path={`/contract/${props.starknetWindowObject?.account?.address ?? ''}`}
-                title={props.starknetWindowObject?.account?.address}
-                text="View"
-                isInline
-                isTextVisible={false}
-                controlHook={explorerHook}
-              />
-            </div>
-          </div>
-          <div className="wallet-account-wrapper">
-            <p
-              className="text account"
-              title={props.starknetWindowObject?.account?.address}
-            >
-              <a
-                href={`${getExplorerUrl(explorerHook.explorer, currentChain as Network)}/contract/${props.starknetWindowObject?.account?.address ?? ''}`}
-                target="_blank"
-                rel="noreferer noopener noreferrer"
-              >
-                {trimStr(
-                  props.starknetWindowObject?.account?.address ?? '',
-                  10
-                )}
-              </a>
-            </p>
-            <span style={{ position: 'relative' }}>
-              <button
-                className="btn p-0"
-                onClick={() => {
-                  copy(props.starknetWindowObject?.account?.address ?? '')
-                  setCopied(true)
-                  setTimeout(() => {
-                    setCopied(false)
-                  }, 1000)
-                }}
-              >
-                <MdCopyAll />
-              </button>
-              {showCopied && (
-                <p style={{ position: 'absolute', right: 0, minWidth: '70px' }}>
-                  Copied
-                </p>
-              )}
-            </span>
-          </div>
-        </>
-      ) : (
-        <p> Wallet not connected</p>
-      )}
     </div>
   )
 }

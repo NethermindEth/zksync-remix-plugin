@@ -33,72 +33,72 @@ const Environment: React.FC<EnvironmentProps> = () => {
     env,
     setEnv,
     isDevnetAlive,
-    starknetWindowObject,
-    setStarknetWindowObject
+    // starknetWindowObject,
+    // setStarknetWindowObject
   } = useContext(EnvironmentContext)
   const [prevEnv, setPrevEnv] = useState<string>(env)
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const connectWalletHandler = async (
-    options: ConnectOptions = {
-      modalMode: 'alwaysAsk',
-      modalTheme: 'dark'
-    }
-  ) => {
-    try {
-      const connectedStarknetWindowObject = await connect(options)
-      if (connectedStarknetWindowObject == null) {
-        throw new Error('Failed to connect to wallet')
-      }
-      await connectedStarknetWindowObject.enable({ starknetVersion: 'v5' })
-      connectedStarknetWindowObject.on(
-        'accountsChanged',
-        (accounts: string[]) => {
-          console.log('accountsChanged', accounts)
-          void connectWalletHandler({
-            modalMode: 'neverAsk',
-            modalTheme: 'dark'
-          })
-        }
-      )
+  // const connectWalletHandler = async (
+  //   options: ConnectOptions = {
+  //     modalMode: 'alwaysAsk',
+  //     modalTheme: 'dark'
+  //   }
+  // ) => {
+  //   try {
+  //     const connectedStarknetWindowObject = await connect(options)
+  //     if (connectedStarknetWindowObject == null) {
+  //       throw new Error('Failed to connect to wallet')
+  //     }
+  //     await connectedStarknetWindowObject.enable({ starknetVersion: 'v5' })
+  //     connectedStarknetWindowObject.on(
+  //       'accountsChanged',
+  //       (accounts: string[]) => {
+  //         console.log('accountsChanged', accounts)
+  //         void connectWalletHandler({
+  //           modalMode: 'neverAsk',
+  //           modalTheme: 'dark'
+  //         })
+  //       }
+  //     )
 
-      connectedStarknetWindowObject.on('networkChanged', (network?: string) => {
-        console.log('networkChanged', network)
-        void connectWalletHandler({
-          modalMode: 'neverAsk',
-          modalTheme: 'dark'
-        })
-      })
-      setStarknetWindowObject(connectedStarknetWindowObject)
-      if (connectedStarknetWindowObject.account != null) {
-        setAccount(connectedStarknetWindowObject.account)
-      }
-      if (connectedStarknetWindowObject.provider != null) {
-        setProvider(connectedStarknetWindowObject.provider)
-      }
-    } catch (e) {
-      if (e instanceof Error) {
-        await remixClient.call('notification' as any, 'alert', e)
-      }
-      setStarknetWindowObject(null)
-      console.log(e)
-    }
-  }
+  //     connectedStarknetWindowObject.on('networkChanged', (network?: string) => {
+  //       console.log('networkChanged', network)
+  //       void connectWalletHandler({
+  //         modalMode: 'neverAsk',
+  //         modalTheme: 'dark'
+  //       })
+  //     })
+  //     setStarknetWindowObject(connectedStarknetWindowObject)
+  //     if (connectedStarknetWindowObject.account != null) {
+  //       setAccount(connectedStarknetWindowObject.account)
+  //     }
+  //     if (connectedStarknetWindowObject.provider != null) {
+  //       setProvider(connectedStarknetWindowObject.provider)
+  //     }
+  //   } catch (e) {
+  //     if (e instanceof Error) {
+  //       await remixClient.call('notification' as any, 'alert', e)
+  //     }
+  //     setStarknetWindowObject(null)
+  //     console.log(e)
+  //   }
+  // }
 
-  const disconnectWalletHandler = async (
-    options: DisconnectOptions = {
-      clearLastWallet: true
-    }
-  ): Promise<void> => {
-    if (starknetWindowObject != null) {
-      starknetWindowObject.off('accountsChanged', (_accounts: string[]) => {})
-      starknetWindowObject.off('networkChanged', (_network?: string) => {})
-    }
-    await disconnect(options)
-    setStarknetWindowObject(null)
-    setAccount(null)
-    setProvider(null)
-  }
+  // const disconnectWalletHandler = async (
+  //   options: DisconnectOptions = {
+  //     clearLastWallet: true
+  //   }
+  // ): Promise<void> => {
+  //   if (starknetWindowObject != null) {
+  //     starknetWindowObject.off('accountsChanged', (_accounts: string[]) => {})
+  //     starknetWindowObject.off('networkChanged', (_network?: string) => {})
+  //   }
+  //   await disconnect(options)
+  //   // setStarknetWindowObject(null)
+  //   setAccount(null)
+  //   setProvider(null)
+  // }
 
   // END: WALLET
 
@@ -136,8 +136,8 @@ const Environment: React.FC<EnvironmentProps> = () => {
                       <label className="">Environment selection</label>
                       <div className="flex_dot">
                         <EnvironmentSelector
-                          connectWalletHandler={connectWalletHandler}
-                          disconnectWalletHandler={disconnectWalletHandler}
+                          // connectWalletHandler={connectWalletHandler}
+                          // disconnectWalletHandler={disconnectWalletHandler}
                         />
                         {env === 'wallet'
                           ? (
@@ -169,12 +169,12 @@ const Environment: React.FC<EnvironmentProps> = () => {
                         <DevnetAccountSelector />
                       ) : (
                         <Wallet
-                          starknetWindowObject={starknetWindowObject}
+                          // starknetWindowObject={starknetWindowObject}
                           // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                          connectWalletHandler={connectWalletHandler}
+                          // connectWalletHandler={connectWalletHandler}
                           // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                          disconnectWalletHandler={disconnectWalletHandler}
-                          setPrevEnv={setPrevEnv}
+                          // disconnectWalletHandler={disconnectWalletHandler}
+                          // setPrevEnv={setPrevEnv}
                         />
                       )}
                     </div>

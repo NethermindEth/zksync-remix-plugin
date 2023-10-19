@@ -1,7 +1,9 @@
 import { type DevnetAccount } from '../types/accounts'
 
-const apiUrl = process.env.REACT_APP_API_URL ?? 'cairo-compile-remix-test.nethermind.io'
-const devnetUrl = process.env.REACT_APP_DEVNET_URL ?? 'http://localhost:5050'
+const apiUrl = 'http://0.0.0.0:8000';
+//process.env.REACT_APP_API_URL ?? 'cairo-compile-remix-test.nethermind.io'
+const devnetUrl = 'http://127.0.0.1:5050'
+//process.env.REACT_APP_DEVNET_URL ?? 'http://localhost:5050'
 const remoteDevnetUrl = process.env.REACT_APP_REMOTE_DEVNET_URL ?? 'https://starknet-devnet-dev.nethermind.io'
 
 interface Devnet {

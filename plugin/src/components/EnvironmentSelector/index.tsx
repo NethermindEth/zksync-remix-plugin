@@ -1,19 +1,16 @@
 import React, { useContext } from 'react'
 import { devnets } from '../../utils/network'
-import { type ConnectOptions, type DisconnectOptions } from 'get-starknet'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
-
 import './styles.css'
 import EnvironmentContext from '../../contexts/EnvironmentContext'
 
-interface EnvironmentSelectorProps {
-  connectWalletHandler: (options?: ConnectOptions) => Promise<void>
-  disconnectWalletHandler: (options?: DisconnectOptions) => Promise<void>
-}
 
-const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = (props) => {
+const EnvironmentSelector = () => {
   const { setProvider } = useContext(ConnectionContext)
-  const { env, setEnv, setDevnet, starknetWindowObject } = useContext(EnvironmentContext)
+  const { env, setEnv, setDevnet } = useContext(EnvironmentContext)
+
+
+
 
   async function handleEnvironmentChange (event: any): Promise<void> {
     const value = parseInt(event.target.value)
@@ -25,7 +22,6 @@ const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = (props) => {
       return
     }
     setEnv('wallet')
-    if (starknetWindowObject === null) await props.connectWalletHandler()
   }
 
   const getDefualtIndex = (): number => {
