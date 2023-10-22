@@ -4,18 +4,36 @@ import './index.css'
 import App from './App'
 import reportWebVitals from './reportWebVitals'
 import "@rainbow-me/rainbowkit/styles.css";
-import { getDefaultWallets, RainbowKitProvider,darkTheme} from "@rainbow-me/rainbowkit";
+import { getDefaultWallets, RainbowKitProvider,darkTheme, Chain} from "@rainbow-me/rainbowkit";
 import { configureChains, createConfig, WagmiConfig } from 'wagmi';
-import {
-  goerli
-} from 'wagmi/chains';
-import { alchemyProvider } from 'wagmi/providers/alchemy';
+
 import { publicProvider } from 'wagmi/providers/public';
 import { InjectedConnector } from 'wagmi/connectors/injected'
 
+const zksync: Chain = {
+  id: 280,
+  name: 'zkSync Era Testnet',
+  network: 'zkSync Era Testnet',
+  iconUrl: 'https://example.com/icon.svg',
+  iconBackground: '#fff',
+  nativeCurrency: {
+    decimals: 18,
+    name: 'Ethereum',
+    symbol: 'ETH',
+  },
+  rpcUrls: {
+    public: { http: ['https://testnet.era.zksync.dev'] },
+    default: { http: ['https://testnet.era.zksync.dev'] },
+  },
+  blockExplorers: {
+    default: { name: 'zkSync Era Testnet Explorer', url: 'https://goerli.explorer.zksync.io/' },
+    etherscan: { name: 'zkSync Era Testnet Explorer', url: 'https://goerli.explorer.zksync.io/' },
+  },
+};
+
 //WAGMI
 const { chains, publicClient } = configureChains(
-  [goerli],
+  [zksync],
   [
     publicProvider()
   ]
@@ -38,9 +56,9 @@ const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 root.render(
   <WagmiConfig config={wagmiConfig}>
     <RainbowKitProvider chains={chains} theme={darkTheme()}>
-     <React.StrictMode>
+     {/* <React.StrictMode> */}
       <App />
-     </React.StrictMode>
+     {/* </React.StrictMode> */}
     </RainbowKitProvider>
   </WagmiConfig>
 )
