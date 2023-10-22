@@ -16,6 +16,7 @@ import {
   useSignTypedData,
 } from 'wagmi';
 import './wallet.css'
+import { useConnect } from 'wagmi'
 
 type ConnectButtonProps = ComponentProps<typeof ConnectButton>;
 type ExtractString<Value> = Value extends string ? Value : never;
@@ -30,13 +31,16 @@ const Wallet = () => {
   const { openChainModal, chainModalOpen } = useChainModal();
   const { openConnectModal, connectModalOpen } = useConnectModal();
   const { address, isConnected} = useAccount();
+  const { connect, connectors, error, isLoading, pendingConnector } = useConnect()
+
+
   // const { status } = useSession();
   const account = useAccount({
     onConnect({ address, connector, isReconnected }) {
       console.log('Connected', { address, connector, isReconnected })
     },
   })
-  console.log(account) 
+  console.log(connectors) 
   return (
     <div
       className="flex"

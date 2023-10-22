@@ -6,9 +6,7 @@ import reportWebVitals from './reportWebVitals'
 import "@rainbow-me/rainbowkit/styles.css";
 import { getDefaultWallets, RainbowKitProvider,darkTheme, Chain} from "@rainbow-me/rainbowkit";
 import { configureChains, createConfig, WagmiConfig } from 'wagmi';
-
 import { publicProvider } from 'wagmi/providers/public';
-import { InjectedConnector } from 'wagmi/connectors/injected'
 
 const zksync: Chain = {
   id: 280,
@@ -41,14 +39,14 @@ const { chains, publicClient } = configureChains(
 
 const { connectors } = getDefaultWallets({
   appName: 'Zk Plugin',
-  projectId: '630093679339d9e6a59508feafbae4ce',
+  projectId: 'ebbc27c89ea63989fd5cb0ef3d1a49cd',
   chains
 });
 
 const wagmiConfig = createConfig({
-  autoConnect: true,
+  autoConnect: false,
   connectors,
-  publicClient
+  publicClient,
 })
 
 
