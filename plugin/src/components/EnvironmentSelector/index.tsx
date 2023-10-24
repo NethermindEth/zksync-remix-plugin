@@ -1,12 +1,10 @@
 import React, { useContext } from 'react'
 import { devnets } from '../../utils/network'
-import { ConnectionContext } from '../../contexts/ConnectionContext'
 import './styles.css'
 import EnvironmentContext from '../../contexts/EnvironmentContext'
 
 
 const EnvironmentSelector = () => {
-  const { setProvider } = useContext(ConnectionContext)
   const { env, setEnv, setDevnet } = useContext(EnvironmentContext)
 
 
@@ -18,7 +16,6 @@ const EnvironmentSelector = () => {
       setDevnet(devnets[value - 1])
       if (value === 2) setEnv('remoteDevnet')
       else setEnv('localDevnet')
-      setProvider(null)
       return
     }
     setEnv('wallet')

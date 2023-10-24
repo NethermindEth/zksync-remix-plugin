@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { PluginClient } from '@remixproject/plugin'
 import { createClient } from '@remixproject/plugin-webview'
-
 import './App.css'
 import Plugin from './features/Plugin'
 import { RemixClientContext } from './contexts/RemixClientContext'
@@ -9,7 +8,11 @@ import Loader from './ui_components/CircularLoader'
 import FullScreenOverlay from './ui_components/FullScreenOverlay'
 import { fetchGitHubFilesRecursively } from './utils/initial_scarb_codes'
 
+
 const remixClient = createClient(new PluginClient())
+
+
+// 3. Create modal
 const App: React.FC = () => {
   const [pluginLoaded, setPluginLoaded] = useState<boolean>(false)
 

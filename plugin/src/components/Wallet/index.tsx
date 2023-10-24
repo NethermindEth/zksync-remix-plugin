@@ -1,46 +1,12 @@
 /* eslint-disable multiline-ternary */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import {
-  useConnectModal,
-  useAccountModal,
-  useChainModal,
-  ConnectButton
-} from '@rainbow-me/rainbowkit';
-import React, { ComponentProps, useEffect, useState } from 'react';
-import {
-  useAccount,
-  useNetwork,
-  usePrepareSendTransaction,
-  useSendTransaction,
-  useSignMessage,
-  useSignTypedData,
-} from 'wagmi';
-import './wallet.css'
-import { useConnect } from 'wagmi'
+import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { useAccount } from 'wagmi'
 
-type ConnectButtonProps = ComponentProps<typeof ConnectButton>;
-type ExtractString<Value> = Value extends string ? Value : never;
-type AccountStatus = ExtractString<ConnectButtonProps['accountStatus']>;
-type ChainStatus = ExtractString<ConnectButtonProps['chainStatus']>;
 
 const Wallet = () => {
-  // const { openConnectModal } = useConnectModal();
-  // const { openAccountModal } = useAccountModal();
-  // const { openChainModal } = useChainModal();
-  const { openAccountModal, accountModalOpen } = useAccountModal();
-  const { openChainModal, chainModalOpen } = useChainModal();
-  const { openConnectModal, connectModalOpen } = useConnectModal();
-  const { address, isConnected} = useAccount();
-  const { connect, connectors, error, isLoading, pendingConnector } = useConnect()
-
-
-  // const { status } = useSession();
-  const account = useAccount({
-    onConnect({ address, connector, isReconnected }) {
-      console.log('Connected', { address, connector, isReconnected })
-    },
-  })
-  console.log(connectors) 
+  const {isConnected} = useAccount()
+  console.log(isConnected)
   return (
     <div
       className="flex"
@@ -56,6 +22,9 @@ const Wallet = () => {
       {({
         account,
         chain,
+        openAccountModal,
+        openChainModal,
+        openConnectModal,
         authenticationStatus,
         mounted,
       }) => {
@@ -68,6 +37,7 @@ const Wallet = () => {
           chain &&
           (!authenticationStatus ||
             authenticationStatus === 'authenticated');
+
         return (
           <div
             {...(!ready && {
@@ -80,24 +50,10 @@ const Wallet = () => {
             })}
           >
             {(() => {
-              if(address!==account?.address){
-                return (
-                  <button onClick={openConnectModal} 
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }} 
-                  className="btn btn-primary w-100" 
-                  type="button">
-                    Connect
-                  </button>
-                );
-              }
-
               if (!connected) {
                 return (
-                  <button onClick={openConnectModal} 
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }} 
-                  className="btn btn-primary w-100" 
-                  type="button">
-                    Connect
+                  <button onClick={openConnectModal} type="button">
+                    Connect Wallet
                   </button>
                 );
               }

@@ -1,9 +1,9 @@
 import { atomWithStorage } from 'jotai/utils'
 import { AbiElement, Input } from '../types/contracts'
-import {
-  CallContractResponse,
-  InvokeTransactionReceiptResponse
-} from 'starknet'
+// import {
+//   CallContractResponse,
+//   InvokeTransactionReceiptResponse
+// } from 'starknet'
 
 const STORAGE_KEYS = {
   INTERACT: 'INTERACT'
@@ -14,8 +14,8 @@ export type EnhancedInput = Input & {
 }
 
 export type EnhancedAbiElement = Omit<AbiElement, 'inputs'> & {
-  callResponse?: CallContractResponse
-  invocationResponse?: InvokeTransactionReceiptResponse
+  // callResponse?: CallContractResponse
+  // invocationResponse?: InvokeTransactionReceiptResponse
   inputs: EnhancedInput[]
 }
 
