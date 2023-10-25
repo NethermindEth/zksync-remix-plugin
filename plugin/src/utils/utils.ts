@@ -2,8 +2,8 @@ import { type DevnetAccount } from '../types/accounts'
 import { type AbiElement, type Abi, type Contract } from '../types/contracts'
 import { type Network, networkExplorerUrls } from './constants'
 
-function isValidCairo (filename: string): boolean {
-  return filename.endsWith('.cairo')
+function isValidSolidity (filename: string): boolean {
+  return filename.endsWith('.solidity')
 }
 
 const getFileExtension = (filename: string): string =>
@@ -145,7 +145,7 @@ const trimStr = (str?: string, strip?: number): string => {
 }
 
 export {
-  isValidCairo,
+  isValidSolidity,
   getFileExtension,
   getFileNameFromPath,
   getContractNameFromFullName,

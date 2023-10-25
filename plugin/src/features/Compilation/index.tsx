@@ -40,8 +40,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     setCurrentFilename,
     isCompiling,
     setIsCompiling,
-    isValidCairo,
-    setIsValidCairo,
+    isValidSolidity,
+    setIsValidSolidity,
     noFileSelected,
     setNoFileSelected,
     hashDir,
@@ -91,7 +91,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         if (currentFile.length > 0) {
           const filename = getFileNameFromPath(currentFile)
           const currentFileExtension = getFileExtension(filename)
-          setIsValidCairo(currentFileExtension === 'cairo')
+          setIsValidSolidity(currentFileExtension === 'sol')
           setCurrentFilename(filename)
 
           remixClient.emit('statusChanged', {
@@ -104,7 +104,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         remixClient.emit('statusChanged', {
           key: 'failed',
           type: 'info',
-          title: 'Please open a cairo file to compile'
+          title: 'Please open a solidity file to compile'
         })
         console.log('error: ', e)
       }
@@ -120,7 +120,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         (currentFileChanged: any) => {
           const filename = getFileNameFromPath(currentFileChanged)
           const currentFileExtension = getFileExtension(filename)
-          setIsValidCairo(currentFileExtension === 'cairo')
+          setIsValidSolidity(currentFileExtension === 'sol')
           setCurrentFilename(filename)
           remixClient.emit('statusChanged', {
             key: 'succeed',
@@ -144,8 +144,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           'fileManager',
           'getCurrentFile'
         )
-        if (!currentFilePath.endsWith('.cairo')) {
-          throw new Error('Not a valid cairo file')
+        if (!currentFilePath.endsWith('.sol')) {
+          throw new Error('Not a valid solidity file')
         }
         const currentFileContent = await remixClient.call(
           'fileManager',
@@ -164,7 +164,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         remixClient.emit('statusChanged', {
           key: 'failed',
           type: 'info',
-          title: 'Please open a cairo file to compile'
+          title: 'Please open a solidity file to compile'
         })
         console.log('error: ', e)
       }
@@ -310,7 +310,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
   const compilations = [
     {
-      validation: isValidCairo,
+      validation: isValidSolidity,
       isLoading: isCompiling,
       onClick: compile
     }
@@ -322,20 +322,20 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     // clear current file annotations: inline syntax error reporting
     await remixClient.editor.clearAnnotations()
     try {
-      setStatus('Getting cairo file path...')
+      setStatus('Getting solidity file path...')
       const currentFilePath = await remixClient.call(
         'fileManager',
         'getCurrentFile'
       )
 
-      setStatus('Getting cairo file content...')
+      setStatus('Getting solidity file content...')
       const currentFileContent = await remixClient.call(
         'fileManager',
         'readFile',
         currentFilePath
       )
 
-      setStatus('Parsing cairo code...')
+      setStatus('Parsing solidity code...')
       let response = await fetch(
         `${apiUrl}/save_code/${hashDir}/${currentFilePath}`,
         {
@@ -352,14 +352,14 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         await remixClient.call(
           'notification' as any,
           'toast',
-          'Could not reach cairo compilation server'
+          'Could not reach solidity compilation server'
         )
-        throw new Error('Cairo Compilation Request Failed')
+        throw new Error('Solidity Compilation Request Failed')
       }
 
-      setStatus('Compiling to sierra...')
+      setStatus('Compiling...')
       response = await fetch(
-        `${apiUrl}/compile-to-sierra/${hashDir}/${currentFilePath}`,
+        `${apiUrl}/compile/${hashDir}/${currentFilePath}`,
         {
           method: 'GET',
           redirect: 'follow',
@@ -373,9 +373,15 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         await remixClient.call(
           'notification' as any,
           'toast',
-          'Could not reach cairo compilation server'
+          'Could not reach solidity compilation server'
         )
-        throw new Error('Cairo Compilation Request Failed')
+        throw new Error('Solidity Compilation Request Failed')
+      } else {
+        await remixClient.call(
+            'notification' as any,
+            'toast',
+            'Solidity compilation request successful'
+        )
       }
 
       // get Json body from response
@@ -434,82 +440,15 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           title: lastLine.startsWith('Error') ? lastLine : 'Compilation Failed'
         })
         throw new Error(
-          'Cairo Compilation Failed, logs can be read in the terminal log'
-        )
-      }
-      setStatus('Compiling to casm...')
-      response = await fetch(
-        `${apiUrl}/compile-to-casm/${hashDir}/${currentFilePath.replaceAll(
-          getFileExtension(currentFilePath),
-          'sierra'
-        )}`,
-        {
-          method: 'GET',
-          redirect: 'follow',
-          headers: {
-            'Content-Type': 'text/plain'
-          }
-        }
-      )
-
-      if (!response.ok) {
-        await remixClient.call(
-          'notification' as any,
-          'toast',
-          'Could not reach cairo compilation server'
-        )
-        throw new Error('Cairo Compilation Request Failed')
-      }
-
-      // get Json body from response
-      const casm = JSON.parse(await response.text())
-      if (casm.status !== 'Success') {
-        await remixClient.terminal.log(casm.message)
-
-        const lastLine = casm.message.trim().split('\n').pop().trim()
-
-        remixClient.emit('statusChanged', {
-          key: 'failed',
-          type: 'error',
-          title: lastLine ?? 'Sierra Compilation Failed'
-        })
-        throw new Error(
-          'Sierra Cairo Compilation Failed, logs can be read in the terminal log'
+          'Solidity Compilation Failed, logs can be read in the terminal log'
         )
       }
 
-      const contract = await genContractData(
-        currentFilename,
-        currentFilePath,
-        sierra.file_content,
-        casm.file_content
-      )
-
-      if (contract != null) {
-        setSelectedContract(contract)
-        setContracts([...contracts, contract])
-      } else {
-        if (selectedContract == null) setSelectedContract(contracts[0])
-      }
-
-      setStatus('Saving artifacts...')
 
       const sierraPath = `${artifactFolder(currentFilePath)}/${artifactFilename(
         '.json',
         currentFilename
       )}`
-      const casmPath = `${artifactFolder(currentFilePath)}/${artifactFilename(
-        '.casm',
-        currentFilename
-      )}`
-
-      remixClient.emit('statusChanged', {
-        key: 'succeed',
-        type: 'success',
-        title: `Cheers : compilation successful, classHash: ${hash.computeContractClassHash(
-          sierra.file_content
-        )}`
-      })
 
       try {
         await remixClient.call(
@@ -518,12 +457,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           sierraPath,
           sierra.file_content
         )
-        await remixClient.call(
-          'fileManager',
-          'writeFile',
-          casmPath,
-          casm.file_content
-        )
       } catch (e) {
         if (e instanceof Error) {
           await remixClient.call(
@@ -531,9 +464,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
             'toast',
             e.message +
               ' try deleting the files: ' +
-              sierraPath +
-              ' and ' +
-              casmPath
+              sierraPath
           )
         }
         remixClient.emit('statusChanged', {
@@ -542,17 +473,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           title: 'Failed to save artifacts'
         })
       }
-
-      setStatus('Opening artifacts...')
-
-      // await remixClient.fileManager.open(sierraPath)
-
-      await remixClient.call(
-        'notification' as any,
-        'toast',
-        `Cairo compilation output written to: ${sierraPath} `
-      )
-      setStatus('done')
     } catch (e) {
       setStatus('failed')
       if (e instanceof Error) {
@@ -586,7 +506,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       for (let i = 0; i < allFilesKeys.length; i++) {
         if (
           allFilesKeys[i].endsWith('Scarb.toml') ||
-          allFilesKeys[i].endsWith('.cairo')
+          allFilesKeys[i].endsWith('.solidity')
         ) {
           const fileContent = await remixClient.call(
             'fileManager',
@@ -611,9 +531,9 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
             await remixClient.call(
               'notification' as any,
               'toast',
-              'Could not reach cairo compilation server'
+              'Could not reach solidity compilation server'
             )
-            throw new Error('Cairo Compilation Request Failed')
+            throw new Error('Solidity Compilation Request Failed')
           }
         }
         if (Object.values(allFilesValues[i])[0]) {
@@ -653,7 +573,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           'toast',
           'Scarb compilation failed!'
         )
-        throw new Error('Cairo Compilation Request Failed')
+        throw new Error('Solidity Compilation Request Failed')
       }
 
       const scarbCompile = JSON.parse(await response.text())
@@ -674,7 +594,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           title: 'Scarb compilation failed!'
         })
         await remixClient.terminal.log({ type: 'error', value: scarbCompile.message })
-        throw new Error('Cairo Compilation Request Failed')
+        throw new Error('Solidity Compilation Request Failed')
       }
 
       remixClient.emit('statusChanged', {
@@ -728,7 +648,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         await remixClient.call(
           'notification' as any,
           'toast',
-          'Please include \'casm=true\' in Scarb.toml to deploy cairo contracts'
+          'Please include \'casm=true\' in Scarb.toml to deploy solidity contracts'
         )
       }
 
@@ -879,7 +799,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
             <div className="text-truncate overflow-hidden text-nowrap">
               {!validation
                 ? (
-                <span>Select a valid cairo file</span>
+                <span>Select a valid solidity file</span>
                   )
                 : (
                 <>

@@ -402,7 +402,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
           </div>
             )
           : (
-          <p>No contracts ready for deployment yet, compile a cairo contract</p>
+          <p>No contracts ready for deployment yet, compile a solidity contract</p>
             )}
       </Container>
     </>

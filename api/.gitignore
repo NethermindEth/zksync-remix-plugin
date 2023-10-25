@@ -5,3 +5,6 @@ upload
 contracts
 
 .env
+
+sol/
+artifacts/

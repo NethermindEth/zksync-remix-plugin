@@ -1,6 +1,6 @@
 use crate::handlers::process::{do_process_command, fetch_process_result};
 use crate::handlers::types::{ApiCommand, ApiCommandResult, CompileResponse};
-use crate::utils::lib::{get_file_ext, get_file_path, SOL_ROOT};
+use crate::utils::lib::{ARTIFACTS_ROOT, get_file_ext, get_file_path, SOL_ROOT};
 use crate::worker::WorkerEngine;
 use rocket::fs::NamedFile;
 use rocket::serde::json;
@@ -10,6 +10,7 @@ use rocket::State;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use tracing::{debug, instrument};
+use tracing_subscriber::fmt::format;
 
 #[instrument]
 #[get("/compile/<remix_file_path..>")]
@@ -74,11 +75,11 @@ pub async fn do_compile(
 
     let file_path = get_file_path(&remix_file_path);
 
-    let mut compile = Command::new("./zksolc");
+    let mut compile = Command::new("./zksolc-macosx-arm64-v1.3.0");
 
-    let sol_path = Path::new(SOL_ROOT).join(&remix_file_path);
+    let artifacts_path = Path::new(ARTIFACTS_ROOT).join(&remix_file_path);
 
-    match sol_path.parent() {
+    match artifacts_path.parent() {
         Some(parent) => match fs::create_dir_all(parent).await {
             Ok(_) => {
                 debug!("LOG: Created directory: {:?}", parent);
@@ -92,14 +93,17 @@ pub async fn do_compile(
         }
     }
 
+    println!("artifacts_path: {:?}", artifacts_path);
+    println!("file_path: {:?}", file_path);
+
     let result = compile
         .arg("--solc")
-        .arg("./solc-linux-amd64-v0.8.19+commit.7dd6d404")
+        .arg("./solc-macos")
         .arg(&file_path)
         .arg("-o")
-        .arg(&sol_path)
-        .arg("-O")
-        .arg("3")
+        .arg(&artifacts_path)
+        // .arg("-O")
+        // .arg("3")
         .arg("--overwrite")
         .arg("--combined-json")
         .arg("abi")
@@ -112,8 +116,10 @@ pub async fn do_compile(
 
     let output = result.wait_with_output().expect("Failed to wait on child");
 
+    let output_path = Path::new(&artifacts_path).join("combined.json");
+
     Ok(Json(CompileResponse {
-        file_content: match NamedFile::open(&sol_path).await.ok() {
+        file_content: match NamedFile::open(&output_path).await.ok() {
             Some(file) => match file.path().to_str() {
                 Some(path) => match fs::read_to_string(path.to_string()).await {
                     Ok(compiled) => compiled.to_string(),
@@ -127,7 +133,7 @@ pub async fn do_compile(
             .unwrap()
             .replace(&file_path.to_str().unwrap().to_string(), &remix_file_path)
             .replace(
-                &sol_path.to_str().unwrap().to_string(),
+                &artifacts_path.to_str().unwrap().to_string(),
                 &remix_file_path,
             ),
         status: match output.status.code() {
