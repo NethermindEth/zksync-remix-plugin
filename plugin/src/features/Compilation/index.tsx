@@ -444,34 +444,33 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         )
       }
 
+      for (const file of sierra.file_content) {
 
-      const sierraPath = `${artifactFolder(currentFilePath)}/${artifactFilename(
-        '.json',
-        currentFilename
-      )}`
+        const sierraPath = `${artifactFolder(currentFilePath)}/${file.file_name}`
 
-      try {
-        await remixClient.call(
-          'fileManager',
-          'writeFile',
-          sierraPath,
-          sierra.file_content
-        )
-      } catch (e) {
-        if (e instanceof Error) {
+        try {
           await remixClient.call(
-            'notification' as any,
-            'toast',
-            e.message +
-              ' try deleting the files: ' +
-              sierraPath
+              'fileManager',
+              'writeFile',
+              sierraPath,
+              file.file_content
           )
+        } catch (e) {
+          if (e instanceof Error) {
+            await remixClient.call(
+                'notification' as any,
+                'toast',
+                e.message +
+                ' try deleting the files: ' +
+                sierraPath
+            )
+          }
+          remixClient.emit('statusChanged', {
+            key: 'succeed',
+            type: 'warning',
+            title: 'Failed to save artifacts'
+          })
         }
-        remixClient.emit('statusChanged', {
-          key: 'succeed',
-          type: 'warning',
-          title: 'Failed to save artifacts'
-        })
       }
     } catch (e) {
       setStatus('failed')

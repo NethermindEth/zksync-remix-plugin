@@ -1,6 +1,6 @@
 use crate::handlers::process::{do_process_command, fetch_process_result};
-use crate::handlers::types::{ApiCommand, ApiCommandResult, CompileResponse};
-use crate::utils::lib::{ARTIFACTS_ROOT, get_file_ext, get_file_path, SOL_ROOT};
+use crate::handlers::types::{ApiCommand, ApiCommandResult, CompileResponse, SolFile};
+use crate::utils::lib::{ARTIFACTS_ROOT, get_file_ext, get_file_path, HARDHAT_ENV_ROOT, SOL_ROOT};
 use crate::worker::WorkerEngine;
 use rocket::fs::NamedFile;
 use rocket::serde::json;
@@ -9,6 +9,7 @@ use rocket::tokio::fs;
 use rocket::State;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
+use solang_parser::pt::{ContractPart, Identifier, SourceUnitPart};
 use tracing::{debug, instrument};
 use tracing_subscriber::fmt::format;
 
@@ -21,7 +22,7 @@ pub async fn compile(remix_file_path: PathBuf) -> Json<CompileResponse> {
         .unwrap_or(Json::from(CompileResponse {
             message: "Error compiling".to_string(),
             status: "error".to_string(),
-            file_content: "".to_string(),
+            file_content: vec![],
         }))
 }
 
@@ -52,7 +53,7 @@ pub async fn do_compile(
         Some(path) => path.to_string(),
         None => {
             return Ok(Json(CompileResponse {
-                file_content: "".to_string(),
+                file_content: vec![],
                 message: "File path not found".to_string(),
                 status: "FileNotFound".to_string(),
             }));
@@ -66,7 +67,7 @@ pub async fn do_compile(
         _ => {
             debug!("LOG: File extension not supported");
             return Ok(Json(CompileResponse {
-                file_content: "".to_string(),
+                file_content: vec![],
                 message: "File extension not supported".to_string(),
                 status: "FileExtensionNotSupported".to_string(),
             }));
@@ -75,71 +76,77 @@ pub async fn do_compile(
 
     let file_path = get_file_path(&remix_file_path);
 
-    let mut compile = Command::new("./zksolc-macosx-arm64-v1.3.0");
+    let mut compile = Command::new("yarn");
 
-    let artifacts_path = Path::new(ARTIFACTS_ROOT).join(&remix_file_path);
-
-    match artifacts_path.parent() {
-        Some(parent) => match fs::create_dir_all(parent).await {
-            Ok(_) => {
-                debug!("LOG: Created directory: {:?}", parent);
-            }
-            Err(e) => {
-                debug!("LOG: Error creating directory: {:?}", e);
-            }
-        },
-        None => {
-            debug!("LOG: Error creating directory");
-        }
-    }
-
-    println!("artifacts_path: {:?}", artifacts_path);
     println!("file_path: {:?}", file_path);
 
     let result = compile
-        .arg("--solc")
-        .arg("./solc-macos")
-        .arg(&file_path)
-        .arg("-o")
-        .arg(&artifacts_path)
-        // .arg("-O")
-        // .arg("3")
-        .arg("--overwrite")
-        .arg("--combined-json")
-        .arg("abi")
-        .stderr(Stdio::piped())
+        .arg("compile")
+        .current_dir(SOL_ROOT)
         .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
         .spawn()
-        .map_err(|e| format!("Failed to execute compile: {:?}", e))?;
+        .map_err(|e| e.to_string())?;
 
     debug!("LOG: ran command:{:?}", compile);
 
+
     let output = result.wait_with_output().expect("Failed to wait on child");
 
-    let output_path = Path::new(&artifacts_path).join("combined.json");
+    let sol_file_content = fs::read_to_string(&file_path).await.unwrap();
 
+    let (ast, _) = solang_parser::parse(&sol_file_content, 0).unwrap();
+
+    let mut file_name = "".to_string();
+
+    for part in &ast.0 {
+        match part {
+            SourceUnitPart::ContractDefinition(def) => {
+                println!("found contract {:?}", def.name);
+                match &def.name {
+                    None => {}
+                    Some(ident) => {
+                        file_name = ident.to_string();
+                    }
+                }
+            }
+            _ => (),
+        }
+    }
+
+    let result_path_prefix = Path::new(ARTIFACTS_ROOT).join(remix_file_path).to_str().unwrap().to_string();
+    let mut compiled_contracts: Vec<SolFile> = Vec::new();
+
+    for part in &ast.0 {
+        match part {
+            SourceUnitPart::ContractDefinition(def) => {
+                println!("found contract {:?}", def.name);
+                match &def.name {
+                    None => {
+                        continue;
+                    }
+                    Some(ident) => {
+                        let result_file_path = format!("{}/{}.json", result_path_prefix, ident);
+                        let file_content = fs::read_to_string(result_file_path).await.unwrap();
+                        let file_name = format!("{}.json", ident);
+                        compiled_contracts.push(SolFile {
+                            file_name,
+                            file_content,
+                        });
+                    }
+                }
+            }
+            _ => (),
+        }
+    }
+    
     Ok(Json(CompileResponse {
-        file_content: match NamedFile::open(&output_path).await.ok() {
-            Some(file) => match file.path().to_str() {
-                Some(path) => match fs::read_to_string(path.to_string()).await {
-                    Ok(compiled) => compiled.to_string(),
-                    Err(e) => e.to_string(),
-                },
-                None => "".to_string(),
-            },
-            None => "".to_string(),
-        },
-        message: String::from_utf8(output.stderr)
-            .unwrap()
-            .replace(&file_path.to_str().unwrap().to_string(), &remix_file_path)
-            .replace(
-                &artifacts_path.to_str().unwrap().to_string(),
-                &remix_file_path,
-            ),
+        message: String::from_utf8(output.stderr).unwrap(),
         status: match output.status.code() {
             Some(0) => "Success".to_string(),
             Some(_) => "CompilationFailed".to_string(),
             None => "UnknownError".to_string(),
         },
+        file_content: compiled_contracts,
     }))
 }
