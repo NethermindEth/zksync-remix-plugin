@@ -385,13 +385,13 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       }
 
       // get Json body from response
-      const sierra = JSON.parse(await response.text())
+      const compileResult = JSON.parse(await response.text())
 
-      if (sierra.status !== 'Success') {
+      if (compileResult.status !== 'Success') {
         setStatus('Reporting Errors...')
-        await remixClient.terminal.log(sierra.message)
+        await remixClient.terminal.log(compileResult.message)
 
-        const errorLets = sierra.message.trim().split('\n')
+        const errorLets = compileResult.message.trim().split('\n')
 
         // remove last element if it's starts with `Error:`
         if (errorLets[errorLets.length - 1].startsWith('Error:')) {
@@ -432,7 +432,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         })
 
         // trim sierra message to get last line
-        const lastLine = sierra.message.trim().split('\n').pop().trim()
+        const lastLine = compileResult.message.trim().split('\n').pop().trim()
 
         remixClient.emit('statusChanged', {
           key: 'failed',
@@ -444,7 +444,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         )
       }
 
-      for (const file of sierra.file_content) {
+      for (const file of compileResult.file_content) {
 
         const sierraPath = `${artifactFolder(currentFilePath)}/${file.file_name}`
 
