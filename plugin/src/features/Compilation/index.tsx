@@ -444,15 +444,17 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         )
       }
 
-      for (const file of compileResult.file_content) {
+      let artifacts: string[] = []
 
-        const sierraPath = `${artifactFolder(currentFilePath)}/${file.file_name}`
+      for (const file of compileResult.file_content) {
+        const artifactsPath = `${artifactFolder(currentFilePath)}/${file.file_name}`
+        artifacts.push(artifactsPath)
 
         try {
           await remixClient.call(
               'fileManager',
               'writeFile',
-              sierraPath,
+              artifactsPath,
               file.file_content
           )
         } catch (e) {
@@ -462,13 +464,19 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
                 'toast',
                 e.message +
                 ' try deleting the files: ' +
-                sierraPath
+                artifactsPath
             )
           }
           remixClient.emit('statusChanged', {
             key: 'succeed',
             type: 'warning',
             title: 'Failed to save artifacts'
+          })
+        } finally {
+          remixClient.emit('statusChanged', {
+              key: 'succeed',
+              type: 'info',
+              title: 'Saved artifacts'
           })
         }
       }
@@ -487,243 +495,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     setIsCompiling(false)
   }
 
-  async function saveScarbWorkspace (
-    workspacePath: string,
-    currPath: string
-  ): Promise<string[]> {
-    const resTomlPaths: string[] = []
-
-    try {
-      const allFiles = await remixClient.fileManager.readdir(
-        workspacePath + '/' + currPath
-      )
-      // get keys of allFiles object
-      const allFilesKeys = Object.keys(allFiles)
-      // const get all values of allFiles object
-      const allFilesValues = Object.values(allFiles)
-
-      for (let i = 0; i < allFilesKeys.length; i++) {
-        if (
-          allFilesKeys[i].endsWith('Scarb.toml') ||
-          allFilesKeys[i].endsWith('.solidity')
-        ) {
-          const fileContent = await remixClient.call(
-            'fileManager',
-            'readFile',
-            workspacePath + '/' + allFilesKeys[i]
-          )
-          setStatus(`Saving ${allFilesKeys[i]}...`)
-          const response = await fetch(
-            `${apiUrl}/save_code/${hashDir}/${
-              workspacePath.replace('.', '') + '/' + allFilesKeys[i]
-            }`,
-            {
-              method: 'POST',
-              body: fileContent,
-              redirect: 'follow',
-              headers: {
-                'Content-Type': 'application/octet-stream'
-              }
-            }
-          )
-          if (!response.ok) {
-            await remixClient.call(
-              'notification' as any,
-              'toast',
-              'Could not reach solidity compilation server'
-            )
-            throw new Error('Solidity Compilation Request Failed')
-          }
-        }
-        if (Object.values(allFilesValues[i])[0]) {
-          await saveScarbWorkspace(workspacePath, allFilesKeys[i])
-        }
-      }
-    } catch (e) {
-      console.log('error: ', e)
-    }
-    return resTomlPaths
-  }
-
-  async function compileScarb (
-    workspacePath: string,
-    scarbPath: string
-  ): Promise<void> {
-    setIsCompiling(true)
-    try {
-      setStatus('Saving scarb workspace...')
-      await saveScarbWorkspace(workspacePath, scarbPath)
-      const response = await fetch(
-        `${apiUrl}/compile-scarb/${hashDir}/${workspacePath.replace(
-          '.',
-          ''
-        )}/${scarbPath}`,
-        {
-          method: 'GET',
-          redirect: 'follow',
-          headers: {
-            'Content-Type': 'text/plain'
-          }
-        }
-      )
-      if (!response.ok) {
-        await remixClient.call(
-          'notification' as any,
-          'toast',
-          'Scarb compilation failed!'
-        )
-        throw new Error('Solidity Compilation Request Failed')
-      }
-
-      const scarbCompile = JSON.parse(await response.text())
-
-      if (scarbCompile.status !== 'Success') {
-        await remixClient.call(
-          'notification' as any,
-          'alert',
-          {
-            id: 'starknetRemixPluginAlert',
-            title: 'Scarb compilation failed!',
-            message: 'Scarb compilation failed!, you can read logs in the terminal console'
-          }
-        )
-        remixClient.emit('statusChanged', {
-          key: 'failed',
-          type: 'error',
-          title: 'Scarb compilation failed!'
-        })
-        await remixClient.terminal.log({ type: 'error', value: scarbCompile.message })
-        throw new Error('Solidity Compilation Request Failed')
-      }
-
-      remixClient.emit('statusChanged', {
-        key: 'succeed',
-        type: 'success',
-        title: 'Scarb compilation successful'
-      })
-
-      setStatus('Analyzing contracts...')
-
-      let notifyCasmInclusion = false
-
-      const contractsToStore: Contract[] = []
-
-      for (const file of scarbCompile.file_content_map_array) {
-        if (file.file_name.endsWith('.sierra.json')) {
-          const contractName = file.file_name.replace('.sierra.json', '')
-          const sierra = JSON.parse(file.file_content)
-          if (
-            !scarbCompile.file_content_map_array.find(
-              (file: { file_name: string }) =>
-                file.file_name === contractName + '.casm.json'
-            )
-          ) {
-            notifyCasmInclusion = true
-            continue
-          }
-          const casm = JSON.parse(
-            scarbCompile.file_content_map_array.find(
-              (file: { file_name: string }) =>
-                file.file_name === contractName + '.casm.json'
-            )?.file_content ?? ''
-          )
-          const genContract = await genContractData(
-            contractName,
-            file.file_name,
-            JSON.stringify(sierra),
-            JSON.stringify(casm)
-          )
-          if (genContract != null) contractsToStore.push(genContract)
-        }
-      }
-
-      if (contractsToStore.length > 1) {
-        setSelectedContract(contractsToStore[0])
-        setContracts([...contracts, ...contractsToStore])
-      } else {
-        if (selectedContract == null) setSelectedContract(contracts[0])
-      }
-      if (notifyCasmInclusion) {
-        await remixClient.call(
-          'notification' as any,
-          'toast',
-          'Please include \'casm=true\' in Scarb.toml to deploy solidity contracts'
-        )
-      }
-
-      setStatus('Saving compilation output files...')
-      try {
-        for (const file of scarbCompile.file_content_map_array) {
-          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-          const filePath = `${scarbPath}/target/dev/${file.file_name}`
-          await remixClient.call(
-            'fileManager',
-            'writeFile',
-            filePath,
-            JSON.stringify(JSON.parse(file.file_content))
-          )
-        }
-        await remixClient.call(
-          'notification' as any,
-          'toast',
-          `Compilation resultant files are written to ${scarbPath}/target/dev directory`
-        )
-      } catch (e) {
-        if (e instanceof Error) {
-          await remixClient.call(
-            'notification' as any,
-            'toast',
-            e.message + ' try deleting the dir: ' + scarbPath + 'target/dev'
-          )
-        }
-        remixClient.emit('statusChanged', {
-          key: 'succeed',
-          type: 'warning',
-          title: 'Failed to save artifacts'
-        })
-      }
-    } catch (e) {
-      console.log('error: ', e)
-    }
-    setIsCompiling(false)
-    setStatus('done')
-  }
-
-  async function genContractData (
-    contractName: string,
-    path: string,
-    sierraFile: string,
-    casmFile: string
-  ): Promise<Contract | null> {
-    const sierra = await JSON.parse(sierraFile)
-    const casm = await JSON.parse(casmFile)
-    const compiledClassHash = hash.computeCompiledClassHash(casm)
-    const classHash = hash.computeContractClassHash(sierra)
-    const sierraClassHash = hash.computeSierraContractClassHash(sierra)
-    if (
-      contracts.find(
-        (contract) =>
-          contract.classHash === classHash &&
-            contract.compiledClassHash === compiledClassHash
-      )
-    ) {
-      return null
-    }
-    const contract = {
-      name: contractName,
-      abi: sierra.abi,
-      compiledClassHash,
-      classHash,
-      sierraClassHash,
-      sierra,
-      casm,
-      path,
-      deployedInfo: [],
-      address: ''
-    }
-    return contract
-  }
-
   const compilationCard = (
     validation: boolean,
     isLoading: boolean,
@@ -733,54 +504,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       <Container>
         {activeTomlPath && tomlPaths?.length > 0 && (
           <div className="project-dropdown-wrapper d-flex flex-column mb-3">
-            <button
-              className="btn btn-warning btn-block d-block w-100 text-break mb-1 mt-1 px-0"
-              disabled={isCompiling}
-              aria-disabled={isCompiling}
-              // eslint-disable-next-line @typescript-eslint/no-misused-promises
-              onClick={async (): Promise<void> => {
-                try {
-                  await compileScarb(currWorkspacePath, activeTomlPath)
-                  remixClient.emit('statusChanged', {
-                    key: 'succeed',
-                    type: 'success',
-                    title: 'Cheers : compilation successful'
-                  })
-                } catch (e) {
-                  console.log('error: ', e)
-                }
-              }}
-            >
-              Compile Project
-            </button>
-
-            <D.Root>
-              <D.Trigger>
-                <div className="btn btn-primary w-100 text-break remixui_disabled mb-1 mt-1 px-0 trigger-wrapper" style={{ padding: '10px 1px' }}>
-                  <label className="text-break text-white" style={{ fontFamily: 'inherit', fontSize: 'inherit' }}>
-                    {activeTomlPath}
-                  </label>
-                  <BsChevronDown />
-                </div>
-              </D.Trigger>
-              <D.Portal>
-                <D.Content>
-                  {tomlPaths.map((tomlPath, i) => {
-                    return (
-                      <D.Item
-                        key={i + tomlPath}
-                        onClick={() => {
-                          setActiveTomlPath(tomlPath)
-                        }}
-                      >
-                        {tomlPath}
-                      </D.Item>
-                    )
-                  })}
-                </D.Content>
-              </D.Portal>
-            </D.Root>
-            <div className='mx-auto'>Or compile a single file:</div>
+            <div className='mx-auto'>Compile a single Solidity file:</div>
           </div>
         )}
         <button

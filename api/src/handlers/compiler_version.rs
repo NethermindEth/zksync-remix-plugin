@@ -1,6 +1,5 @@
 use crate::handlers::process::{do_process_command, fetch_process_result};
 use crate::handlers::types::{ApiCommand, ApiCommandResult};
-use crate::rate_limiter::RateLimited;
 use crate::types::ApiError;
 use crate::worker::WorkerEngine;
 use rocket::State;
