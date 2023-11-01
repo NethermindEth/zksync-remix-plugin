@@ -1,0 +1,3 @@
+{"timestamp":"2023-10-22T11:49:57.246082Z","level":"INFO","fields":{"message":"Number of workers: 2"},"target":"api"}
+{"timestamp":"2023-10-22T11:49:57.246223Z","level":"INFO","fields":{"message":"Queue size: 1000"},"target":"api"}
+{"timestamp":"2023-10-22T11:49:57.246275Z","level":"INFO","fields":{"message":"Starting Rocket webserver..."},"target":"api"}

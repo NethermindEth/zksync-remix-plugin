@@ -21,7 +21,7 @@ dependencies:
     specifier: ^1.0.6
     version: 1.0.6(@types/react-dom@18.2.7)(@types/react@18.2.15)(react-dom@18.2.0)(react@18.2.0)
   '@rainbow-me/rainbowkit':
-    specifier: ^1.1.2
+    specifier: ^1.0.7
     version: 1.1.2(@types/react@18.2.15)(react-dom@18.2.0)(react@18.2.0)(viem@1.16.6)(wagmi@1.4.4)
   '@remixproject/engine':
     specifier: ^0.3.38
