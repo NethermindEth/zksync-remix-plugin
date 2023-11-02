@@ -4,8 +4,7 @@ import React, { useContext } from 'react'
 import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
 import {
   getContractNameFromFullName,
-  getSelectedContractIndex,
-  getShortenedHash
+  getSelectedContractIndex
 } from '../../utils/utils'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface

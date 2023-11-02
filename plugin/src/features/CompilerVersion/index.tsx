@@ -2,7 +2,6 @@ import * as D from '../../ui_components/Dropdown'
 import React, { useContext, useEffect, useState } from 'react'
 import { apiUrl } from '../../utils/network'
 import { RemixClientContext } from '../../contexts/RemixClientContext'
-// import { BsChevronDown } from 'react-icons/bs'
 import Nethermind from '../../components/NM'
 import './style.css'
 

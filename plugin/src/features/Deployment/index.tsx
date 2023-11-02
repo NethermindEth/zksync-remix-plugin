@@ -1,24 +1,19 @@
 import React, { useContext, useEffect, useState } from 'react'
 
-import { type BigNumberish, ethers } from 'ethers'
 import CompiledContracts from '../../components/CompiledContracts'
 import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
 import './styles.css'
 import Container from '../../ui_components/Container'
 
-import { ConnectionContext } from '../../contexts/ConnectionContext'
 import { RemixClientContext } from '../../contexts/RemixClientContext'
 import { type AccordianTabs } from '../Plugin'
-import DeploymentContext from '../../contexts/DeploymentContext'
 import TransactionContext from '../../contexts/TransactionContext'
-import { constants } from 'starknet'
-import EnvironmentContext from '../../contexts/EnvironmentContext'
 import { Wallet, Provider } from 'zksync-web3'
 import * as zksync from 'zksync-web3'
 import ConstructorInput from '../../components/ConstructorInput'
 import { DeployedContractsContext } from '../../contexts/DeployedContractsContext'
-import deployedContracts from '../../components/DeployedContracts'
 import { type DeployedContract } from '../../types/contracts'
+import { type Transaction } from '../../types/transaction'
 
 interface DeploymentProps {
   setActiveTab: (tab: AccordianTabs) => void
@@ -26,7 +21,7 @@ interface DeploymentProps {
 
 const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const remixClient = useContext(RemixClientContext)
-  const { account, provider } = useContext(ConnectionContext)
+  const { transactions, setTransactions } = useContext(TransactionContext)
   const { contracts, selectedContract, setContracts, setSelectedContract } =
     useContext(CompiledContractsContext)
 
@@ -45,8 +40,6 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   }, [selectedContract])
 
   async function deploy () {
-    remixClient.terminal.log('Hello!' as any)
-
     // TODO: Get provider
     const zkSyncProvider = new Provider('http://localhost:8011/')
 
@@ -55,41 +48,57 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     const wallet = new Wallet(PRIVATE_KEY, zkSyncProvider)
 
     //   Deploy contract
-
-    const c = selectedContract
-
-    if (c == null) {
-      remixClient.terminal.log('No contract selected!' as any)
+    if (selectedContract == null) {
+      remixClient.call(
+        'notification' as any,
+        'toast',
+        'No contract selected'
+      )
 
       return
     }
 
     const factory = new zksync.ContractFactory(
-      c.abi,
-      c.bytecode,
+      selectedContract.abi,
+      selectedContract.bytecode,
       wallet
     )
-
-    remixClient.terminal.log('Started deploy!' as any)
 
     try {
       const contract = await factory.deploy(...inputs)
 
-      remixClient.terminal.log('Deploying!' as any)
-      remixClient.terminal.log('Args: ' + JSON.stringify(inputs) as any)
+      remixClient.emit('statusChanged', {
+        key: 'loading',
+        type: 'info',
+        title: `Contract ${selectedContract.contractName} is deploying!`
+      })
 
       const tx = await contract.deployed()
 
-      console.log('Contract address:', tx.address)
+      remixClient.emit('statusChanged', {
+        key: 'succeed',
+        type: 'success',
+        title: `Contract ${selectedContract.contractName} deployed!`
+      })
 
       const address = tx.address
       const txHash = tx.deployTransaction.hash
 
-      remixClient.terminal.log(`Contract address: ${tx.address}` as any)
+      const contractOutputTx = tx.deployTransaction
+
+      contractOutputTx.data = contractOutputTx.data.slice(0, contractOutputTx.data.length / 3) + '...'
+
+      // @ts-expect-error
+      contractOutputTx.customData.factoryDeps = '[ <...> ]'
+
+      remixClient.terminal.log({
+        value: `${JSON.stringify(contractOutputTx, null, 2)}`,
+        type: 'info'
+      })
 
       const deployedContract = {
-        ...c,
-        bytecode: c.bytecode,
+        ...selectedContract,
+        bytecode: selectedContract.bytecode,
         transactionHash: txHash,
         address
       } as DeployedContract
@@ -98,8 +107,26 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       deployedSetSelectedContract(deployedContract)
 
       setActiveTab('interaction')
+
+      const transaction = {
+        type: 'deploy',
+        txId: txHash,
+        env: 'local'
+      } as Transaction
+
+      setTransactions([transaction, ...transactions])
     } catch (e) {
-      remixClient.terminal.log(`Error: ${e}` as any)
+      remixClient.emit('statusChanged', {
+        key: 'failed',
+        type: 'error',
+        title: `Contract ${selectedContract.contractName} failed to deploy!`
+      })
+
+      remixClient.call(
+        'notification' as any,
+        'toast',
+        `Error: ${(e as any).code}`
+      )
     }
   }
 

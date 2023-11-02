@@ -11,14 +11,11 @@ import {
   getFileNameFromPath
 } from '../../utils/utils'
 import './styles.css'
-import { hash } from 'starknet'
 import Container from '../../ui_components/Container'
 import storage from '../../utils/storage'
 import { ethers } from 'ethers'
 import CompilationContext from '../../contexts/CompilationContext'
 import { type AccordianTabs } from '../Plugin'
-import * as D from '../../ui_components/Dropdown'
-import { BsChevronDown } from 'react-icons/bs'
 import { type Contract } from '../../types/contracts'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -456,8 +453,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       setSelectedContract(contractsToAdd[0])
 
       for (const file of compileResult.file_content) {
-        remixClient.terminal.log(`file: ${file.file_name}` as any)
-
         const artifactsPath = `${artifactFolder(currentFilePath)}/${file.file_name}`
         artifacts.push(artifactsPath)
 

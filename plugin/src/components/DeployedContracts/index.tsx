@@ -8,8 +8,8 @@ import {
   getShortenedHash
 } from '../../utils/utils'
 import { DeployedContractsContext } from '../../contexts/DeployedContractsContext'
-import Container from "../../ui_components/Container";
-import FunctionalInput from "../FunctionalInput";
+import Container from '../../ui_components/Container'
+import FunctionalInput from '../FunctionalInput'
 import './deployedContracts.css'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -42,20 +42,22 @@ const DeployedContracts: React.FC = () => {
         })}
       </select>
 
-      {selectedContract != null ? (
+      {selectedContract != null
+        ? (
           <div>
               { selectedContract.abi.map(
-                    (abiElement, index) => {
-                        return abiElement.type !== 'constructor' && (
-                            <div key={index} className={"methodBox"}>
+                (abiElement, index) => {
+                  return abiElement.type !== 'constructor' && (
+                            <div key={index} className={'methodBox'}>
                                 <FunctionalInput element={abiElement}></FunctionalInput>
                             </div>
-                        )
-                    }
-                )
+                  )
+                }
+              )
               }
           </div>
-          ) : (
+          )
+        : (
             <div>
               <p>No contract selected</p>
             </div>

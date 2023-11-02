@@ -19,7 +19,7 @@ const InputField: React.FC<InputFieldProps> = ({ name, index, value, onChange, p
 				value={value}
 				onChange={(e) => { onChange(index, e.target.value) }}
 				className="input-text"
-				placeholder={placeholder ? placeholder : ''}
+				placeholder={placeholder || ''}
 			/>
 		</div>
   )

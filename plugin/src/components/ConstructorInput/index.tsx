@@ -3,6 +3,7 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
 import {
+  generateInputName,
   getContractNameFromFullName,
   getSelectedContractIndex,
   getShortenedHash
@@ -18,7 +19,7 @@ interface ConstructorContractsProps {
 }
 
 const ConstructorInput: React.FC<ConstructorContractsProps> = ({ inputs, setInputs }: ConstructorContractsProps) => {
-  const { selectedContract} = useContext(
+  const { selectedContract } = useContext(
     CompiledContractsContext
   )
 
@@ -35,9 +36,9 @@ const ConstructorInput: React.FC<ConstructorContractsProps> = ({ inputs, setInpu
   return (
     <>
       {
-        constructor && (constructor as AbiElement).inputs.map((input: Input, index: number) => {
+        (constructor != null) && (constructor).inputs.map((input: Input, index: number) => {
           return (
-            <InputField name={input.name} index={index} value={inputs[index]} onChange={(index, newValue) => {
+            <InputField name={generateInputName(input)} index={index} value={inputs[index]} onChange={(index, newValue) => {
               const newInputs = [...inputs]
               newInputs[index] = newValue
               setInputs(newInputs)
