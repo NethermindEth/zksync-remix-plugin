@@ -11,24 +11,13 @@ pub async fn get_process_status(process_id: String, engine: &State<WorkerEngine>
     // get status of process by ID
     match Uuid::parse_str(&process_id) {
         Ok(process_uuid) => {
-            if engine.arc_process_states.contains_key(&process_uuid) {
-                format!(
-                    "{:}",
-                    engine
-                        .arc_process_states
-                        .get(&process_uuid)
-                        .unwrap()
-                        .value()
-                )
+            if let Some(entry) = engine.arc_process_states.get(&process_uuid) {
+                format!("{:}", entry.value())
             } else {
-                // TODO can we return HTTP status code here?
-                format!("Process id not found")
+                "Process id not found".to_string()
             }
         }
-        Err(e) => {
-            // TODO can we return HTTP status code here?
-            e.to_string()
-        }
+        Err(e) => e.to_string(),
     }
 }
 
@@ -36,13 +25,9 @@ pub fn do_process_command(command: ApiCommand, engine: &State<WorkerEngine>) -> 
     // queue the new Scarb command
     match engine.enqueue_command(command) {
         Ok(uuid) => {
-            // return the process ID
             format!("{}", uuid)
         }
-        Err(e) => {
-            // TODO can we return HTTP status code here?
-            e
-        }
+        Err(e) => e,
     }
 }
 
@@ -65,16 +50,12 @@ where
                     .value()
                 {
                     ProcessState::Completed(result) => do_work(result),
-                    _ => String::from("Result not available"),
+                    _ => "Result not available".to_string(),
                 }
             } else {
-                // TODO can we return HTTP status code here?
                 "Process id not found".to_string()
             }
         }
-        Err(e) => {
-            // TODO can we return HTTP status code here?
-            e.to_string()
-        }
+        Err(e) => e.to_string(),
     }
 }

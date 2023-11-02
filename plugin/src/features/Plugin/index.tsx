@@ -23,7 +23,7 @@ import Accordian, {
   AccordionTrigger
 } from '../../ui_components/Accordian'
 import TransactionHistory from '../TransactionHistory'
-import CairoVersion from '../CairoVersion'
+import CompilerVersion from '../CompilerVersion'
 import CompilationContext from '../../contexts/CompilationContext'
 import DeploymentContext from '../../contexts/DeploymentContext'
 import { type Devnet, devnets, type DevnetAccount } from '../../utils/network'
@@ -52,7 +52,7 @@ const Plugin: React.FC = () => {
   const [status, setStatus] = useState('Compiling...')
   const [currentFilename, setCurrentFilename] = useState('')
   const [isCompiling, setIsCompiling] = useState(false)
-  const [isValidCairo, setIsValidCairo] = useState(false)
+  const [isValidSolidity, setIsValidSolidity] = useState(false)
   const [noFileSelected, setNoFileSelected] = useState(false)
   const [hashDir, setHashDir] = useState('')
   const [tomlPaths, setTomlPaths] = useState<string[]>([])
@@ -120,7 +120,7 @@ const Plugin: React.FC = () => {
   const explorerHook = useCurrentExplorer()
 
   return (
-    // add a button for selecting the cairo version
+    // add a button for selecting the solidity version
     <>
       <div className="plugin-wrapper">
         <EnvironmentContext.Provider
@@ -162,7 +162,7 @@ const Plugin: React.FC = () => {
                 }}
               >
                 <div className="plugin-main-wrapper">
-                  <CairoVersion />
+                  <CompilerVersion />
                   <Accordian
                     type="single"
                     value={currentAccordian}
@@ -176,8 +176,8 @@ const Plugin: React.FC = () => {
                         setCurrentFilename,
                         isCompiling,
                         setIsCompiling,
-                        isValidCairo,
-                        setIsValidCairo,
+                        isValidSolidity,
+                        setIsValidSolidity,
                         noFileSelected,
                         setNoFileSelected,
                         hashDir,
