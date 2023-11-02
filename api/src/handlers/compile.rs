@@ -3,8 +3,8 @@ use crate::handlers::types::{ApiCommand, ApiCommandResult, CompileResponse, SolF
 use crate::rate_limiter::RateLimited;
 use crate::types::{ApiError, Result};
 use crate::utils::lib::{
-    check_file_ext, get_file_path, path_buf_to_string, status_code_to_message, ARTIFACTS_ROOT,
-    SOL_ROOT,
+    check_file_ext, get_file_path, path_buf_to_string, status_code_to_message,
+    to_human_error_batch, ARTIFACTS_ROOT, SOL_ROOT,
 };
 use crate::worker::WorkerEngine;
 use rocket::serde::json;
@@ -84,8 +84,8 @@ pub async fn do_compile(remix_file_path: PathBuf) -> Result<Json<CompileResponse
         .ok_or(ApiError::FailedToParseString)?
         .to_string();
 
-    let (ast, _) =
-        solang_parser::parse(&sol_file_content, 0).map_err(|_| ApiError::FailedToParseSol)?;
+    let (ast, _) = solang_parser::parse(&sol_file_content, 0)
+        .map_err(|e| ApiError::FailedToParseSol(to_human_error_batch(e)))?;
 
     // retrieve the contract names from the AST
     let mut compiled_contracts: Vec<SolFile> = Vec::new();

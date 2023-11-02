@@ -34,6 +34,6 @@ pub enum ApiError {
     TooManyRequests,
     #[error("Error while trying to unlock mutex")]
     MutexUnlockError,
-    #[error("Error raised while trying to parse sol file")]
-    FailedToParseSol,
+    #[error("Error('s) raised while trying to parse sol file: \n{0}")]
+    FailedToParseSol(String),
 }

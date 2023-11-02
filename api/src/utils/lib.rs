@@ -1,5 +1,7 @@
 use crate::types::{ApiError, Result};
 use rocket::tokio::fs;
+use solang_parser::diagnostics::{Diagnostic, ErrorType, Level};
+use solang_parser::pt::Loc;
 use std::path::{Path, PathBuf};
 
 pub const SOL_ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/", "hardhat_env/contracts/");
@@ -76,4 +78,58 @@ pub fn get_file_path(file_path: &String) -> PathBuf {
 
 pub fn timestamp() -> u64 {
     chrono::Utc::now().timestamp() as u64
+}
+
+pub fn to_human_error(
+    Diagnostic {
+        loc,
+        level,
+        ty,
+        message,
+        notes,
+    }: Diagnostic,
+) -> String {
+    let level = match level {
+        Level::Debug => "Debug",
+        Level::Info => "Info",
+        Level::Warning => "Warning",
+        Level::Error => "Error",
+    };
+
+    let loc = match loc {
+        Loc::Builtin => "Builtin".to_string(),
+        Loc::CommandLine => "CommandLine".to_string(),
+        Loc::Implicit => "Implicit".to_string(),
+        Loc::Codegen => "Codegen".to_string(),
+        Loc::File(_, start, end) => format!("{}:{}", start, end),
+    };
+
+    let ty = match ty {
+        ErrorType::None => "None",
+        ErrorType::ParserError => "ParserError",
+        ErrorType::SyntaxError => "SyntaxError",
+        ErrorType::DeclarationError => "DeclarationError",
+        ErrorType::CastError => "CastError",
+        ErrorType::TypeError => "TypeError",
+        ErrorType::Warning => "Warning",
+    };
+
+    let notes = notes
+        .iter()
+        .map(|note| note.message.clone())
+        .collect::<Vec<String>>()
+        .join("\n");
+
+    format!(
+        "level: {}, loc: {}, ty: {}, message: {}, notes: {}\n",
+        level, loc, ty, message, notes
+    )
+}
+
+pub fn to_human_error_batch(diagnostics: Vec<Diagnostic>) -> String {
+    diagnostics
+        .into_iter()
+        .map(|diagnostic| to_human_error(diagnostic))
+        .collect::<Vec<String>>()
+        .join("\n")
 }
