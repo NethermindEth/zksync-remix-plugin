@@ -21,8 +21,8 @@ const SolidityVersion: React.FC = () => {
       try {
         if (apiUrl !== undefined) {
           await remixClient.call(
-              'notification' as any,
-              'toast',
+            'notification' as any,
+            'toast',
               `🟢 Fetching solidity version from the compilation server at ${apiUrl}`
           )
 

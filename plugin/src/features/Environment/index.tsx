@@ -25,6 +25,7 @@ import ManualAccount from '../../components/ManualAccount'
 interface EnvironmentProps {}
 
 const Environment: React.FC<EnvironmentProps> = () => {
+  // Using the context
   const remixClient = useContext(RemixClientContext)
   const { setAccount, setProvider } =
     useContext(ConnectionContext)
@@ -38,6 +39,7 @@ const Environment: React.FC<EnvironmentProps> = () => {
   } = useContext(EnvironmentContext)
   const [prevEnv, setPrevEnv] = useState<string>(env)
 
+  // START: WALLET
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const connectWalletHandler = async (
     options: ConnectOptions = {
@@ -114,6 +116,7 @@ const Environment: React.FC<EnvironmentProps> = () => {
           >
             <div className="trigger-env">
               <p>Environment</p>
+              {/* Select test accounts */}
               <button
                 type="button"
                 className="mb-0 btn btn-sm btn-outline-secondary float-right rounded-pill env-testnet-btn"

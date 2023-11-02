@@ -35,11 +35,7 @@ const CompiledContracts: React.FC<CompiledContractsProps> = (props) => {
       {contracts.map((contract, index) => {
         return (
           <option value={index} key={index}>
-            {`${getContractNameFromFullName(contract.name)} (${getShortenedHash(
-              contract.classHash ?? '',
-              6,
-              4
-            )})`}
+            {`${getContractNameFromFullName(contract.contractName)}`}
           </option>
         )
       })}

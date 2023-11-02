@@ -1,14 +1,8 @@
 import React, { useContext, useEffect, useState } from 'react'
 
-import { type BigNumberish } from 'ethers'
+import { type BigNumberish, ethers } from 'ethers'
 import CompiledContracts from '../../components/CompiledContracts'
 import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
-import {
-  type CallDataObj,
-  type CallDataObject,
-  type Contract
-} from '../../types/contracts'
-import { getConstructor, getParameterType } from '../../utils/utils'
 import './styles.css'
 import Container from '../../ui_components/Container'
 
@@ -19,6 +13,12 @@ import DeploymentContext from '../../contexts/DeploymentContext'
 import TransactionContext from '../../contexts/TransactionContext'
 import { constants } from 'starknet'
 import EnvironmentContext from '../../contexts/EnvironmentContext'
+import { Wallet, Provider } from 'zksync-web3'
+import * as zksync from 'zksync-web3'
+import ConstructorInput from '../../components/ConstructorInput'
+import { DeployedContractsContext } from '../../contexts/DeployedContractsContext'
+import deployedContracts from '../../components/DeployedContracts'
+import { type DeployedContract } from '../../types/contracts'
 
 interface DeploymentProps {
   setActiveTab: (tab: AccordianTabs) => void
@@ -30,160 +30,105 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const { contracts, selectedContract, setContracts, setSelectedContract } =
     useContext(CompiledContractsContext)
 
-  const [constructorCalldata, setConstructorCalldata] =
-    useState<CallDataObject>({})
-
   const {
-    isDeploying,
-    setIsDeploying,
-    deployStatus,
-    setDeployStatus,
-    constructorInputs,
-    setConstructorInputs,
-    notEnoughInputs,
-    setNotEnoughInputs
-  } = useContext(DeploymentContext)
+    contracts: deployedContracts, selectedContract: deployedSelectedContract,
+    setContracts: deployedSetContracts, setSelectedContract: deployedSetSelectedContract
+  } =
+      useContext(DeployedContractsContext)
 
-  const { transactions, setTransactions } = useContext(TransactionContext)
-  const { env } = useContext(EnvironmentContext)
+  const [inputs, setInputs] = useState<string[]>([])
 
-  const [chainId, setChainId] = useState<constants.StarknetChainId>(
-    constants.StarknetChainId.SN_GOERLI
-  )
+  useEffect(() => {
+    setInputs(new Array(selectedContract?.abi.find((abiElement) => {
+      return abiElement.type === 'constructor'
+    })?.inputs.length).fill(''))
+  }, [selectedContract])
+
+  async function deploy () {
+    remixClient.terminal.log('Hello!' as any)
+
+    // TODO: Get provider
+    const zkSyncProvider = new Provider('http://localhost:8011/')
+
+    const PRIVATE_KEY: string = '0x3eb15da85647edd9a1159a4a13b9e7c56877c4eb33f614546d4db06a51868b1c'
+
+    const wallet = new Wallet(PRIVATE_KEY, zkSyncProvider)
+
+    //   Deploy contract
+
+    const c = selectedContract
+
+    if (c == null) {
+      remixClient.terminal.log('No contract selected!' as any)
+
+      return
+    }
+
+    const factory = new zksync.ContractFactory(
+      c.abi,
+      c.bytecode,
+      wallet
+    )
+
+    remixClient.terminal.log('Started deploy!' as any)
+
+    try {
+      const contract = await factory.deploy(...inputs)
+
+      remixClient.terminal.log('Deploying!' as any)
+      remixClient.terminal.log('Args: ' + JSON.stringify(inputs) as any)
+
+      const tx = await contract.deployed()
+
+      console.log('Contract address:', tx.address)
+
+      const address = tx.address
+      const txHash = tx.deployTransaction.hash
+
+      remixClient.terminal.log(`Contract address: ${tx.address}` as any)
+
+      const deployedContract = {
+        ...c,
+        bytecode: c.bytecode,
+        transactionHash: txHash,
+        address
+      } as DeployedContract
+
+      deployedSetContracts([deployedContract, ...deployedContracts])
+      deployedSetSelectedContract(deployedContract)
+
+      setActiveTab('interaction')
+    } catch (e) {
+      remixClient.terminal.log(`Error: ${e}` as any)
+    }
+  }
 
   return (
     <>
       <Container>
-        {contracts.length > 0 && selectedContract != null
+        {contracts.length > 0
           ? (
-          // <div className="">
-          //   <CompiledContracts show={'class'} />
-          //   <form onSubmit={handleDeploySubmit}>
-          //     {constructorInputs.map((input, index) => {
-          //       return (
-          //         <div
-          //           className="udapp_multiArg constructor-label-wrapper"
-          //           key={index}
-          //         >
-          //           <label key={index} className="constructor-label">
-          //             {`${input.name} (${
-          //               getParameterType(input.type) ?? ''
-          //             }): `}
-          //           </label>
-          //           <input
-          //             className="form-control constructor-input"
-          //             name={input.name}
-          //             data-type={input.type}
-          //             data-index={index}
-          //             value={constructorCalldata[index]?.value ?? ''}
-          //             onChange={handleConstructorCalldataChange}
-          //           />
-          //         </div>
-          //       )
-          //     })}
-          //     <button
-          //       className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3 px-0"
-          //       style={{
-          //         cursor: `${
-          //           isDeploying ||
-          //           account == null ||
-          //           selectedContract.deployedInfo.some(
-          //             (info) =>
-          //               info.address === account.address &&
-          //               info.chainId === chainId
-          //           )
-          //             ? 'not-allowed'
-          //             : 'pointer'
-          //         }`
-          //       }}
-          //       disabled={
-          //         isDeploying ||
-          //         account == null ||
-          //         selectedContract.deployedInfo.some(
-          //           (info) =>
-          //             info.address === account.address &&
-          //             info.chainId === chainId
-          //         )
-          //       }
-          //       aria-disabled={
-          //         isDeploying ||
-          //         account == null ||
-          //         selectedContract.deployedInfo.some(
-          //           (info) =>
-          //             info.address === account.address &&
-          //             info.chainId === chainId
-          //         )
-          //       }
-          //       type="submit"
-          //     >
-          //       <div className="d-flex align-items-center justify-content-center">
-          //         <div className="text-truncate overflow-hidden text-nowrap">
-          //           {isDeploying
-          //             ? (
-          //             <>
-          //               <span
-          //                 className="spinner-border spinner-border-sm"
-          //                 role="status"
-          //                 aria-hidden="true"
-          //               >
-          //                 {' '}
-          //               </span>
-          //               <span style={{ paddingLeft: '0.5rem' }}>
-          //                 {deployStatus}
-          //               </span>
-          //             </>
-          //               )
-          //             : (
-          //             <div className="text-truncate overflow-hidden text-nowrap">
-          //               {account != null &&
-          //               selectedContract.deployedInfo.some(
-          //                 (info) =>
-          //                   info.address === account.address &&
-          //                   info.chainId === chainId
-          //               )
-          //                 ? (
-          //                 <span>
-          //                   {' '}
-          //                   Deployed <i className="bi bi-check"></i>{' '}
-          //                   {selectedContract.name}
-          //                 </span>
-          //                   )
-          //                 : (
-          //                 <span> Deploy {selectedContract.name}</span>
-          //                   )}
-          //             </div>
-          //               )}
-          //         </div>
-          //       </div>
-          //     </button>
-          //   </form>
-          //   {account != null &&
-          //     selectedContract.deployedInfo.some(
-          //       (info) =>
-          //         info.address === account.address && info.chainId === chainId
-          //     ) && (
-          //       <div className="mt-3">
-          //         <label style={{ display: 'block' }}>
-          //           Contract deployed! See{' '}
-          //           <a
-          //             href="/"
-          //             className="text-info"
-          //             onClick={(e) => {
-          //               e.preventDefault()
-          //               setActiveTab('interaction')
-          //             }}
-          //           >
-          //             Interact
-          //           </a>{' '}
-          //           for more!
-          //         </label>
-          //       </div>
-          //   )}
-          //   {notEnoughInputs && (
-          //     <label>Please fill out all constructor fields!</label>
-          //   )}
-          // </div>
-                <div></div>
+                <div>
+                  <CompiledContracts show={'contract'}></CompiledContracts>
+                  {
+                    (selectedContract != null)
+                      ? <div>
+                        <ConstructorInput inputs={inputs} setInputs={setInputs}></ConstructorInput>
+
+                        <button
+                          className="btn btn-primary btn-block d-block w-100 text-break mb-1 mt-2 px-0"
+                          onClick={() => {
+                            deploy()
+                          }}
+                        >
+                          Deploy
+                        </button>
+
+                      </div>
+                      : <>
+                        </>
+                  }
+                </div>
             )
           : (
           <p>No contracts ready for deployment yet, compile a solidity contract</p>
