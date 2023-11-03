@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { PluginClient } from '@remixproject/plugin'
 import { createClient } from '@remixproject/plugin-webview'
-
 import './App.css'
 import Plugin from './features/Plugin'
 import { RemixClientContext } from './contexts/RemixClientContext'
 import Loader from './ui_components/CircularLoader'
 import FullScreenOverlay from './ui_components/FullScreenOverlay'
-import { fetchGitHubFilesRecursively } from './utils/initial_scarb_codes'
 
 const remixClient = createClient(new PluginClient())
 const App: React.FC = () => {
@@ -31,7 +29,7 @@ const App: React.FC = () => {
       <div className="shell">
         {pluginLoaded
           ? (
-          <Plugin />
+            <Plugin />
             )
           : (
           <FullScreenOverlay>

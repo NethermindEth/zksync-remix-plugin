@@ -7,7 +7,7 @@ import {
 import { getAccounts } from '../../utils/network'
 import React, { useContext, useEffect, useState } from 'react'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
-import { Account, Provider } from 'starknet'
+import { Provider, Wallet } from 'zksync-web3'
 import { RemixClientContext } from '../../contexts/RemixClientContext'
 import { MdCopyAll, MdRefresh } from 'react-icons/md'
 import './devnetAccountSelector.css'
@@ -15,8 +15,7 @@ import EnvironmentContext from '../../contexts/EnvironmentContext'
 import copy from 'copy-to-clipboard'
 
 const DevnetAccountSelector: React.FC = () => {
-  const { account, setAccount, provider, setProvider } =
-    useContext(ConnectionContext)
+  const { account, setAccount, provider, setProvider } =useContext(ConnectionContext)
   const remixClient = useContext(RemixClientContext)
   const {
     env,
@@ -29,61 +28,63 @@ const DevnetAccountSelector: React.FC = () => {
     setAvailableDevnetAccounts
   } = useContext(EnvironmentContext)
 
-  // devnet live status
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    const interval = setInterval(async () => {
-      try {
-        const response = await fetch(`${devnet.url}/is_alive`, {
-          method: 'GET',
-          redirect: 'follow',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        })
-        const status = await response.text()
+  // // devnet live status
+  // useEffect(() => {
+  //   // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  //   const interval = setInterval(async () => {
+  //     try {
+  //       const response = await fetch(`${devnet.url}`, {
+  //         method: 'POST',
+  //         headers: {
+  //           'Content-Type': 'application/json'
+  //         },
+  //         body: JSON.stringify({"jsonrpc": "2.0","id": "1","method": "eth_syncing","params": []})
+  //       })
+  //       const status = await response.json()
+  //       console.log(status)
 
-        if (status !== 'Alive!!!' || response.status !== 200) {
-          setIsDevnetAlive(() => false)
-        } else {
-          setIsDevnetAlive(() => true)
-        }
-      } catch (error) {
-        setIsDevnetAlive(() => false)
-      }
-    }, 1000)
-    return () => {
-      clearInterval(interval)
-    }
-  }, [devnet])
+  //       if (status !== 'Alive!!!' || response.status !== 200) {
+  //         setIsDevnetAlive(() => false)
+  //       } else {
+  //         setIsDevnetAlive(() => true)
+  //       }
+  //     } catch (error) {
+  //       setIsDevnetAlive(() => false)
+  //     }
+  //   }, 1000)
+  //   return () => {
+  //     clearInterval(interval)
+  //   }
+  // }, [devnet])
 
-  const notifyDevnetStatus = async (): Promise<void> => {
-    try {
-      await remixClient.call(
-        'notification' as any,
-        'toast',
-        `❗️ Server ${devnet.name} - ${devnet.url} is not healthy or not reachable at the moment`
-      )
-    } catch (e) {
-      console.log(e)
-    }
-  }
+  // const notifyDevnetStatus = async (): Promise<void> => {
+  //   try {
+  //     await remixClient.call(
+  //       'notification' as any,
+  //       'toast',
+  //       `❗️ Server ${devnet.name} - ${devnet.url} is not healthy or not reachable at the moment`
+  //     )
+  //   } catch (e) {
+  //     console.log(e)
+  //   }
+  // }
 
-  useEffect(() => {
-    if (!isDevnetAlive) {
-      notifyDevnetStatus().catch((e) => {
-        console.log(e)
-      })
-    }
-  }, [isDevnetAlive])
+  // useEffect(() => {
+  //   if (!isDevnetAlive) {
+  //     notifyDevnetStatus().catch((e) => {
+  //       console.log(e)
+  //     })
+  //   }
+  // }, [isDevnetAlive])
 
   const refreshDevnetAccounts = async (): Promise<void> => {
     setAccountRefreshing(true)
     try {
-      const accounts = await getAccounts(devnet.url)
+      const accounts = await getAccounts(`${devnet.url}`)
       if (
         JSON.stringify(accounts) !== JSON.stringify(availableDevnetAccounts)
-      ) {
+      ) 
+      {
         setAvailableDevnetAccounts(accounts)
       }
     } catch (e) {
@@ -98,12 +99,12 @@ const DevnetAccountSelector: React.FC = () => {
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     setTimeout(async () => {
-      if (!isDevnetAlive) {
-        return
-      }
+      // if (!isDevnetAlive) {
+      //   return
+      // }
       await refreshDevnetAccounts()
     }, 1)
-  }, [devnet, isDevnetAlive])
+  }, [devnet])
 
   useEffect(() => {
     if (
@@ -118,17 +119,12 @@ const DevnetAccountSelector: React.FC = () => {
   }, [availableDevnetAccounts, devnet])
 
   useEffect(() => {
-    const newProvider = new Provider({
-      sequencer: {
-        baseUrl: devnet.url
-      }
-    })
+    const newProvider = new Provider(devnet.url)
     if (selectedDevnetAccount != null) {
       setAccount(
-        new Account(
-          newProvider,
-          selectedDevnetAccount.address,
-          selectedDevnetAccount.private_key
+        new Wallet(
+          selectedDevnetAccount.private_key,
+          newProvider
         )
       )
     }
@@ -141,17 +137,13 @@ const DevnetAccountSelector: React.FC = () => {
     }
     setAccountIdx(event.target.value)
     setSelectedDevnetAccount(availableDevnetAccounts[event.target.value])
-    const newProvider = new Provider({
-      sequencer: {
-        baseUrl: devnet.url
-      }
-    })
+    const newProvider = new Provider(devnet.url)
     if (provider == null) setProvider(newProvider)
     setAccount(
-      new Account(
-        provider ?? newProvider,
-        availableDevnetAccounts[event.target.value].address,
-        availableDevnetAccounts[event.target.value].private_key
+      new Wallet(
+        availableDevnetAccounts[event.target.value].private_key,        
+        provider ?? newProvider
+
       )
     )
   }
@@ -186,10 +178,9 @@ const DevnetAccountSelector: React.FC = () => {
                       account.address ?? '',
                       6,
                       4
-                    )} (${getRoundedNumber(
-                      weiToEth(account.initial_balance),
-                      2
-                    )} ether)`}
+                    )}
+                    (${getRoundedNumber(weiToEth(account.initial_balance),2)} ether)`
+                    }
                   </option>
               )
             })
