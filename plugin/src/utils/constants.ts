@@ -1,6 +1,6 @@
 import { constants } from 'starknet'
 
-const devnetUrl = 'http://127.0.0.1:5050'
+const devnetUrl = 'http://127.0.0.1:8011'
 
 type Network =
   | 'goerli-alpha'
