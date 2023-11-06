@@ -12,6 +12,7 @@ import { Contract } from 'ethers'
 import { Provider, Wallet } from 'zksync-web3'
 import TransactionContext from '../../contexts/TransactionContext'
 import { type Transaction } from '../../types/transaction'
+import { ConnectionContext } from '../../contexts/ConnectionContext'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface CompiledContractsProps {
@@ -23,6 +24,7 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
   const { selectedContract } = useContext(DeployedContractsContext)
   const remixClient = useContext(RemixClientContext)
   const { transactions, setTransactions } = useContext(TransactionContext)
+  const { account } = useContext(ConnectionContext)
 
   const callContract = async () => {
     if (selectedContract == null) {
@@ -31,14 +33,14 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
     }
 
     try {
+      if (account == null) {
+        await remixClient.terminal.log('No account selected' as any)
+        return
+      }
+
       const contractAddress = selectedContract.address
-      const zkSyncProvider = new Provider('http://localhost:8011/')
-      const PRIVATE_KEY: string = '0x3eb15da85647edd9a1159a4a13b9e7c56877c4eb33f614546d4db06a51868b1c'
-
-      const wallet = new Wallet(PRIVATE_KEY, zkSyncProvider)
-
-      const contract = new Contract(contractAddress, selectedContract.abi, wallet)
-        .connect(wallet)
+      const contract = new Contract(contractAddress, selectedContract.abi, account)
+        .connect(account)
 
       const method = contract[element.name]
 

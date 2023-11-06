@@ -15,7 +15,7 @@ import EnvironmentContext from '../../contexts/EnvironmentContext'
 import copy from 'copy-to-clipboard'
 
 const DevnetAccountSelector: React.FC = () => {
-  const { account, setAccount, provider, setProvider } =useContext(ConnectionContext)
+  const { account, setAccount, provider, setProvider } = useContext(ConnectionContext)
   const remixClient = useContext(RemixClientContext)
   const {
     env,
@@ -28,54 +28,63 @@ const DevnetAccountSelector: React.FC = () => {
     setAvailableDevnetAccounts
   } = useContext(EnvironmentContext)
 
-  // // devnet live status
-  // useEffect(() => {
-  //   // eslint-disable-next-line @typescript-eslint/no-misused-promises
-  //   const interval = setInterval(async () => {
-  //     try {
-  //       const response = await fetch(`${devnet.url}`, {
-  //         method: 'POST',
-  //         headers: {
-  //           'Content-Type': 'application/json'
-  //         },
-  //         body: JSON.stringify({"jsonrpc": "2.0","id": "1","method": "eth_syncing","params": []})
-  //       })
-  //       const status = await response.json()
-  //       console.log(status)
+  // devnet live status
+  useEffect(() => {
+    let isSubscribed = true;
 
-  //       if (status !== 'Alive!!!' || response.status !== 200) {
-  //         setIsDevnetAlive(() => false)
-  //       } else {
-  //         setIsDevnetAlive(() => true)
-  //       }
-  //     } catch (error) {
-  //       setIsDevnetAlive(() => false)
-  //     }
-  //   }, 1000)
-  //   return () => {
-  //     clearInterval(interval)
-  //   }
-  // }, [devnet])
+    const interval = setInterval(async () => {
+      try {
+        const response = await fetch(`${devnet.url}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({"jsonrpc":"2.0", "method":"eth_blockNumber", "params":[], "id":1})
+        });
 
-  // const notifyDevnetStatus = async (): Promise<void> => {
-  //   try {
-  //     await remixClient.call(
-  //       'notification' as any,
-  //       'toast',
-  //       `❗️ Server ${devnet.name} - ${devnet.url} is not healthy or not reachable at the moment`
-  //     )
-  //   } catch (e) {
-  //     console.log(e)
-  //   }
-  // }
+        if (response.status === 200) {
+          const responseBody = await response.json();
+          if (responseBody.result != null && isSubscribed) {
+              setIsDevnetAlive(true);
+          } else if (isSubscribed) {
+              setIsDevnetAlive(false);
+            }
+        } else if (isSubscribed) {
+            setIsDevnetAlive(false);
+        }
+      } catch (error) {
+        if (isSubscribed) {
+          setIsDevnetAlive(false);
+        }
+      }
+    }, 1000);
 
-  // useEffect(() => {
-  //   if (!isDevnetAlive) {
-  //     notifyDevnetStatus().catch((e) => {
-  //       console.log(e)
-  //     })
-  //   }
-  // }, [isDevnetAlive])
+    return () => {
+      clearInterval(interval);
+      isSubscribed = false;
+    };
+  }, [devnet.url]);
+
+
+  const notifyDevnetStatus = async (): Promise<void> => {
+    try {
+      await remixClient.call(
+        'notification' as any,
+        'toast',
+        `❗️ Server ${devnet.name} - ${devnet.url} is not healthy or not reachable at the moment`
+      )
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  useEffect(() => {
+    if (!isDevnetAlive) {
+      notifyDevnetStatus().catch((e) => {
+        console.log(e)
+      })
+    }
+  }, [isDevnetAlive])
 
   const refreshDevnetAccounts = async (): Promise<void> => {
     setAccountRefreshing(true)
@@ -83,7 +92,7 @@ const DevnetAccountSelector: React.FC = () => {
       const accounts = await getAccounts(`${devnet.url}`)
       if (
         JSON.stringify(accounts) !== JSON.stringify(availableDevnetAccounts)
-      ) 
+      )
       {
         setAvailableDevnetAccounts(accounts)
       }
@@ -141,7 +150,7 @@ const DevnetAccountSelector: React.FC = () => {
     if (provider == null) setProvider(newProvider)
     setAccount(
       new Wallet(
-        availableDevnetAccounts[event.target.value].private_key,        
+        availableDevnetAccounts[event.target.value].private_key,
         provider ?? newProvider
 
       )

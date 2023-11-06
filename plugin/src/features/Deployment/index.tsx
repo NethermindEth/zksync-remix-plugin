@@ -14,6 +14,7 @@ import ConstructorInput from '../../components/ConstructorInput'
 import { DeployedContractsContext } from '../../contexts/DeployedContractsContext'
 import { type DeployedContract } from '../../types/contracts'
 import { type Transaction } from '../../types/transaction'
+import { ConnectionContext } from '../../contexts/ConnectionContext'
 
 interface DeploymentProps {
   setActiveTab: (tab: AccordianTabs) => void
@@ -24,6 +25,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const { transactions, setTransactions } = useContext(TransactionContext)
   const { contracts, selectedContract, setContracts, setSelectedContract } =
     useContext(CompiledContractsContext)
+
+  const { account } = useContext(ConnectionContext)
 
   const {
     contracts: deployedContracts, selectedContract: deployedSelectedContract,
@@ -40,13 +43,6 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   }, [selectedContract])
 
   async function deploy () {
-    // TODO: Get provider
-    const zkSyncProvider = new Provider('http://localhost:8011/')
-
-    const PRIVATE_KEY: string = '0x3eb15da85647edd9a1159a4a13b9e7c56877c4eb33f614546d4db06a51868b1c'
-
-    const wallet = new Wallet(PRIVATE_KEY, zkSyncProvider)
-
     //   Deploy contract
     if (selectedContract == null) {
       remixClient.call(
@@ -58,10 +54,25 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       return
     }
 
+    if (account == null) {
+      remixClient.call(
+        'notification' as any,
+        'toast',
+        'No account selected'
+      )
+
+      return
+    }
+
+    remixClient.terminal.log({
+      value: `Deploying contract ${selectedContract.contractName} with account ${account.address}`,
+      type: 'info'
+    })
+
     const factory = new zksync.ContractFactory(
       selectedContract.abi,
       selectedContract.bytecode,
-      wallet
+      account
     )
 
     try {
