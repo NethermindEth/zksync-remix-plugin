@@ -13,6 +13,7 @@ import Accordian, {
   AccordionContent,
   AccordionTrigger
 } from '../../ui_components/Accordian'
+import ManualAccount from '../../components/ManualAccount'
 // import ManualAccount from '../../components/ManualAccount'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -106,8 +107,7 @@ const Environment: React.FC<EnvironmentProps> = () => {
                     </div>
                   </>
                 ) : (
-                  // <ManualAccount prevEnv={prevEnv} />
-                  <div></div>
+                  <ManualAccount  prevEnv={prevEnv}/>
                 )}
               </div>
             </>
