@@ -3,7 +3,7 @@ import { type DevnetAccount } from '../types/accounts'
 const apiUrl = import.meta.env.VITE_API_URL ?? 'solidity-compile-remix-test.nethermind.io'
 const devnetUrl = 'http://localhost:8011'
 //  process.env.REACT_APP_DEVNET_URL ?? 'http://localhost:8011'
-const remoteDevnetUrl = process.env.REACT_APP_REMOTE_DEVNET_URL ?? 'https://starknet-devnet-dev.nethermind.io'
+const remoteDevnetUrl = process.env.VITE_REMOTE_DEVNET_URL ?? 'https://zksync-devnet.nethermind.dev'
 
 interface Devnet {
   name: string
