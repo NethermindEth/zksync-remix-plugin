@@ -14,7 +14,8 @@ RUN apt-get install -y curl \
     apt-transport-https \
     software-properties-common \
     wget \
-    npm
+    npm \
+    yarn
 
 # Installing grafana agent
 RUN mkdir -p /etc/apt/keyrings/
@@ -41,7 +42,7 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 # Build the API service
 WORKDIR /opt/app/api
 
-RUN cd hardhat_env && npm install
+RUN cd hardhat_env && yarn
 
 RUN cargo build --release
 
