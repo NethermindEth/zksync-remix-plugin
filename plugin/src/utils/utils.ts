@@ -1,10 +1,6 @@
 import { type DevnetAccount } from '../types/accounts'
-import { type AbiElement, type Abi, type Contract } from '../types/contracts'
+import { type AbiElement, type Abi, type Contract, type Input } from '../types/contracts'
 import { type Network, networkExplorerUrls } from './constants'
-
-function isValidSolidity (filename: string): boolean {
-  return filename.endsWith('.solidity')
-}
 
 const getFileExtension = (filename: string): string =>
   filename.split('.').pop() ?? ''
@@ -27,7 +23,7 @@ const getContractByClassHash = (
   classHash: string,
   contracts: Contract[]
 ): Contract | undefined => {
-  return contracts.find((contract) => contract.classHash === classHash)
+  return contracts.find((contract) => contract.sourceName === classHash)
 }
 
 const getShortenedHash = (
@@ -49,51 +45,8 @@ const getContractFunctions = (abi: Abi): AbiElement[] => {
   return contractFunctions
 }
 
-const getReadFunctions = (abi: Abi): AbiElement[] => {
-  const readFunctions = abi.filter(
-    (item) =>
-      item.type === 'function' &&
-      item.name !== 'constructor' &&
-      item.state_mutability === 'view'
-  )
-  abi.forEach((item) => {
-    if (item.type === 'interface' && item.items !== undefined) {
-      item.items.forEach((it) => {
-        if (
-          it.type === 'function' &&
-          it.name !== 'constructor' &&
-          it.state_mutability === 'view'
-        ) {
-          readFunctions.push(it)
-        }
-      })
-    }
-  })
-  return readFunctions
-}
-
-const getWriteFunctions = (abi: Abi): AbiElement[] => {
-  console.log('abi', abi)
-  const writeFunctions = abi.filter(
-    (item) =>
-      item.type === 'function' &&
-      item.name !== 'constructor' &&
-      item.state_mutability === 'external'
-  )
-  abi.forEach((item) => {
-    if (item.type === 'interface' && item.items !== undefined) {
-      item.items.forEach((it) => {
-        if (
-          it.type === 'function' &&
-          it.name !== 'constructor' &&
-          it.state_mutability === 'external'
-        ) {
-          writeFunctions.push(it)
-        }
-      })
-    }
-  })
-  return writeFunctions
+function generateInputName (input: Input): string {
+  return `${input.name} (${input.type})`
 }
 
 const getParameterType = (parameter: string): string | undefined => {
@@ -108,7 +61,7 @@ const getSelectedContractIndex = (
 ): number => {
   if (selectedContract != null) {
     return contracts.findIndex(
-      (contract) => contract.classHash === selectedContract.classHash
+      (contract) => contract.sourceName === selectedContract.sourceName
     )
   }
   return 0
@@ -145,7 +98,6 @@ const trimStr = (str?: string, strip?: number): string => {
 }
 
 export {
-  isValidSolidity,
   getFileExtension,
   getFileNameFromPath,
   getContractNameFromFullName,
@@ -155,13 +107,12 @@ export {
   getShortenedHash,
   getConstructor,
   getContractFunctions,
-  getReadFunctions,
-  getWriteFunctions,
   getParameterType,
   getSelectedContractIndex,
   getSelectedAccountIndex,
   getRoundedNumber,
   weiToEth,
   getExplorerUrl,
+  generateInputName,
   trimStr
 }

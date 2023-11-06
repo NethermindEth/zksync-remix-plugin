@@ -4,8 +4,7 @@ import React, { useContext } from 'react'
 import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
 import {
   getContractNameFromFullName,
-  getSelectedContractIndex,
-  getShortenedHash
+  getSelectedContractIndex
 } from '../../utils/utils'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -35,11 +34,7 @@ const CompiledContracts: React.FC<CompiledContractsProps> = (props) => {
       {contracts.map((contract, index) => {
         return (
           <option value={index} key={index}>
-            {`${getContractNameFromFullName(contract.name)} (${getShortenedHash(
-              contract.classHash ?? '',
-              6,
-              4
-            )})`}
+            {`${getContractNameFromFullName(contract.contractName)}`}
           </option>
         )
       })}

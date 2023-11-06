@@ -1,0 +1,29 @@
+/* styles.css */
+
+.input-field {
+    margin: 5px 0;
+
+    display: flex;
+
+    flex-direction: column;
+/*    Add smooth transition */
+}
+
+.input-label {
+    margin: 5px;
+    font-size: 13px;
+
+    padding-left: 2px;
+    /*padding-bottom: 2px;*/
+}
+
+.input-text {
+    padding: 5px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 6px;
+
+    background-color: rgba(0, 0, 0, 0.1);
+
+    font-size: 15px;
+    color: white;
+}

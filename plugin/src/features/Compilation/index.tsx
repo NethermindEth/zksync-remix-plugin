@@ -11,14 +11,11 @@ import {
   getFileNameFromPath
 } from '../../utils/utils'
 import './styles.css'
-import { hash } from 'starknet'
 import Container from '../../ui_components/Container'
 import storage from '../../utils/storage'
 import { ethers } from 'ethers'
 import CompilationContext from '../../contexts/CompilationContext'
 import { type AccordianTabs } from '../Plugin'
-import * as D from '../../ui_components/Dropdown'
-import { BsChevronDown } from 'react-icons/bs'
 import { type Contract } from '../../types/contracts'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -378,9 +375,9 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         throw new Error('Solidity Compilation Request Failed')
       } else {
         await remixClient.call(
-            'notification' as any,
-            'toast',
-            'Solidity compilation request successful'
+          'notification' as any,
+          'toast',
+          'Solidity compilation request successful'
         )
       }
 
@@ -444,7 +441,16 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         )
       }
 
-      let artifacts: string[] = []
+      const artifacts: string[] = []
+
+      const contractsToAdd: Contract[] = []
+      for (const file of compileResult.file_content) {
+        const contract = JSON.parse(file.file_content) as Contract
+        contractsToAdd.push(contract)
+      }
+
+      setContracts([...contractsToAdd, ...contracts])
+      setSelectedContract(contractsToAdd[0])
 
       for (const file of compileResult.file_content) {
         const artifactsPath = `${artifactFolder(currentFilePath)}/${file.file_name}`
@@ -452,17 +458,17 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
         try {
           await remixClient.call(
-              'fileManager',
-              'writeFile',
-              artifactsPath,
-              file.file_content
+            'fileManager',
+            'writeFile',
+            artifactsPath,
+            file.file_content
           )
         } catch (e) {
           if (e instanceof Error) {
             await remixClient.call(
-                'notification' as any,
-                'toast',
-                e.message +
+              'notification' as any,
+              'toast',
+              e.message +
                 ' try deleting the files: ' +
                 artifactsPath
             )
@@ -474,9 +480,9 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           })
         } finally {
           remixClient.emit('statusChanged', {
-              key: 'succeed',
-              type: 'info',
-              title: 'Saved artifacts'
+            key: 'succeed',
+            type: 'info',
+            title: 'Saved artifacts'
           })
         }
       }
