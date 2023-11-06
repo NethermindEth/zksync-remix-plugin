@@ -42,7 +42,7 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 # Build the API service
 WORKDIR /opt/app/api
 
-RUN cd hardhat_env && yarn
+RUN cd hardhat_env && yarn install
 
 RUN cargo build --release
 
