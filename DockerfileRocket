@@ -37,18 +37,12 @@ RUN whoami
 
 ENV PATH="/root/.cargo/bin:${PATH}"
 
-RUN git submodule update --init
-
 # Build the API service
 WORKDIR /opt/app/api
 
 RUN cargo build --release
 
 RUN chmod +x ./docker_run.sh
-
-# Build the cairo compiler
-WORKDIR /opt/app/api/cairo
-RUN cargo build --release --workspace
 
 EXPOSE 8000
 
