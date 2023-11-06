@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - develop
+      - zksync-production-setup
     # paths:
     #   - 'api/**'
 
@@ -63,7 +64,7 @@ jobs:
           aws-region: us-east-2
           role-to-assume: arn:aws:iam::599564732950:role/Aws-GH-Action-Assume-Role-ZKSync
           role-session-name: GHZKSync
-
+    
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
@@ -75,21 +76,21 @@ jobs:
 #          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain stable -y
 #          rustup update
 #          rustup component add clippy
-#          rustup install nightly
+#          rustup install nightly        
 #          sudo apt install musl-tools
 #          rustup target add x86_64-unknown-linux-musl
-
+          
 
 #      - name: Toolchains info
 #        run: |
 #          cargo --version --verbose
 #          rustc --version
-#          cargo clippy --version
+#          cargo clippy --version          
 
 #      - name: Build
 #        run: |
 #          cd api
-#          cargo build --target=x86_64-unknown-linux-musl
+#          cargo build --target=x86_64-unknown-linux-musl          
 #          ls ./target/debug/ -al
 
       - name: Build, tag, and push docker image to Amazon ECR
@@ -130,7 +131,7 @@ jobs:
           # inject the expected React package URL for CORS logic
           environment-variables: |
             RUST_LOG=INFO
-            VITE_URL=https://zksync-plugin.nethermind.dev
+            VITE_URL=https://zksync-cairo-remix-dev.nethermind.io
             PROMTAIL_USERNAME=${{secrets.PROMTAIL_USERNAME}}
             PROMTAIL_PASSWORD=${{secrets.PROMTAIL_PASSWORD}}
 
@@ -141,40 +142,40 @@ jobs:
           service: ${{ env.DEV_SERVICE_NAME }}
           cluster: ${{ env.DEV_CLUSTER }}
           wait-for-service-stability: true
-  # Deploy_Prod:
-  #   if: github.ref == 'refs/heads/zksync-production-setup'
-  #   runs-on: ubuntu-latest
-  #   needs: Build
-  #   steps:
-  #     - name: Configure AWS credentials
-  #       uses: aws-actions/configure-aws-credentials@v1
-  #       with:
-  #         aws-region: us-east-2
-  #         role-to-assume: arn:aws:iam::228016254426:role/Aws-GH-Action-Assume-Role-ZKSync-Production
-  #         role-session-name: GHZKSync
+  Deploy_Prod:
+    if: github.ref == 'refs/heads/zksync-production-setup'
+    runs-on: ubuntu-latest
+    needs: Build
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: us-east-2
+          role-to-assume: arn:aws:iam::228016254426:role/Aws-GH-Action-Assume-Role-ZKSync-Production
+          role-session-name: GHZKSync
 
-  #     - name: Download task definition
-  #       run: |
-  #         aws ecs describe-task-definition --task-definition zksync-remix-production-rocket --query taskDefinition > task-definition.json
+      - name: Download task definition
+        run: |
+          aws ecs describe-task-definition --task-definition zksync-remix-production-rocket --query taskDefinition > task-definition.json
 
-  #     - name: Fill in the new image ID in the Amazon ECS task definition
-  #       id: task-def
-  #       uses: aws-actions/amazon-ecs-render-task-definition@v1
-  #       with:
-  #         task-definition: task-definition.json
-  #         container-name: "rocket"
-  #         image: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:apiserver-${{ needs.Build.outputs.image-version }}      #${{ github.run_number }}
-  #         # inject the expected React package URL for CORS logic
-  #         environment-variables: |
-  #           RUST_LOG=INFO
-  #           VITE_URL=https://cairo-remix-dev.nethermind.io
-  #           PROMTAIL_USERNAME=${{secrets.PROMTAIL_USERNAME}}
-  #           PROMTAIL_PASSWORD=${{secrets.PROMTAIL_PASSWORD}}
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: "rocket"
+          image: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:apiserver-${{ needs.Build.outputs.image-version }}      #${{ github.run_number }}
+          # inject the expected React package URL for CORS logic
+          environment-variables: |
+            RUST_LOG=INFO
+            VITE_URL=https://cairo-remix-dev.nethermind.io
+            PROMTAIL_USERNAME=${{secrets.PROMTAIL_USERNAME}}
+            PROMTAIL_PASSWORD=${{secrets.PROMTAIL_PASSWORD}}
 
-  #     - name: Deploy Amazon ECS task definition
-  #       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-  #       with:
-  #         task-definition: ${{ steps.task-def.outputs.task-definition }}
-  #         service: ${{ env.PROD_SERVICE_NAME }}
-  #         cluster: ${{ env.PROD_CLUSTER }}
-  #         wait-for-service-stability: true
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.PROD_SERVICE_NAME }}
+          cluster: ${{ env.PROD_CLUSTER }}
+          wait-for-service-stability: true
