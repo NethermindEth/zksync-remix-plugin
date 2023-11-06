@@ -4,14 +4,13 @@ import { apiUrl } from '../../utils/network'
 import { RemixClientContext } from '../../contexts/RemixClientContext'
 import Nethermind from '../../components/NM'
 import './style.css'
+import { BsChevronDown } from 'react-icons/bs'
 
 const SolidityVersion: React.FC = () => {
   const [solidityVersion, setSolidityVersion] = useState('solidity-compile 2.2.0')
   const remixClient = useContext(RemixClientContext)
 
-  const [versions] = useState<string[]>([
-    'solidity-compile 2.2.0'
-  ])
+  const [versions, setVersions] = useState<string[]>([])
   const pluginVersion = process.env.REACT_APP_VERSION !== undefined ? `v${process.env.REACT_APP_VERSION}` : 'v0.2.0'
 
   useEffect(() => {
@@ -32,7 +31,10 @@ const SolidityVersion: React.FC = () => {
               'Content-Type': 'application/octet-stream'
             }
           })
-          setSolidityVersion(await response.text())
+          const version = await response.text()
+
+          setSolidityVersion(version)
+          setVersions([version])
         }
       } catch (e) {
         await remixClient.call(
@@ -54,7 +56,7 @@ const SolidityVersion: React.FC = () => {
         <D.Root>
           <D.Trigger>
             <label className="solidity-version-legend">
-              Using {solidityVersion} {/* <BsChevronDown /> */}
+              Using {solidityVersion} <BsChevronDown />
             </label>
           </D.Trigger>
           <D.Portal>
