@@ -11,6 +11,7 @@ import { DeployedContractsContext } from '../../contexts/DeployedContractsContex
 import Container from '../../ui_components/Container'
 import FunctionalInput from '../FunctionalInput'
 import './deployedContracts.css'
+import { ConnectionContext } from '../../contexts/ConnectionContext'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 

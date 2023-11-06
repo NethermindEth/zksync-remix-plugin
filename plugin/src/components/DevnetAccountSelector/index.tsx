@@ -15,7 +15,7 @@ import EnvironmentContext from '../../contexts/EnvironmentContext'
 import copy from 'copy-to-clipboard'
 
 const DevnetAccountSelector: React.FC = () => {
-  const { account, setAccount, provider, setProvider } =useContext(ConnectionContext)
+  const { account, setAccount, provider, setProvider } = useContext(ConnectionContext)
   const remixClient = useContext(RemixClientContext)
   const {
     env,
@@ -83,7 +83,7 @@ const DevnetAccountSelector: React.FC = () => {
       const accounts = await getAccounts(`${devnet.url}`)
       if (
         JSON.stringify(accounts) !== JSON.stringify(availableDevnetAccounts)
-      ) 
+      )
       {
         setAvailableDevnetAccounts(accounts)
       }
@@ -141,7 +141,7 @@ const DevnetAccountSelector: React.FC = () => {
     if (provider == null) setProvider(newProvider)
     setAccount(
       new Wallet(
-        availableDevnetAccounts[event.target.value].private_key,        
+        availableDevnetAccounts[event.target.value].private_key,
         provider ?? newProvider
 
       )
