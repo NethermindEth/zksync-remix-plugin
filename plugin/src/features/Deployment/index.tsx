@@ -15,6 +15,7 @@ import { DeployedContractsContext } from '../../contexts/DeployedContractsContex
 import { type DeployedContract } from '../../types/contracts'
 import { type Transaction } from '../../types/transaction'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
+import { Contract } from 'ethers'
 
 interface DeploymentProps {
   setActiveTab: (tab: AccordianTabs) => void
@@ -37,9 +38,16 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const [inputs, setInputs] = useState<string[]>([])
 
   useEffect(() => {
-    setInputs(new Array(selectedContract?.abi.find((abiElement) => {
+    const constructor = selectedContract?.abi.find((abiElement) => {
       return abiElement.type === 'constructor'
-    })?.inputs.length).fill(''))
+    })
+
+    if (constructor == undefined || constructor?.inputs == undefined) {
+      setInputs([])
+      return
+    }
+
+    setInputs(new Array(constructor?.inputs.length).fill(''))
   }, [selectedContract])
 
   async function deploy () {
@@ -76,7 +84,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     )
 
     try {
-      const contract = await factory.deploy(...inputs)
+      let contract: Contract = await factory.deploy(...inputs)
 
       remixClient.emit('statusChanged', {
         key: 'loading',
@@ -127,6 +135,11 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 
       setTransactions([transaction, ...transactions])
     } catch (e) {
+      remixClient.terminal.log({
+        value: `Error: ${(e as any).code}`,
+        type: 'error'
+      })
+
       remixClient.emit('statusChanged', {
         key: 'failed',
         type: 'error',
