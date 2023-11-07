@@ -92,7 +92,7 @@ jobs:
         with:
           task-definition: task-definition.json
           container-name: "devnet"
-          image: $REGISTRY/$REPOSITORY:devnet-${{ needs.Build.outputs.image-version }}
+          image: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:devnet-${{ needs.Build.outputs.image-version }}
 #      - name: Fill in the new image ID in the Amazon ECS task definition
 #        id: task-def
 #        uses: aws-actions/amazon-ecs-render-task-definition@v1
