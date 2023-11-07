@@ -72,7 +72,7 @@ jobs:
       image-version: ${{ steps.determine-version.outputs.version }}
   Deploy_Dev:
     runs-on: ubuntu-latest
-    #    needs: Build
+    needs: Build
     steps:
 
       - name: Configure AWS credentials
