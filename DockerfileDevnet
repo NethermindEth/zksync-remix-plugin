@@ -20,10 +20,6 @@ RUN chmod +x /usr/local/bin/era_test_node
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY config.nginx /etc/nginx/config.nginx
 
-# Run supervisord to manage both Nginx and era_test_node
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
-
 EXPOSE 5050
 
-# Run the binary
-CMD ["era_test_node", "run"]
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
