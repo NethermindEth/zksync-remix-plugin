@@ -93,19 +93,6 @@ jobs:
           task-definition: task-definition.json
           container-name: "devnet"
           image: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:devnet-${{ needs.Build.outputs.image-version }}
-#      - name: Fill in the new image ID in the Amazon ECS task definition
-#        id: task-def
-#        uses: aws-actions/amazon-ecs-render-task-definition@v1
-#        with:
-#          task-definition: task-definition.json
-#          container-name: "rocket"
-#          image: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:apiserver-${{ needs.Build.outputs.image-version }}      #${{ github.run_number }}
-#          # inject the expected React package URL for CORS logic
-#          environment-variables: |
-#            RUST_LOG=INFO
-#            VITE_URL=https://zksync-plugin.nethermind.dev
-#            PROMTAIL_USERNAME=${{secrets.PROMTAIL_USERNAME}}
-#            PROMTAIL_PASSWORD=${{secrets.PROMTAIL_PASSWORD}}
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
