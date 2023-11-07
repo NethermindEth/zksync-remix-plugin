@@ -2,8 +2,7 @@ import React from 'react'
 
 const Notices = [
   'The zksync Remix Plugin is in Alpha',
-  'Solidity contracts and Scarb workspaces are compiled on a server hosted by Nethermind',
-  'Declaration of contracts with some wallets will be supported when they update to the latest zksync.js version'
+  'Solidity contracts are compiled on a server hosted by Nethermind',
 ]
 
 const BackgroundNotices = () => {
