@@ -4,7 +4,7 @@ import {
   getShortenedHash,
   weiToEth
 } from '../../utils/utils'
-import { getAccounts } from '../../utils/network'
+import { getAccounts, updateBalances } from '../../utils/network'
 import React, { useContext, useEffect, useState } from 'react'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
 import { Provider, Wallet } from 'zksync-web3'
@@ -13,6 +13,7 @@ import { MdCopyAll, MdRefresh } from 'react-icons/md'
 import './devnetAccountSelector.css'
 import EnvironmentContext from '../../contexts/EnvironmentContext'
 import copy from 'copy-to-clipboard'
+import TransactionContext from '../../contexts/TransactionContext'
 
 const DevnetAccountSelector: React.FC = () => {
   const { account, setAccount, provider, setProvider } = useContext(ConnectionContext)
@@ -27,6 +28,8 @@ const DevnetAccountSelector: React.FC = () => {
     availableDevnetAccounts,
     setAvailableDevnetAccounts
   } = useContext(EnvironmentContext)
+
+  const { transactions } = useContext(TransactionContext)
 
   const [accountRefreshing, setAccountRefreshing] = useState(false)
   const [showCopied, setCopied] = useState(false)
@@ -83,6 +86,12 @@ const DevnetAccountSelector: React.FC = () => {
   }
 
   useEffect(() => {
+    updateAccountBalances().catch((e) => {
+      console.log(e)
+    })
+  }, [transactions])
+
+  useEffect(() => {
     if (!isDevnetAlive) {
       notifyDevnetStatus().catch((e) => {
         console.log(e)
@@ -90,6 +99,10 @@ const DevnetAccountSelector: React.FC = () => {
     }
   }, [isDevnetAlive])
 
+  const updateAccountBalances = async (): Promise<void> => {
+    const updatedAccounts = await updateBalances(availableDevnetAccounts)
+    setAvailableDevnetAccounts(updatedAccounts)
+  }
   const refreshDevnetAccounts = async (): Promise<void> => {
     setAccountRefreshing(true)
     try {
@@ -186,7 +199,7 @@ const DevnetAccountSelector: React.FC = () => {
                       6,
                       4
                     )}
-                    (${getRoundedNumber(weiToEth(account.initial_balance), 2)} ether)`
+                    (${getRoundedNumber(weiToEth(Number(account.initial_balance)), 2)} ether)`
                     }
                   </option>
               )
