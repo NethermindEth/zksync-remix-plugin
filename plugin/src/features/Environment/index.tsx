@@ -27,7 +27,7 @@ const Environment: React.FC<EnvironmentProps> = () => {
   const {
     env,
     setEnv,
-    isDevnetAlive,
+    isDevnetAlive
   } = useContext(EnvironmentContext)
   const [prevEnv, setPrevEnv] = useState<string>(env)
 
@@ -104,7 +104,7 @@ const Environment: React.FC<EnvironmentProps> = () => {
                     </div>
                   </>
                 ) : (
-                  <ManualAccount  prevEnv={prevEnv}/>
+                  <ManualAccount prevEnv={prevEnv}/>
                 )}
               </div>
             </>

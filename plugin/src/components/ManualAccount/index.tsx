@@ -2,7 +2,7 @@
 import React, { useContext, useEffect, useState } from 'react'
 import {
   type Network,
-  networks as networkConstants,
+  networks as networkConstants
 } from '../../utils/constants'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
 import { ethers } from 'ethers'

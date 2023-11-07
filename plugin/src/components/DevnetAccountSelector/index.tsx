@@ -33,10 +33,9 @@ const DevnetAccountSelector: React.FC = () => {
 
   const [accountIdx, setAccountIdx] = useState(0)
 
-
   // devnet live status
   useEffect(() => {
-    let isSubscribed = true;
+    let isSubscribed = true
 
     const interval = setInterval(async () => {
       try {
@@ -45,32 +44,31 @@ const DevnetAccountSelector: React.FC = () => {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({"jsonrpc":"2.0", "method":"eth_blockNumber", "params":[], "id":1})
-        });
+          body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_blockNumber', params: [], id: 1 })
+        })
 
         if (response.status === 200) {
-          const responseBody = await response.json();
+          const responseBody = await response.json()
           if (responseBody.result != null && isSubscribed) {
-              setIsDevnetAlive(true);
+            setIsDevnetAlive(true)
           } else if (isSubscribed) {
-              setIsDevnetAlive(false);
-            }
+            setIsDevnetAlive(false)
+          }
         } else if (isSubscribed) {
-            setIsDevnetAlive(false);
+          setIsDevnetAlive(false)
         }
       } catch (error) {
         if (isSubscribed) {
-          setIsDevnetAlive(false);
+          setIsDevnetAlive(false)
         }
       }
-    }, 1000);
+    }, 1000)
 
     return () => {
-      clearInterval(interval);
-      isSubscribed = false;
-    };
-  }, [devnet.url]);
-
+      clearInterval(interval)
+      isSubscribed = false
+    }
+  }, [devnet.url])
 
   const notifyDevnetStatus = async (): Promise<void> => {
     try {
@@ -98,8 +96,7 @@ const DevnetAccountSelector: React.FC = () => {
       const accounts = await getAccounts(`${devnet.url}`)
       if (
         JSON.stringify(accounts) !== JSON.stringify(availableDevnetAccounts)
-      )
-      {
+      ) {
         setAvailableDevnetAccounts(accounts)
       }
     } catch (e) {
@@ -189,7 +186,7 @@ const DevnetAccountSelector: React.FC = () => {
                       6,
                       4
                     )}
-                    (${getRoundedNumber(weiToEth(account.initial_balance),2)} ether)`
+                    (${getRoundedNumber(weiToEth(account.initial_balance), 2)} ether)`
                     }
                   </option>
               )

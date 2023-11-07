@@ -1,8 +1,8 @@
 import { createContext } from 'react'
-import { 
-  type Provider, 
-  type Wallet } from 'zksync-web3'
-
+import {
+  type Provider,
+  type Wallet
+} from 'zksync-web3'
 
 const ConnectionContext = createContext({
   provider: null as Provider | null,

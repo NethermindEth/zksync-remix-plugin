@@ -32,7 +32,7 @@ import ExplorerSelector, {
   useCurrentExplorer
 } from '../../components/ExplorerSelector'
 import { DeployedContractsContext } from '../../contexts/DeployedContractsContext'
-import { Provider, Wallet } from 'zksync-web3'
+import { type Provider, type Wallet } from 'zksync-web3'
 
 export type AccordianTabs =
   | 'compile'

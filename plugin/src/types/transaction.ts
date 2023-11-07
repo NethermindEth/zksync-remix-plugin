@@ -1,4 +1,4 @@
-import { Provider, Wallet } from 'zksync-web3'
+import { type Provider, type Wallet } from 'zksync-web3'
 
 export interface Transaction {
   type: 'deploy' | 'invoke'
