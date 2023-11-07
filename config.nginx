@@ -1,0 +1,18 @@
+http {
+    server {
+        listen 5050;
+
+        location /is_alive {
+            add_header Content-Type text/plain;
+            return 200 'ok';
+        }
+
+        location / {
+            proxy_pass http://localhost:8011;
+        }
+    }
+
+}
+events {
+
+}
