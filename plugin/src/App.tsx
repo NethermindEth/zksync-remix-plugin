@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { PluginClient } from '@remixproject/plugin'
 import { createClient } from '@remixproject/plugin-webview'
 import './App.css'
@@ -7,23 +7,43 @@ import { RemixClientContext } from './contexts/RemixClientContext'
 import Loader from './ui_components/CircularLoader'
 import FullScreenOverlay from './ui_components/FullScreenOverlay'
 import { fetchGitHubFilesRecursively } from './utils/initial_scarb_codes'
+import type {EthereumClient} from '@web3modal/ethereum'
+import {WalletConnectUI} from './components/Wallet/walletConnectUI'
+import {WalletConnectRemixClient} from './services/WalletConnectRemixClient'
+
+//const remixClient = createClient(new PluginClient())
 
 
-const remixClient = createClient(new PluginClient())
+// //const remixClient = createClient(new PluginClient())
+// const remixClient = createClient(new PluginClient())
 
 
 // 3. Create modal
 const App: React.FC = () => {
   const [pluginLoaded, setPluginLoaded] = useState<boolean>(false)
+  const [ethereumClient, setEthereumClient] = useState<EthereumClient>(null)
+  const [wagmiConfig, setWagmiConfig] = useState(null)
+  const [theme, setTheme] = useState<string>('dark')
+  const remixClient = useContext(RemixClientContext)
 
   useEffect(() => {
+    ;(async () => {
+      await remixClient.initClient()
+      remixClient.internalEvents.on('themeChanged', (theme: string) => {
+       setTheme(theme)
+      })
+
+      setWagmiConfig(remixClient.wagmiConfig)
+      setEthereumClient(remixClient.ethereumClient)
+    })()
+
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     const id = setTimeout(async (): Promise<void> => {
       await remixClient.onload(() => {
         setPluginLoaded(true)
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         setTimeout(async () => {
-          const workspaces = await remixClient.filePanel.getWorkspaces()
+          const workspaces = await remixClient.createdInternalClient.filePanel.getWorkspaces()
 
           const workspaceLets: Array<{ name: string, isGitRepo: boolean }> =
             JSON.parse(JSON.stringify(workspaces))
@@ -33,12 +53,12 @@ const App: React.FC = () => {
               (workspaceLet) => workspaceLet.name === 'cairo_scarb_sample'
             )
           ) {
-            await remixClient.filePanel.createWorkspace(
+            await remixClient.createdInternalClient.filePanel.createWorkspace(
               'cairo_scarb_sample',
               true
             )
             try {
-              await remixClient.fileManager.mkdir('hello_world')
+              await remixClient.createdInternalClient.fileManager.mkdir('hello_world')
             } catch (e) {
               console.log(e)
             }
@@ -62,7 +82,7 @@ const App: React.FC = () => {
                 }
 
                 // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                await remixClient.fileManager.writeFile(
+                await remixClient.createdInternalClient.fileManager.writeFile(
                   `hello_world/${
                     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                     filePath
@@ -91,7 +111,7 @@ const App: React.FC = () => {
   })
 
   return (
-    <RemixClientContext.Provider value={remixClient}>
+    <RemixClientContext.Provider value={remixClient.createdInternalClient}>
       <div className="shell">
         {pluginLoaded
           ? (
@@ -102,6 +122,11 @@ const App: React.FC = () => {
             <Loader />
           </FullScreenOverlay>
             )}
+    <div className="App">
+      <h4 className="mt-1">WalletConnect</h4>
+      {ethereumClient && wagmiConfig != null && <WalletConnectUI wagmiConfig={wagmiConfig} ethereumClient={ethereumClient} theme={theme} />}
+    </div>
+
       </div>
     </RemixClientContext.Provider>
   )

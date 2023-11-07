@@ -10,7 +10,9 @@ import { getDefaultWallets, RainbowKitProvider, darkTheme, Chain} from "@rainbow
 import { configureChains, createClient, WagmiConfig } from "wagmi";
 import { zkSync, mainnet, zkSyncTestnet, goerli } from "wagmi/chains";
 import { publicProvider } from "wagmi/providers/public";
+import { IFrameEthereumProvider } from '@ledgerhq/iframe-provider';
 
+import { ethers} from 'ethers';
 
 
 // declare const zkSyncMainnnet: {
@@ -71,64 +73,49 @@ import { publicProvider } from "wagmi/providers/public";
 //   },
 //   testnet: true,
 // };
+// new IFrameEthereumProvider();
+// let ethereum = new IFrameEthereumProvider({
+//   // How long to wait for the response, default 1 minute
+//   timeoutMilliseconds: 60000,
+//   // The origins with which this provider is allowed to communicate, default '*'
+//   // See postMessage docs https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage
+//   targetOrigin: 'https://remix-alpha.ethereum.org/',
+// });
 
-const { chains, provider, webSocketProvider } = configureChains(
-  [
-    zkSync,
-    mainnet,
-    zkSyncTestnet,
-    goerli,
-    // ...(process.env.NEXT_PUBLIC_ENABLE_TESTNETS === "true"
-    //   ? [zkSyncTestnet, goerli]
-    //   : []),
-  ],
-  [publicProvider()]
-);
+// let web3Provider = new ethers.providers.Web3Provider(ethereum);
 
-const { connectors } = getDefaultWallets({
-  appName: "zkSync Greeter",
-   projectId: "96384f1cfd105651ddb35f0d0d70b198", // needed for WalletConnect -- get from https://cloud.walletconnect.com/
-  chains,
-});
+// const { chains, provider, webSocketProvider } = configureChains(
+//   [
+//     zkSync,
+//     mainnet,
+//     zkSyncTestnet,
+//     goerli,
+//     // ...(process.env.NEXT_PUBLIC_ENABLE_TESTNETS === "true"
+//     //   ? [zkSyncTestnet, goerli]
+//     //   : []),
+//   ],
+//   [ publicProvider()]
+// );
 
-const wagmiClient = createClient({
-  autoConnect:true,
-  connectors,
-  provider,
-  webSocketProvider,
-});
+// const { connectors } = getDefaultWallets({
+//   appName: "zkSync Greeter",
+//    projectId: "96384f1cfd105651ddb35f0d0d70b198", // needed for WalletConnect -- get from https://cloud.walletconnect.com/
+//   chains,
+// });
 
-// const wagmiConfigWalletConnect = defaultWagmiConfig({ chains, projectId, metadata })
-// // 3. Create modal
-//createWeb3Modal({ wagmiConfigWalletConnect, projectId, chains })
+// const wagmiClient = createClient({
+//   autoConnect:true,
+//   connectors,
+//   provider,
+//   webSocketProvider,
+// });
 
 
-// useEffect(() => {
-//   if (window.ethereum) {
-//     window.ethereum.on('accountsChanged', function (accounts) {
-//       // Inform RainbowKit of the account change or force a component re-render.
-//       console.log('accountsChanged   woooooohooooooo')
-
-//     });
-//   }
-//   else {
-//     console.warn('No Ethereum object detected. Install MetaMask or another Ethereum wallet provider.');
-//   }
-// }, []);
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 
 root.render(
-  <WagmiConfig client={wagmiClient}>
-  <RainbowKitProvider
-    chains={chains}
-    initialChain={zkSyncTestnet}
-    modalSize="compact"
-    showRecentTransactions={true}
-  >
 
       <App />
-     </RainbowKitProvider>
-   </WagmiConfig>
 )
 
 // If you want to start measuring performance in your app, pass a function

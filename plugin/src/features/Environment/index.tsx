@@ -13,6 +13,7 @@ import Accordian, {
   AccordionContent,
   AccordionTrigger
 } from '../../ui_components/Accordian'
+import EthereumEventsComponent from '../../components/EventListener/EthereumEventsComponent'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface EnvironmentProps {}
@@ -29,6 +30,7 @@ const Environment: React.FC<EnvironmentProps> = () => {
 
   return (
     <div className="starknet-connection-component mb-8">
+      <EthereumEventsComponent/>
       <Accordian type="single" value={currentPane} defaultValue={'environment'}>
         <AccordianItem value="environment">
           <AccordionTrigger
