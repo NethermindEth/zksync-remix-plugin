@@ -22,7 +22,7 @@
     "axios": "^1.4.0",
     "bn.js": "^5.2.1",
     "copy-to-clipboard": "^3.3.3",
-    "ethers": "^6.8.1",
+    "ethers": "^5.7.0",
     "events": "^3.3.0",
     "form-data": "^4.0.0",
     "formik": "^2.4.2",

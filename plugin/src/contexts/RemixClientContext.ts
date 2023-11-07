@@ -8,4 +8,4 @@ const remixClient = new WalletConnectRemixClient()
 
 const RemixClientContext = createContext(remixClient)
 
-export { RemixClientContext }
+export { RemixClientContext, remixClient }

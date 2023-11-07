@@ -3,6 +3,7 @@ import {WagmiConfig} from 'wagmi'
 import {PROJECT_ID} from '../../services/constant'
 
 export function WalletConnectUI({ethereumClient, wagmiConfig, theme}) {
+  console.log('wagmiConfig', wagmiConfig)
   return (
     <div>
       <div style={{display: 'inline-block'}}>

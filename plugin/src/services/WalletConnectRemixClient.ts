@@ -12,7 +12,8 @@ import {
   optimismGoerli,
   Chain,
   goerli,
-  sepolia
+  sepolia,
+  zkSyncTestnet
 } from 'viem/chains'
 import {EthereumClient} from '@web3modal/ethereum'
 import {PROJECT_ID} from './constant'
@@ -24,11 +25,11 @@ export class WalletConnectRemixClient extends PluginClient {
   chains: Chain[]
   currentChain: number
   internalEvents: EventEmitter
-  createdInternalClient: any
+  currentAcount: string
 
   constructor() {
     super()
-    this.createdInternalClient = createClient(this)
+    createClient(this)
     this.internalEvents = new EventEmitter()
     this.methods = ['sendAsync', 'init', 'deactivate']
     this.onload()
@@ -59,12 +60,14 @@ export class WalletConnectRemixClient extends PluginClient {
         sepolia
       ]
       const {publicClient} = configureChains(this.chains, [
-        w3mProvider({projectId: '6e2396d2519b270b5d8d35e80dc66ec9'})
-      ])
+        w3mProvider({projectId: PROJECT_ID})
+      ], {
+        pollingInterval: 5000
+      })
 
       this.wagmiConfig = createConfig({
         autoConnect: false,
-        connectors: w3mConnectors({projectId: '6e2396d2519b270b5d8d35e80dc66ec9', chains: this.chains}),
+        connectors: w3mConnectors({projectId: PROJECT_ID, chains: this.chains}),
         publicClient
       })
       this.ethereumClient = new EthereumClient(this.wagmiConfig, this.chains)
@@ -76,13 +79,17 @@ export class WalletConnectRemixClient extends PluginClient {
   subscribeToEvents() {
     this.wagmiConfig.subscribe((event) => {
       if (event.status === 'connected') {
-        this.emit('accountsChanged', [event.data.account])
+        if (event.data.account !== this.currentAcount) {
+          this.currentAcount = event.data.account
+          this.emit('accountsChanged', [event.data.account])          
+        }
         if (this.currentChain !== event.data.chain.id) {
           this.currentChain = event.data.chain.id
           this.emit('chainChanged', event.data.chain.id)
         }
       } else if (event.status === 'disconnected') {
         this.emit('accountsChanged', [])
+        this.currentAcount = ''
         this.emit('chainChanged', 0)
         this.currentChain = 0
       }
@@ -107,25 +114,44 @@ export class WalletConnectRemixClient extends PluginClient {
 
         if (provider.isMetaMask) {
           return new Promise((resolve) => {
-            provider.sendAsync(data, (err, response) => {
-              if (err) {
-                console.error(err)
-                return resolve({jsonrpc: '2.0', result: [], id: data.id})
+            provider.sendAsync(data, (error, response) => {
+              if (error) {
+                if (error.data && error.data.originalError && error.data.originalError.data) {
+                  resolve({
+                    jsonrpc: '2.0',
+                    error: error.data.originalError,
+                    id: data.id
+                  })
+                } else if (error.data && error.data.message) {
+                  resolve({
+                    jsonrpc: '2.0',
+                    error: error.data && error.data,
+                    id: data.id
+                  })
+                } else {
+                  resolve({
+                    jsonrpc: '2.0',
+                    error,
+                    id: data.id
+                  })
+                }                
               }
               return resolve(response)
             })
           })
         } else {
-          const message = await provider.request(data)
-
-          return {jsonrpc: '2.0', result: message, id: data.id}
+          try {
+            const message = await provider.request(data)
+            return {jsonrpc: '2.0', result: message, id: data.id}
+          } catch (e) {
+            return {jsonrpc: '2.0', error: { message: e.message, code: -32603 }, id: data.id}
+          }
         }
       }
     } else {
-      console.error(
-        `Cannot make ${data.method} request. Remix client is not connected to walletconnect client`
-      )
-      return {jsonrpc: '2.0', result: [], id: data.id}
+      const err = `Cannot make ${data.method} request. Remix client is not connected to walletconnect client`
+      console.error(err)
+      return {jsonrpc: '2.0', error: { message: err, code: -32603 }, id: data.id}
     }
   }
 
