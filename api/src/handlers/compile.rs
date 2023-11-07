@@ -106,18 +106,29 @@ pub async fn do_compile(remix_file_path: PathBuf) -> Result<Json<CompileResponse
         }
     }
 
+    let status = status_code_to_message(output.status.code());
+    let message = String::from_utf8(output.stderr)
+        .map_err(ApiError::UTF8Error)?
+        .replace(
+            &file_path
+                .to_str()
+                .ok_or(ApiError::FailedToParseString)?
+                .to_string(),
+            &remix_file_path,
+        )
+        .replace(&result_path_prefix, &remix_file_path);
+
+    if status != "Success" {
+        return Ok(Json(CompileResponse {
+            message,
+            status,
+            file_content: vec![],
+        }));
+    }
+
     Ok(Json(CompileResponse {
-        message: String::from_utf8(output.stderr)
-            .map_err(ApiError::UTF8Error)?
-            .replace(
-                &file_path
-                    .to_str()
-                    .ok_or(ApiError::FailedToParseString)?
-                    .to_string(),
-                &remix_file_path,
-            )
-            .replace(&result_path_prefix, &remix_file_path),
-        status: status_code_to_message(output.status.code()),
+        message,
+        status,
         file_content: compiled_contracts,
     }))
 }
