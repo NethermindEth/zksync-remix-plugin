@@ -7,7 +7,7 @@ import EnvironmentContext from '../../contexts/EnvironmentContext'
 
 const EnvironmentSelector: React.FC = () => {
   const { setProvider } = useContext(ConnectionContext)
-  const { env, setEnv, setDevnet, starknetWindowObject } = useContext(EnvironmentContext)
+  const { env, setEnv, setDevnet } = useContext(EnvironmentContext)
 
   async function handleEnvironmentChange (event: any): Promise<void> {
     const value = parseInt(event.target.value)

@@ -403,14 +403,14 @@ const ManualAccount: React.FC<{
                 })
                 setTimeout(() => {
                   window?.open(
-                    'https://faucet.goerli.starknet.io/',
+                    'https://faucet.goerli.zksync.io/',
                     '_blank',
                     'noopener noreferrer'
                   )
                 }, 2000)
               }}
             >
-              Request funds on Starknet Faucet
+              Request funds on Zksync Faucet
             </button>
           )}
         </div>

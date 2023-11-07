@@ -490,7 +490,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       setStatus('failed')
       if (e instanceof Error) {
         await remixClient.call('notification' as any, 'alert', {
-          id: 'starknetRemixPluginAlert',
+          id: 'zksyncRemixPluginAlert',
           title: 'Expectation Failed',
           message: e.message
         })

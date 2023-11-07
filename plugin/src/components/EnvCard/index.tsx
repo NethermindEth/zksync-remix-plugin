@@ -1,5 +1,4 @@
 /* eslint-disable react/prop-types */
-import { type DisconnectOptions } from 'get-starknet'
 import { useContext, type ReactNode, useState } from 'react'
 import React from 'react'
 import './envCard.css'
@@ -8,14 +7,12 @@ import EnvironmentContext from '../../contexts/EnvironmentContext'
 interface EnvCardProps {
   header: string
   setEnv: (env: string) => void
-  disconnectWalletHandler: (options?: DisconnectOptions) => Promise<void>
   children: ReactNode
 }
 
 export const EnvCard: React.FC<EnvCardProps> = ({
   header,
   setEnv,
-  disconnectWalletHandler,
   children
 }) => {
   const { env } = useContext(EnvironmentContext)

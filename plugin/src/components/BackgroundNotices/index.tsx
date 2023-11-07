@@ -1,9 +1,9 @@
 import React from 'react'
 
 const Notices = [
-  'The starknet Remix Plugin is in Alpha',
+  'The zksync Remix Plugin is in Alpha',
   'Solidity contracts and Scarb workspaces are compiled on a server hosted by Nethermind',
-  'Declaration of contracts with some wallets will be supported when they update to the latest starknet.js version'
+  'Declaration of contracts with some wallets will be supported when they update to the latest zksync.js version'
 ]
 
 const BackgroundNotices = () => {

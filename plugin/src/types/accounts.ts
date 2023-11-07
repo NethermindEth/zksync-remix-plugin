@@ -1,8 +1,8 @@
 import { type BigNumberish } from 'ethers'
 
-// type StarknetChainId = constants.StarknetChainId;
+// type ZksyncChainId = constants.ZksyncChainId;
 
-enum StarknetChainId {
+enum ZksyncChainId {
   SN_MAIN = '0x534e5f4d41494e',
   SN_GOERLI = '0x534e5f474f45524c49',
   SN_GOERLI2 = '0x534e5f474f45524c4932',
@@ -24,4 +24,4 @@ interface ManualAccount {
 
 export type { DevnetAccount, ManualAccount }
 
-export { StarknetChainId }
+export { ZksyncChainId }

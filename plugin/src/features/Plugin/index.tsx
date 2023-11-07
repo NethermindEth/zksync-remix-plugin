@@ -7,12 +7,6 @@ import {
 } from '../../types/contracts'
 import { Environment } from '../Environment'
 import './styles.css'
-import {
-  type Account,
-  type AccountInterface,
-  type Provider,
-  type ProviderInterface
-} from 'starknet'
 import Compilation from '../Compilation'
 import Deployment from '../Deployment'
 import Interaction from '../Interaction'
@@ -26,7 +20,6 @@ import CompilerVersion from '../CompilerVersion'
 import CompilationContext from '../../contexts/CompilationContext'
 import DeploymentContext from '../../contexts/DeploymentContext'
 import { type Devnet, devnets, type DevnetAccount } from '../../utils/network'
-import { type StarknetWindowObject } from 'get-starknet'
 import EnvironmentContext from '../../contexts/EnvironmentContext'
 import ManualAccountContext from '../../contexts/ManualAccountContext'
 import { type Transaction } from '../../types/transaction'
@@ -39,6 +32,7 @@ import ExplorerSelector, {
   useCurrentExplorer
 } from '../../components/ExplorerSelector'
 import { DeployedContractsContext } from '../../contexts/DeployedContractsContext'
+import { Provider, Wallet } from 'zksync-web3'
 
 export type AccordianTabs =
   | 'compile'
@@ -68,8 +62,6 @@ const Plugin: React.FC = () => {
   const [devnet, setDevnet] = useState<Devnet>(devnets[1])
   const [env, setEnv] = useState<string>('remoteDevnet')
   const [isDevnetAlive, setIsDevnetAlive] = useState<boolean>(true)
-  const [starknetWindowObject, setStarknetWindowObject] =
-    useState<StarknetWindowObject | null>(null)
   const [selectedDevnetAccount, setSelectedDevnetAccount] =
     useState<DevnetAccount | null>(null)
   const [availableDevnetAccounts, setAvailableDevnetAccounts] = useState<
@@ -93,10 +85,10 @@ const Plugin: React.FC = () => {
   )
 
   // Connection Context state variables
-  const [provider, setProvider] = useState<Provider | ProviderInterface | null>(
+  const [provider, setProvider] = useState<Provider | null>(
     null
   )
-  const [account, setAccount] = useState<Account | AccountInterface | null>(
+  const [account, setAccount] = useState<Wallet | null>(
     null
   )
 
@@ -134,8 +126,6 @@ const Plugin: React.FC = () => {
             setEnv,
             isDevnetAlive,
             setIsDevnetAlive,
-            starknetWindowObject,
-            setStarknetWindowObject,
             selectedDevnetAccount,
             setSelectedDevnetAccount,
             availableDevnetAccounts,

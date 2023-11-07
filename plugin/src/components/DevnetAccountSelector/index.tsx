@@ -28,6 +28,12 @@ const DevnetAccountSelector: React.FC = () => {
     setAvailableDevnetAccounts
   } = useContext(EnvironmentContext)
 
+  const [accountRefreshing, setAccountRefreshing] = useState(false)
+  const [showCopied, setCopied] = useState(false)
+
+  const [accountIdx, setAccountIdx] = useState(0)
+
+
   // devnet live status
   useEffect(() => {
     let isSubscribed = true;
@@ -156,11 +162,6 @@ const DevnetAccountSelector: React.FC = () => {
       )
     )
   }
-
-  const [accountRefreshing, setAccountRefreshing] = useState(false)
-  const [showCopied, setCopied] = useState(false)
-
-  const [accountIdx, setAccountIdx] = useState(0)
 
   useEffect(() => {
     setAccountIdx(0)

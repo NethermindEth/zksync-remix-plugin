@@ -14,7 +14,6 @@ import Accordian, {
   AccordionTrigger
 } from '../../ui_components/Accordian'
 import ManualAccount from '../../components/ManualAccount'
-// import ManualAccount from '../../components/ManualAccount'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface EnvironmentProps {}
@@ -29,8 +28,6 @@ const Environment: React.FC<EnvironmentProps> = () => {
     env,
     setEnv,
     isDevnetAlive,
-    starknetWindowObject,
-    setStarknetWindowObject
   } = useContext(EnvironmentContext)
   const [prevEnv, setPrevEnv] = useState<string>(env)
 
@@ -41,7 +38,7 @@ const Environment: React.FC<EnvironmentProps> = () => {
   const [currentPane, setCurrentPane] = useState('environment')
 
   return (
-    <div className="starknet-connection-component mb-8">
+    <div className="zksync-connection-component mb-8">
       <Accordian type="single" value={currentPane} defaultValue={'environment'}>
         <AccordianItem value="environment">
           <AccordionTrigger
