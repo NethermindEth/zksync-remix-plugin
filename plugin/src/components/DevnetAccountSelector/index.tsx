@@ -199,7 +199,7 @@ const DevnetAccountSelector: React.FC = () => {
                       6,
                       4
                     )}
-                    (${getRoundedNumber(weiToEth(Number(account.initial_balance)), 2)} ether)`
+                    (${getRoundedNumber(weiToEth(account.initial_balance), 2)} ether)`
                     }
                   </option>
               )

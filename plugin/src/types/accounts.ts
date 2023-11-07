@@ -9,7 +9,7 @@ enum ZksyncChainId {
 }
 
 interface DevnetAccount {
-  initial_balance: string
+  initial_balance: number
   address: string
   private_key: string
 }

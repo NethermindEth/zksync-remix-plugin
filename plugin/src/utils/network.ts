@@ -58,7 +58,7 @@ const getAccounts = async (customDevnetUrl: string): Promise<DevnetAccount[]> =>
     } catch (error) {
       console.error(`Failed to get balance for address ${address}: `, error);
       return {
-        initial_balance: '0',
+        initial_balance: 0,
         address,
         private_key
       } as DevnetAccount;
@@ -75,7 +75,7 @@ const updateBalances = async (
 ): Promise<DevnetAccount[]> => {
   const accountPromises: Promise<DevnetAccount>[] = accounts.map(async (account: DevnetAccount) => {
     try {
-      const initial_balance = await getAccountBalance(account.address) || '0';
+      const initial_balance = await getAccountBalance(account.address) || 0;
 
       return {
         initial_balance,
@@ -85,7 +85,7 @@ const updateBalances = async (
     } catch (error) {
       console.error(`Failed to get balance for address ${account.address}: `, error);
       return {
-        initial_balance: '0',
+        initial_balance: 0,
         address: account.address,
         private_key: account.private_key
       } as DevnetAccount;
@@ -98,7 +98,7 @@ const updateBalances = async (
 const getAccountBalance = async (
   address: string,
   customDevnetUrl: string = devnetUrl
-): Promise<any> => {
+): Promise<number> => {
   const response = await fetch(`${customDevnetUrl}`, {
     method: 'POST',
     headers: {
@@ -112,7 +112,12 @@ const getAccountBalance = async (
     })
   })
   const account = await response.json()
-  return account.result
+
+  const number_hex = account.result
+
+  const number = parseInt(number_hex, 16)
+
+  return number
 }
 
 const getDevnetUrl = (network: string): string => {
