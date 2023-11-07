@@ -6,7 +6,7 @@ on:
         description: 'Devnet version tag'
         required: true
         type: string
-        default: 'latest'
+        default: 'v0.1.0-alpha.10'
 
 permissions:
   id-token: write
