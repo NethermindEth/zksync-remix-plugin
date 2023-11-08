@@ -6,6 +6,7 @@ import { RemixClientContext } from '../../contexts/RemixClientContext'
 import EnvironmentSelector from '../../components/EnvironmentSelector'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
 import Wallet from '../../components/Wallet'
+import ManualAccount from '../../components/ManualAccount'
 import { RxDotFilled } from 'react-icons/rx'
 import EnvironmentContext from '../../contexts/EnvironmentContext'
 import Accordian, {
