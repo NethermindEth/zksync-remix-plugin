@@ -5,7 +5,6 @@ import { CompiledContractsContext } from '../../contexts/CompiledContractsContex
 import { RemixClientContext } from '../../contexts/RemixClientContext'
 import { apiUrl } from '../../utils/network'
 import {
-  artifactFilename,
   artifactFolder,
   getFileExtension,
   getFileNameFromPath
@@ -17,6 +16,7 @@ import { ethers } from 'ethers'
 import CompilationContext from '../../contexts/CompilationContext'
 import { type AccordianTabs } from '../Plugin'
 import { type Contract } from '../../types/contracts'
+import { asyncFetch } from '../../utils/async_fetch'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface CompilationProps {
@@ -355,16 +355,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       }
 
       setStatus('Compiling...')
-      response = await fetch(
-        `${apiUrl}/compile/${hashDir}/${currentFilePath}`,
-        {
-          method: 'GET',
-          redirect: 'follow',
-          headers: {
-            'Content-Type': 'text/plain'
-          }
-        }
-      )
+
+      response = await asyncFetch(`compile-async/${hashDir}/${currentFilePath}`, 'compile-result')
 
       if (!response.ok) {
         await remixClient.call(

@@ -14,15 +14,13 @@ export async function asyncFetch (method: string, getterMethod: string) {
   try {
     await waitProcess(pid)
 
-    const response = await fetch(`${apiUrl}/${getterMethod}/${pid}`, {
+    return await fetch(`${apiUrl}/${getterMethod}/${pid}`, {
       method: 'GET',
       redirect: 'follow',
       headers: {
         'Content-Type': 'application/octet-stream'
       }
     })
-
-    return await response.text()
   } catch (e) {
     throw new Error(`Error while running process with id ${pid}, error: ${e}`)
   }

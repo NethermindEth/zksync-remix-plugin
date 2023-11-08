@@ -14,6 +14,7 @@ use rocket::State;
 use solang_parser::pt::SourceUnitPart;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
+use tracing::info;
 use tracing::instrument;
 
 #[instrument]
