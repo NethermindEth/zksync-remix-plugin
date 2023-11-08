@@ -9,6 +9,8 @@ import { getDefaultWallets, RainbowKitProvider, darkTheme, Chain} from "@rainbow
 import { configureChains, createConfig, WagmiConfig } from 'wagmi';
 import { publicProvider } from 'wagmi/providers/public';
 
+import { InjectedConnector } from 'wagmi/connectors/injected'
+import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
 
 const zksync: Chain = {
   id: 280,
@@ -44,9 +46,20 @@ const { connectors } = getDefaultWallets({
 
 const wagmiConfig = createConfig({
   autoConnect: false,
-  connectors,
+  connectors: [
+    // new MetaMaskConnector({ chains }),
+    new InjectedConnector({
+      chains,
+      options: {
+        name: 'Injected',
+        shimDisconnect: true,
+        getProvider: () =>
+        typeof window !== "undefined" ? window.ethereum : undefined,
+      },
+    }),
+  ],
   publicClient,
-})
+}) 
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 root.render(
