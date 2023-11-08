@@ -1,32 +1,21 @@
 // Set of functions I thought I might need to use in the future.
 // TODO: erase if not neeeded.
 
-import { Provider } from 'starknet'
 import { devnetUrl } from './constants'
+import { Provider } from 'zksync-web3'
 
 const getProvider = (network: string) => {
   switch (network) {
     case 'mainnet-alpha':
-      return new Provider({
-        sequencer: { baseUrl: 'https://sequencer.starknet.io' }
-      })
+      return new Provider('https://sequencer.zksync.io')
     case 'goerli-alpha':
-      return new Provider({
-        sequencer: { baseUrl: 'https://goerli.starknet.io' }
-      })
+      return new Provider('https://goerli.zksync.io')
     case 'goerli-alpha-2':
-      return new Provider({
-        sequencer: { baseUrl: 'https://goerli.starknet.io' }
-      })
+      return new Provider('https://goerli.zksync.io')
     case devnetUrl:
-      return new Provider({
-        // TODO: Let user chose port eventually.
-        sequencer: { baseUrl: devnetUrl }
-      })
+      return new Provider(devnetUrl)
     default:
-      return new Provider({
-        sequencer: { baseUrl: 'https://goerli.starknet.io' }
-      })
+      return new Provider('https://goerli.zksync.io')
   }
 }
 

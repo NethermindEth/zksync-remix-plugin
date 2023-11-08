@@ -2,6 +2,10 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi'
+import React, { useContext, useEffect, useState } from 'react'
+
+import copy from 'copy-to-clipboard'
+import './wallet.css'
 
 
 const Wallet = () => {

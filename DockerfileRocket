@@ -13,8 +13,8 @@ RUN apt-get install -y curl \
     gcc \
     apt-transport-https \
     software-properties-common \
-    wget
-
+    wget \
+    npm
 # Installing grafana agent
 RUN mkdir -p /etc/apt/keyrings/
 RUN wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor | tee /etc/apt/keyrings/grafana.gpg > /dev/null
@@ -24,9 +24,12 @@ RUN apt-get update
 
 RUN apt-get install grafana-agent
 
+RUN npm install -g yarn && npm install -g n
+RUN n lts
+
 WORKDIR /opt/app
 
-SHELL ["/bin/bash", "-lc"]
+#SHELL ["/bin/bash", "-lc"]
 
 # copy Remix plugin source and install Rust
 COPY . /opt/app
@@ -37,18 +40,18 @@ RUN whoami
 
 ENV PATH="/root/.cargo/bin:${PATH}"
 
-RUN git submodule update --init
-
 # Build the API service
+WORKDIR /opt/app/api/hardhat_env
+
+RUN ls -la
+
+RUN yarn install
+
 WORKDIR /opt/app/api
 
 RUN cargo build --release
 
 RUN chmod +x ./docker_run.sh
-
-# Build the cairo compiler
-WORKDIR /opt/app/api/cairo
-RUN cargo build --release --workspace
 
 EXPOSE 8000
 

@@ -1,14 +1,13 @@
 import React, { useContext } from 'react'
 import { devnets } from '../../utils/network'
+import { ConnectionContext } from '../../contexts/ConnectionContext'
+
 import './styles.css'
 import EnvironmentContext from '../../contexts/EnvironmentContext'
 
-
-const EnvironmentSelector = () => {
+const EnvironmentSelector: React.FC = () => {
+  const { setProvider } = useContext(ConnectionContext)
   const { env, setEnv, setDevnet } = useContext(EnvironmentContext)
-
-
-
 
   async function handleEnvironmentChange (event: any): Promise<void> {
     const value = parseInt(event.target.value)

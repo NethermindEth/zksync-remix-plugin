@@ -1,11 +1,8 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import React, { useContext, useEffect, useState } from 'react'
-import { Account, CallData, Provider, ec, hash, stark } from 'starknet'
 import {
   type Network,
-  networks as networkConstants,
-  networkEquivalents,
-  networkNameEquivalents
+  networks as networkConstants
 } from '../../utils/constants'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
 import { ethers } from 'ethers'
@@ -26,7 +23,6 @@ import ExplorerSelector, { useCurrentExplorer } from '../ExplorerSelector'
 // TODOS: move state parts to contexts
 // Account address selection
 // network selection drop down
-
 const ManualAccount: React.FC<{
   prevEnv: string
 }> = ({ prevEnv }) => {
@@ -60,17 +56,17 @@ const ManualAccount: React.FC<{
     setNetworkName(networkConstants[0].value)
   }, [setNetworkName])
 
-  useEffect(() => {
-    const netName = networkNameEquivalents.get(networkName)
-    const chainId = networkEquivalents.get(networkName)
-    if (chainId && netName) {
-      setProvider(
-        new Provider({
-          sequencer: { network: netName, chainId }
-        })
-      )
-    }
-  }, [setProvider, networkName])
+  // useEffect(() => {
+  //   const netName = networkNameEquivalents.get(networkName)
+  //   const chainId = networkEquivalents.get(networkName)
+  //   if (chainId && netName) {
+  //     setProvider(
+  //       new Provider({
+  //         sequencer: { network: netName, chainId }
+  //       })
+  //     )
+  //   }
+  // }, [setProvider, networkName])
 
   useEffect(() => {
     const manualAccounts = storage.get('manualAccounts')
@@ -84,210 +80,210 @@ const ManualAccount: React.FC<{
     }
   })
 
-  useEffect(() => {
-    if (selectedAccount != null && account != null) {
-      if (account.address === selectedAccount.address) return
-      const accountExist = accounts.find(
-        (acc) => acc.address === selectedAccount.address
-      )
-      if (accountExist != null) {
-        if (provider != null) {
-          setAccount(
-            new Account(
-              provider,
-              selectedAccount.address,
-              selectedAccount.private_key
-            )
-          )
-        }
-      }
-      return
-    }
-    if (accounts.length > 0) {
-      setSelectedAccount(accounts[0])
-      if (provider != null) {
-        setAccount(
-          new Account(provider, accounts[0].address, accounts[0].private_key)
-        )
-      }
-    } else {
-      setSelectedAccount(null)
-    }
-  }, [accounts])
+  // useEffect(() => {
+  //   if (selectedAccount != null && account != null) {
+  //     if (account.address === selectedAccount.address) return
+  //     const accountExist = accounts.find(
+  //       (acc) => acc.address === selectedAccount.address
+  //     )
+  //     if (accountExist != null) {
+  //       if (provider != null) {
+  //         setAccount(
+  //           new Account(
+  //             provider,
+  //             selectedAccount.address,
+  //             selectedAccount.private_key
+  //           )
+  //         )
+  //       }
+  //     }
+  //     return
+  //   }
+  //   if (accounts.length > 0) {
+  //     setSelectedAccount(accounts[0])
+  //     if (provider != null) {
+  //       setAccount(
+  //         new Account(provider, accounts[0].address, accounts[0].private_key)
+  //       )
+  //     }
+  //   } else {
+  //     setSelectedAccount(null)
+  //   }
+  // }, [accounts])
 
-  const updateBalance = async (): Promise<void> => {
-    if (account != null && provider != null && selectedAccount != null) {
-      const resp = await provider.callContract({
-        contractAddress: balanceContractAddress,
-        entrypoint: 'balanceOf',
-        calldata: [account.address]
-      })
-      const balance = resp.result[0]
-      const newAccount = { ...selectedAccount, balance }
-      const newAccounts = accounts.map((acc) => {
-        if (acc.address === selectedAccount.address) {
-          return newAccount
-        }
-        return acc
-      })
-      setSelectedAccount(newAccount)
-      setAccounts(newAccounts)
-      setBalanceRefreshing(false)
-      storage.set('manualAccounts', JSON.stringify(accounts))
-    }
-  }
+  // const updateBalance = async (): Promise<void> => {
+  //   if (account != null && provider != null && selectedAccount != null) {
+  //     const resp = await provider.callContract({
+  //       contractAddress: balanceContractAddress,
+  //       entrypoint: 'balanceOf',
+  //       calldata: [account.address]
+  //     })
+  //     const balance = resp.result[0]
+  //     const newAccount = { ...selectedAccount, balance }
+  //     const newAccounts = accounts.map((acc) => {
+  //       if (acc.address === selectedAccount.address) {
+  //         return newAccount
+  //       }
+  //       return acc
+  //     })
+  //     setSelectedAccount(newAccount)
+  //     setAccounts(newAccounts)
+  //     setBalanceRefreshing(false)
+  //     storage.set('manualAccounts', JSON.stringify(accounts))
+  //   }
+  // }
 
-  useEffect(() => {
-    updateBalance().catch((err) => {
-      console.log(err)
-    })
-  }, [account, provider])
+  // useEffect(() => {
+  //   updateBalance().catch((err) => {
+  //     console.log(err)
+  //   })
+  // }, [account, provider])
 
-  const createTestnetAccount = async (): Promise<void> => {
-    const privateKey = stark.randomAddress()
-    const starkKeyPub = ec.starkCurve.getStarkKey(privateKey)
-    const OZaccountConstructorCallData = CallData.compile({
-      publicKey: starkKeyPub
-    })
-    const OZcontractAddress = hash.calculateContractAddressFromHash(
-      starkKeyPub,
-      OZaccountClassHash,
-      OZaccountConstructorCallData,
-      0
-    )
-    const newAccounts = [
-      ...accounts,
-      {
-        address: OZcontractAddress,
-        private_key: privateKey,
-        public_key: starkKeyPub,
-        balance: 0,
-        deployed_networks: []
-      }
-    ]
-    setAccounts(newAccounts)
-    storage.set('manualAccounts', JSON.stringify(newAccounts))
-  }
+  // const createTestnetAccount = async (): Promise<void> => {
+  //   const privateKey = stark.randomAddress()
+  //   const starkKeyPub = ec.starkCurve.getStarkKey(privateKey)
+  //   const OZaccountConstructorCallData = CallData.compile({
+  //     publicKey: starkKeyPub
+  //   })
+  //   const OZcontractAddress = hash.calculateContractAddressFromHash(
+  //     starkKeyPub,
+  //     OZaccountClassHash,
+  //     OZaccountConstructorCallData,
+  //     0
+  //   )
+  //   const newAccounts = [
+  //     ...accounts,
+  //     {
+  //       address: OZcontractAddress,
+  //       private_key: privateKey,
+  //       public_key: starkKeyPub,
+  //       balance: 0,
+  //       deployed_networks: []
+  //     }
+  //   ]
+  //   setAccounts(newAccounts)
+  //   storage.set('manualAccounts', JSON.stringify(newAccounts))
+  // }
 
-  function handleProviderChange (
-    event: React.ChangeEvent<HTMLSelectElement>
-  ): void {
-    const networkName = networkNameEquivalents.get(event.target.value)
-    const chainId = networkEquivalents.get(event.target.value)
-    setNetworkName(event.target.value)
-    if (event.target.value.length > 0 && chainId && networkName) {
-      setProvider(
-        new Provider({
-          sequencer: {
-            network: networkName,
-            chainId
-          }
-        })
-      )
-      return
-    }
-    setProvider(null)
-  }
+  // function handleProviderChange (
+  //   event: React.ChangeEvent<HTMLSelectElement>
+  // ): void {
+  //   const networkName = networkNameEquivalents.get(event.target.value)
+  //   const chainId = networkEquivalents.get(event.target.value)
+  //   setNetworkName(event.target.value)
+  //   if (event.target.value.length > 0 && chainId && networkName) {
+  //     setProvider(
+  //       new Provider({
+  //         sequencer: {
+  //           network: networkName,
+  //           chainId
+  //         }
+  //       })
+  //     )
+  //     return
+  //   }
+  //   setProvider(null)
+  // }
 
-  function handleAccountChange (
-    event: React.ChangeEvent<HTMLSelectElement>
-  ): void {
-    const accountIndex = parseInt(event.target.value)
-    if (accountIndex === -1) return
-    const selectedAccount = accounts[accountIndex]
-    setSelectedAccount(selectedAccount)
-    if (provider != null) {
-      setAccount(
-        new Account(
-          provider,
-          selectedAccount.address,
-          selectedAccount.private_key
-        )
-      )
-    }
-  }
+  // function handleAccountChange (
+  //   event: React.ChangeEvent<HTMLSelectElement>
+  // ): void {
+  //   const accountIndex = parseInt(event.target.value)
+  //   if (accountIndex === -1) return
+  //   const selectedAccount = accounts[accountIndex]
+  //   setSelectedAccount(selectedAccount)
+  //   if (provider != null) {
+  //     setAccount(
+  //       new Account(
+  //         provider,
+  //         selectedAccount.address,
+  //         selectedAccount.private_key
+  //       )
+  //     )
+  //   }
+  // }
 
-  async function deployAccountHandler (): Promise<void> {
-    if (account == null || provider == null || selectedAccount == null) {
-      return
-    }
-
-    if (selectedAccount.deployed_networks.includes(networkName)) {
-      await remixClient.call(
-        'notification' as any,
-        'toast',
-        'ℹ️ Account already deployed on this network'
-      )
-      return
-    }
-
-    setAccountDeploying(true)
-
-    try {
-      const OZaccountConstructorCallData = CallData.compile({
-        publicKey: await account.signer.getPubKey()
-      })
-
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      const { transaction_hash, contract_address } =
-        await account.deployAccount({
-          classHash: OZaccountClassHash,
-          constructorCalldata: OZaccountConstructorCallData,
-          addressSalt: await account.signer.getPubKey()
-        })
-
-      console.log('transaction_hash=', transaction_hash)
-
-      await provider.waitForTransaction(transaction_hash)
-
-      setTransactions([
-        {
-          type: 'deployAccount',
-          account,
-          provider,
-          txId: transaction_hash,
-          env
-        },
-        ...transactions
-      ])
-
-      const newAccount = {
-        ...selectedAccount,
-        deployed_networks: [...selectedAccount.deployed_networks, networkName]
-      }
-      const newAccounts = accounts.map((acc) => {
-        if (acc.address === selectedAccount.address) {
-          return newAccount
-        }
-        return acc
-      })
-      setSelectedAccount(newAccount)
-      setAccounts(newAccounts)
-      storage.set('manualAccounts', JSON.stringify(newAccounts))
-      console.log(
-        '✅ New OpenZeppelin account created.\n   address =',
-        contract_address
-      )
-    } catch (e) {
-      console.error(e)
-      await remixClient.call(
-        'notification' as any,
-        'toast',
-        '❌ Error while deploying account, check account balance'
-      )
-      if (e instanceof Error) {
-        await remixClient.terminal.log({
-          type: 'error',
-          value: e.message
-        })
-      }
-    }
-    setAccountDeploying(false)
-  }
-
-  const [balanceRefreshing, setBalanceRefreshing] = useState(false)
-
-  const explorerHook = useCurrentExplorer()
+  // async function deployAccountHandler (): Promise<void> {
+  //   if (account == null || provider == null || selectedAccount == null) {
+  //     return
+  //   }
+  //
+  //   if (selectedAccount.deployed_networks.includes(networkName)) {
+  //     await remixClient.call(
+  //       'notification' as any,
+  //       'toast',
+  //       'ℹ️ Account already deployed on this network'
+  //     )
+  //     return
+  //   }
+  //
+  //   setAccountDeploying(true)
+  //
+  //   try {
+  //     const OZaccountConstructorCallData = CallData.compile({
+  //       publicKey: await account.signer.getPubKey()
+  //     })
+  //
+  //     // eslint-disable-next-line @typescript-eslint/naming-convention
+  //     const { transaction_hash, contract_address } =
+  //       await account.deployAccount({
+  //         classHash: OZaccountClassHash,
+  //         constructorCalldata: OZaccountConstructorCallData,
+  //         addressSalt: await account.signer.getPubKey()
+  //       })
+  //
+  //     console.log('transaction_hash=', transaction_hash)
+  //
+  //     await provider.waitForTransaction(transaction_hash)
+  //
+  //     setTransactions([
+  //       {
+  //         type: 'deployAccount',
+  //         account,
+  //         provider,
+  //         txId: transaction_hash,
+  //         env
+  //       },
+  //       ...transactions
+  //     ])
+  //
+  //     const newAccount = {
+  //       ...selectedAccount,
+  //       deployed_networks: [...selectedAccount.deployed_networks, networkName]
+  //     }
+  //     const newAccounts = accounts.map((acc) => {
+  //       if (acc.address === selectedAccount.address) {
+  //         return newAccount
+  //       }
+  //       return acc
+  //     })
+  //     setSelectedAccount(newAccount)
+  //     setAccounts(newAccounts)
+  //     storage.set('manualAccounts', JSON.stringify(newAccounts))
+  //     console.log(
+  //       '✅ New OpenZeppelin account created.\n   address =',
+  //       contract_address
+  //     )
+  //   } catch (e) {
+  //     console.error(e)
+  //     await remixClient.call(
+  //       'notification' as any,
+  //       'toast',
+  //       '❌ Error while deploying account, check account balance'
+  //     )
+  //     if (e instanceof Error) {
+  //       await remixClient.terminal.log({
+  //         type: 'error',
+  //         value: e.message
+  //       })
+  //     }
+  //   }
+  //   setAccountDeploying(false)
+  // }
+  //
+  // const [balanceRefreshing, setBalanceRefreshing] = useState(false)
+  //
+  // const explorerHook = useCurrentExplorer()
 
   return (
     <div className="manual-root-wrapper">
@@ -304,7 +300,7 @@ const ManualAccount: React.FC<{
         <select
           className="custom-select"
           aria-label=".form-select-sm example"
-          onChange={handleAccountChange}
+          // onChange={handleAccountChange}
           // value={selectedAccount?.address}
           defaultValue={
             selectedAccount == null
@@ -334,7 +330,7 @@ const ManualAccount: React.FC<{
           className="btn btn-primary"
           onClick={(e) => {
             e.preventDefault()
-            void createTestnetAccount()
+            // void createTestnetAccount()
           }}
         >
           <BiPlus />
@@ -348,7 +344,7 @@ const ManualAccount: React.FC<{
                 <p className="m-0">
                   Address:{' '}
                   <a
-                    href={`${getExplorerUrl(explorerHook.explorer, networkName as Network)}/contract/${selectedAccount?.address}`}
+                    // href={`${getExplorerUrl(explorerHook.explorer, networkName as Network)}/contract/${selectedAccount?.address}`}
                     target="_blank"
                     rel="noreferer noopener noreferrer"
                   >
@@ -363,13 +359,13 @@ const ManualAccount: React.FC<{
                 >
                   <BiCopy />
                 </button>
-                <ExplorerSelector
-                  path={`/contract/${selectedAccount.address}`}
-                  title={selectedAccount.address}
-                  isInline
-                  isTextVisible={false}
-                  controlHook={explorerHook}
-                />
+                {/* <ExplorerSelector */}
+                {/*   path={`/contract/${selectedAccount.address}`} */}
+                {/*   title={selectedAccount.address} */}
+                {/*   isInline */}
+                {/*   isTextVisible={false} */}
+                {/*   // controlHook={explorerHook} */}
+                {/* /> */}
               </div>
             </div>
           </div>
@@ -384,13 +380,13 @@ const ManualAccount: React.FC<{
               </p>
               <button
                 className="btn btn-refresh"
-                data-refreshing={balanceRefreshing}
+                // data-refreshing={balanceRefreshing}
                 onClick={(e) => {
                   e.preventDefault()
-                  setBalanceRefreshing(true)
-                  updateBalance().catch((err) => {
-                    console.log(err)
-                  })
+                  // setBalanceRefreshing(true)
+                  // updateBalance().catch((err) => {
+                  //   console.log(err)
+                  // })
                 }}
               >
                 <MdRefresh />
@@ -407,14 +403,14 @@ const ManualAccount: React.FC<{
                 })
                 setTimeout(() => {
                   window?.open(
-                    'https://faucet.goerli.starknet.io/',
+                    'https://faucet.goerli.zksync.io/',
                     '_blank',
                     'noopener noreferrer'
                   )
                 }, 2000)
               }}
             >
-              Request funds on Starknet Faucet
+              Request funds on Zksync Faucet
             </button>
           )}
         </div>
@@ -423,7 +419,7 @@ const ManualAccount: React.FC<{
       <select
         className="custom-select"
         aria-label=".form-select-sm example"
-        onChange={handleProviderChange}
+        // onChange={handleProviderChange}
         value={networkName}
         defaultValue={networkName}
       >
@@ -456,7 +452,7 @@ const ManualAccount: React.FC<{
         }
         onClick={(e) => {
           e.preventDefault()
-          void deployAccountHandler()
+          // void deployAccountHandler()
         }}
       >
         {accountDeploying

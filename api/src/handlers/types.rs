@@ -6,6 +6,13 @@ use std::path::PathBuf;
 pub struct CompileResponse {
     pub status: String,
     pub message: String,
+    pub file_content: Vec<SolFile>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(crate = "rocket::serde")]
+pub struct SolFile {
+    pub file_name: String,
     pub file_content: String,
 }
 

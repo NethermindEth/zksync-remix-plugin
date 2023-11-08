@@ -1,16 +1,14 @@
 import { createContext } from 'react'
 import {
-  type Account,
-  type AccountInterface,
   type Provider,
-  type ProviderInterface
-} from 'starknet'
+  type Wallet
+} from 'zksync-web3'
 
 const ConnectionContext = createContext({
-  provider: null as Provider | ProviderInterface | null,
-  setProvider: (_: Provider | ProviderInterface | null) => {},
-  account: null as Account | AccountInterface | null,
-  setAccount: (_: Account | AccountInterface | null) => {}
+  provider: null as Provider | null,
+  setProvider: (_: Provider | null) => {},
+  account: null as Wallet | null,
+  setAccount: (_: Wallet | null) => {}
 })
 
 export { ConnectionContext }

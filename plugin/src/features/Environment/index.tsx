@@ -18,17 +18,26 @@ import Accordian, {
 interface EnvironmentProps {}
 
 const Environment: React.FC<EnvironmentProps> = () => {
+  // Using the context
+  const remixClient = useContext(RemixClientContext)
+  const { setAccount, setProvider } =
+    useContext(ConnectionContext)
+
   const {
     env,
     setEnv,
-    isDevnetAlive,
+    isDevnetAlive
   } = useContext(EnvironmentContext)
   const [prevEnv, setPrevEnv] = useState<string>(env)
+
+  // START: WALLET
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  // END: WALLET
 
   const [currentPane, setCurrentPane] = useState('environment')
 
   return (
-    <div className="starknet-connection-component mb-8">
+    <div className="zksync-connection-component mb-8">
       <Accordian type="single" value={currentPane} defaultValue={'environment'}>
         <AccordianItem value="environment">
           <AccordionTrigger
@@ -37,6 +46,7 @@ const Environment: React.FC<EnvironmentProps> = () => {
           >
             <div className="trigger-env">
               <p>Environment</p>
+              {/* Select test accounts */}
               <button
                 type="button"
                 className="mb-0 btn btn-sm btn-outline-secondary float-right rounded-pill env-testnet-btn"
@@ -58,8 +68,7 @@ const Environment: React.FC<EnvironmentProps> = () => {
                     <div className="flex">
                       <label className="">Environment selection</label>
                       <div className="flex_dot">
-                        <EnvironmentSelector
-                        />
+                        <EnvironmentSelector />
                         {env === 'wallet'
                           ? (
                           <RxDotFilled
@@ -89,13 +98,13 @@ const Environment: React.FC<EnvironmentProps> = () => {
                       {['localDevnet', 'remoteDevnet'].includes(env) ? (
                         <DevnetAccountSelector />
                       ) : (
-                        <Wallet/>
+                        <Wallet />
                       )}
                     </div>
                   </>
-                {/* ) : (
-                  <ManualAccount prevEnv={prevEnv} />
-                )} */}
+                ) : (
+                  <ManualAccount prevEnv={prevEnv}/>
+                )
               </div>
             </>
           </AccordionContent>

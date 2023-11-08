@@ -1,7 +1,11 @@
+FROM ubuntu:20.04
+
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
-    libgmp3-dev
+    libgmp3-dev \
+    git \
+    curl
 
 RUN git config --global url."https://github".insteadOf ssh://git@github
 
