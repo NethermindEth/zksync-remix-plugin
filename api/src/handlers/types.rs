@@ -32,7 +32,10 @@ pub struct ScarbCompileResponse {
 #[derive(Debug)]
 pub enum ApiCommand {
     CompilerVersion,
-    Compile(PathBuf),
+    Compile {
+        version: String,
+        path: PathBuf,
+    },
     #[allow(dead_code)]
     Shutdown,
 }

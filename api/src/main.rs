@@ -14,9 +14,7 @@ use crate::rate_limiter::RateLimiter;
 use crate::tracing_log::init_logger;
 use crate::worker::WorkerEngine;
 use handlers::compile::{compile, compile_async, get_compile_result};
-use handlers::compiler_version::{
-    compiler_version, compiler_version_async, get_compiler_version_result,
-};
+use handlers::compiler_version::{allowed_versions, compiler_version};
 use handlers::process::get_process_status;
 use handlers::save_code::save_code;
 use handlers::{health, who_is_this};
@@ -24,9 +22,9 @@ use tracing::info;
 
 #[launch]
 async fn rocket() -> _ {
-    if let Err(err) = init_logger() {
-        eprintln!("Error initializing logger: {}", err);
-    }
+    // if let Err(err) = init_logger() {
+    //     eprintln!("Error initializing logger: {}", err);
+    // }
 
     let number_of_workers = match std::env::var("WORKER_THREADS") {
         Ok(v) => v.parse::<u32>().unwrap_or(2u32),
@@ -60,9 +58,8 @@ async fn rocket() -> _ {
                 get_compile_result,
                 save_code,
                 compiler_version,
-                compiler_version_async,
-                get_compiler_version_result,
                 get_process_status,
+                allowed_versions,
                 health,
                 who_is_this,
             ],

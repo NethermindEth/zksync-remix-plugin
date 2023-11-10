@@ -76,6 +76,11 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       type: 'info'
     })
 
+    remixClient.terminal.log({
+      value: `Abi: ${JSON.stringify(selectedContract.abi, null, 2)}`,
+      type: 'info'
+    })
+
     const factory = new zksync.ContractFactory(
       selectedContract.abi,
       selectedContract.bytecode,

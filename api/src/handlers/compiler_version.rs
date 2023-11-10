@@ -1,8 +1,6 @@
-use crate::handlers::process::{do_process_command, fetch_process_result};
-use crate::handlers::types::{ApiCommand, ApiCommandResult};
 use crate::types::ApiError;
-use crate::worker::WorkerEngine;
-use rocket::State;
+use crate::utils::lib::ALLOWED_VERSIONS;
+use rocket::serde::json::serde_json;
 use tracing::{info, instrument};
 
 #[instrument]
@@ -13,27 +11,18 @@ pub async fn compiler_version() -> String {
 }
 
 #[instrument]
-#[get("/compiler_version_async")]
-pub async fn compiler_version_async(engine: &State<WorkerEngine>) -> String {
-    info!("/compiler_version_async");
-    do_process_command(ApiCommand::CompilerVersion, engine)
-}
-
-#[instrument]
-#[get("/compiler_version_result/<process_id>")]
-pub async fn get_compiler_version_result(
-    process_id: String,
-    engine: &State<WorkerEngine>,
-) -> String {
-    info!("/compiler_version_result/{:?}", process_id);
-    fetch_process_result(process_id, engine, |result| match result {
-        ApiCommandResult::CompilerVersion(version) => version.to_string(),
-        _ => String::from("Result not available"),
-    })
+#[get("/allowed_versions")]
+pub async fn allowed_versions() -> String {
+    info!("/allowed_versions");
+    do_allowed_versions().unwrap_or_else(|e| format!("Error: {:?}", e))
 }
 
 /// Run ./zksolc --version to return compiler version string
 ///
 pub fn do_compiler_version() -> Result<String, ApiError> {
     Ok("zksolc-latest".to_string())
+}
+
+pub fn do_allowed_versions() -> Result<String, ApiError> {
+    Ok(serde_json::to_string(&ALLOWED_VERSIONS).unwrap())
 }
