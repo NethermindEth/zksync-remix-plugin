@@ -48,8 +48,11 @@ The easiest way to install Rust and Cargo is by using [rustup](https://rustup.rs
 Then:
 
 ```bash
-cd api;
-cargo build;
+cd api
+cd hardhat_env
+yarn
+cd ..
+cargo build
 ```
 
 #### Plugin
@@ -78,8 +81,11 @@ pnpm run serve;
 ```
 
 ```bash
-cd api;
-cargo run;
+cd api
+cd hardhat_env
+yarn
+cd ..
+VITE_URL=http://localhost:3000 cargo run
 ```
 
 or alternatively, you can run the server in watch mode (with `cargo watch`):
