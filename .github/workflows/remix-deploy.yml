@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - develop
-      - zksync-production-setup
+      - production
     # paths:
     #   - 'plugin/**'
       
@@ -106,7 +106,7 @@ jobs:
         working-directory: artifact
 
   Deploy_Prod:
-    if: github.ref == 'refs/heads/zksync-production-setup'
+    if: github.ref == 'refs/heads/production'
     runs-on: ubuntu-latest
     needs: Build
     steps:
