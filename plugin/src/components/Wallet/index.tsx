@@ -6,10 +6,40 @@ import React, { useContext, useEffect, useState } from 'react'
 
 import copy from 'copy-to-clipboard'
 import './wallet.css'
+import * as zksync from 'zksync-web3'
+import { ConnectionContext } from '../../contexts/ConnectionContext'
+import { useWalletClient } from 'wagmi'
+
 
 
 const Wallet = () => {
   const {isConnected} = useAccount()
+  const { data: walletClient, isError, isLoading } = useWalletClient()
+  const { account , setAccount, provider, setProvider } = useContext(ConnectionContext)
+
+  useEffect(() =>  {
+    console.log('useeffect called')
+    console.log('wallet client', walletClient)
+    
+    if (walletClient ){
+      console.log('account before wallet client update', account)
+      console.log('useeffect called successfull')
+      console.log('wallet client', walletClient)
+      console.log('account after wallet client update', account)
+      const network = {
+        chainId: walletClient.chain.id,
+        name: walletClient.chain.name,
+      }
+      console.log("network    ", network)
+      const newprovider = new zksync.Web3Provider(walletClient.transport, network)
+      const newsigner = newprovider.getSigner(walletClient.account.address)
+
+      setAccount(newsigner)
+      setProvider(walletClient)
+    }
+
+  }, [walletClient?.account.address])
+
   console.log(isConnected)
   return (
     <div

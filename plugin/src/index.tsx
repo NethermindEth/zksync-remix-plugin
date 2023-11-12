@@ -8,35 +8,13 @@ import { getDefaultWallets, RainbowKitProvider, darkTheme, Chain} from "@rainbow
 
 import { configureChains, createConfig, WagmiConfig } from 'wagmi';
 import { publicProvider } from 'wagmi/providers/public';
-
-import { InjectedConnector } from 'wagmi/connectors/injected'
-import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
-
-const zksync: Chain = {
-  id: 280,
-  name: 'zkSync Era Testnet',
-  network: 'zkSync Era Testnet',
-  iconUrl: 'https://example.com/icon.svg',
-  iconBackground: '#fff',
-  nativeCurrency: {
-    decimals: 18,
-    name: 'Ethereum',
-    symbol: 'ETH',
-  },
-  rpcUrls: {
-    default: { http: ['https://testnet.era.zksync.dev']},
-    public: { http: ['https://testnet.era.zksync.dev']}
-  },
-  blockExplorers: {
-    default: { name: 'zkSync Era Testnet Explorer', url: 'https://goerli.explorer.zksync.io/' },
-  },
-  testnet: true,
-};
+import {zkSyncTestnet} from 'viem/chains'
 
 const { chains, publicClient } = configureChains(
-  [zksync],
+  [zkSyncTestnet],
   [publicProvider()]
 );
+
 
 const { connectors } = getDefaultWallets({
   appName: 'Zk',
@@ -46,20 +24,9 @@ const { connectors } = getDefaultWallets({
 
 const wagmiConfig = createConfig({
   autoConnect: false,
-  connectors: [
-    // new MetaMaskConnector({ chains }),
-    new InjectedConnector({
-      chains,
-      options: {
-        name: 'Injected',
-        shimDisconnect: true,
-        getProvider: () =>
-        typeof window !== "undefined" ? window.ethereum : undefined,
-      },
-    }),
-  ],
+  connectors,
   publicClient,
-}) 
+})
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 root.render(
