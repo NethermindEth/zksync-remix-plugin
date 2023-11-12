@@ -14,23 +14,16 @@ import { useWalletClient } from 'wagmi'
 
 const Wallet = () => {
   const {isConnected} = useAccount()
-  const { data: walletClient, isError, isLoading } = useWalletClient()
-  const { account , setAccount, provider, setProvider } = useContext(ConnectionContext)
+  const { data: walletClient } = useWalletClient()
+  const { setAccount, setProvider } = useContext(ConnectionContext)
 
   useEffect(() =>  {
-    console.log('useeffect called')
-    console.log('wallet client', walletClient)
     
     if (walletClient ){
-      console.log('account before wallet client update', account)
-      console.log('useeffect called successfull')
-      console.log('wallet client', walletClient)
-      console.log('account after wallet client update', account)
       const network = {
         chainId: walletClient.chain.id,
         name: walletClient.chain.name,
       }
-      console.log("network    ", network)
       const newprovider = new zksync.Web3Provider(walletClient.transport, network)
       const newsigner = newprovider.getSigner(walletClient.account.address)
 
