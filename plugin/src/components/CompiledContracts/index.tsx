@@ -2,10 +2,7 @@
 
 import React, { useContext } from 'react'
 import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
-import {
-  getContractNameFromFullName,
-  getSelectedContractIndex
-} from '../../utils/utils'
+import { getContractNameFromFullName, getSelectedContractIndex } from '../../utils/utils'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface CompiledContractsProps {
@@ -13,7 +10,11 @@ interface CompiledContractsProps {
 }
 
 const CompiledContracts: React.FC<CompiledContractsProps> = (props) => {
-  const { contracts, selectedContract, setSelectedContract } = useContext(
+  const {
+    contracts,
+    selectedContract,
+    setSelectedContract
+  } = useContext(
     CompiledContractsContext
   )
 
@@ -24,8 +25,8 @@ const CompiledContracts: React.FC<CompiledContractsProps> = (props) => {
 
   return (
     <select
-      className="custom-select"
-      aria-label=".form-select-sm example"
+      className='custom-select'
+      aria-label='.form-select-sm example'
       onChange={(e) => {
         handleCompiledContractSelectionChange(e)
       }}

@@ -23,7 +23,7 @@ interface IStepProps {
 const SelectNetworkState: React.FC<IStepProps> = ({ changeState }) => {
   const [selectedNetwork, setSelectedNetwork] = useState<Networks>('goerli')
   const networks: Networks[] = ['goerli', 'dev-goerli']
-  const handleCreateAccount = () => {
+  const handleCreateAccount = (): void => {
     changeState('loading')
     // DUMMY LOAD BELOW
     setTimeout(() => {
@@ -32,11 +32,11 @@ const SelectNetworkState: React.FC<IStepProps> = ({ changeState }) => {
   }
   return (
     <div>
-      <div className="select-account-creation-network-wrapper">
+      <div className='select-account-creation-network-wrapper'>
         <p>Select Network</p>
         <D.Root>
           <D.Trigger>
-            <label className="select-account-creation-network">
+            <label className='select-account-creation-network'>
               {selectedNetwork} <BsChevronDown />
             </label>
           </D.Trigger>
@@ -59,7 +59,7 @@ const SelectNetworkState: React.FC<IStepProps> = ({ changeState }) => {
         </D.Root>
       </div>
       <button
-        className="btn btn-secondary rounded-pill"
+        className='btn btn-secondary rounded-pill'
         onClick={handleCreateAccount}
       >
         Create Testnet Account
@@ -79,15 +79,15 @@ const AccountCreated: React.FC<IAccountCreated> = ({
   const [showCopied, setShowCopied] = useState(false)
 
   const [balanceRefreshing, setBalanceRefreshing] = useState(false)
-  const [balance, setBalance] = useState('0.005')
+  const [balance] = useState('0.005')
   return (
     <div>
-      <div className="account-address-wrapper">
-        <label className="account-label">Account Address: </label>
+      <div className='account-address-wrapper'>
+        <label className='account-label'>Account Address: </label>
         <span>
-          <p className="account-address">{account}</p>
+          <p className='account-address'>{account}</p>
           <button
-            className="btn btn-primary rounded-circle d-flex justify-content-center align-items-center"
+            className='btn btn-primary rounded-circle d-flex justify-content-center align-items-center'
             onClick={() => {
               setShowCopied(true)
               copy(account)
@@ -98,16 +98,16 @@ const AccountCreated: React.FC<IAccountCreated> = ({
           >
             <BiCopy />
             {showCopied && (
-              <span className="btn btn-secondary copied-text">Copied</span>
+              <span className='btn btn-secondary copied-text'>Copied</span>
             )}
           </button>
         </span>
       </div>
-      <div className="d-flex align-items-center pb-2 balance-wrapper">
+      <div className='d-flex align-items-center pb-2 balance-wrapper'>
         <p>Balance: </p>
         <p>{balance} ETH</p>
         <button
-          className="refresh"
+          className='refresh'
           onClick={() => {
             setBalanceRefreshing(true)
             // ONLY DEBUG CODE REMOVE WHILE USING
@@ -121,8 +121,10 @@ const AccountCreated: React.FC<IAccountCreated> = ({
         </button>
       </div>
       <button
-        onClick={() => { changeState('selectNetwork') }}
-        className="btn btn-danger"
+        onClick={() => {
+          changeState('selectNetwork')
+        }}
+        className='btn btn-danger'
       >
         Reset
       </button>
@@ -138,12 +140,12 @@ const NewTestNetAccount: React.FC<INewTestNetAccount> = ({ state }) => {
   const getCurrentStateView = (
     state: AccountCreationState,
     setCurrentState: React.Dispatch<React.SetStateAction<AccountCreationState>>
-  ) => {
+  ): typeof AccountCreated | typeof SelectNetworkState | any => {
     switch (state) {
       case 'created':
         return (
           <AccountCreated
-            account="0x0551F5727597bE4Ceb967c464835010DF9000C3a75df64b59948bE58517c9aF3"
+            account='0x0551F5727597bE4Ceb967c464835010DF9000C3a75df64b59948bE58517c9aF3'
             changeState={setCurrentState}
           />
         )
@@ -151,7 +153,7 @@ const NewTestNetAccount: React.FC<INewTestNetAccount> = ({ state }) => {
         return <SelectNetworkState changeState={setCurrentState} />
       case 'loading':
         return (
-          <div className="account-state-loader-wrapper">
+          <div className='account-state-loader-wrapper'>
             <Loader />
             <p>Creating Account</p>
           </div>
@@ -168,11 +170,13 @@ const NewTestNetAccount: React.FC<INewTestNetAccount> = ({ state }) => {
         <Dialog.Content>
           <button
             className={'btn btn-danger p-1 rounded-circle close-btn'}
-            onClick={() => { setOpen(false) }}
+            onClick={() => {
+              setOpen(false)
+            }}
           >
             <AiOutlineClose size={'16px'} />
           </button>
-          <section className="header-section">
+          <section className='header-section'>
             <h3>Create Account</h3>
           </section>
           {getCurrentStateView(currentState, setCurrentState)}

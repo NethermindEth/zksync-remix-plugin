@@ -4,13 +4,17 @@ import { type Input } from '../types/contracts'
 
 const DeploymentContext = createContext({
   isDeploying: false as boolean,
-  setIsDeploying: ((_: boolean) => {}) as React.Dispatch<React.SetStateAction<boolean>>,
+  setIsDeploying: ((_: boolean) => {
+  }) as React.Dispatch<React.SetStateAction<boolean>>,
   deployStatus: '' as string,
-  setDeployStatus: ((_: string) => {}) as React.Dispatch<React.SetStateAction<string>>,
+  setDeployStatus: ((_: string) => {
+  }) as React.Dispatch<React.SetStateAction<string>>,
   constructorInputs: [] as Input[],
-  setConstructorInputs: ((_: Input[]) => {}) as React.Dispatch<React.SetStateAction<Input[]>>,
+  setConstructorInputs: ((_: Input[]) => {
+  }) as React.Dispatch<React.SetStateAction<Input[]>>,
   notEnoughInputs: false as boolean,
-  setNotEnoughInputs: ((_: boolean) => {}) as React.Dispatch<React.SetStateAction<boolean>>
+  setNotEnoughInputs: ((_: boolean) => {
+  }) as React.Dispatch<React.SetStateAction<boolean>>
 })
 
 export default DeploymentContext

@@ -6,9 +6,18 @@ type Network =
   | 'mainnet-alpha'
 
 const networks = [
-  { name: 'Testnet', value: 'goerli-alpha' },
-  { name: 'Testnet 2', value: 'goerli-alpha-2' },
-  { name: 'Mainnet', value: 'mainnet-alpha' }
+  {
+    name: 'Testnet',
+    value: 'goerli-alpha'
+  },
+  {
+    name: 'Testnet 2',
+    value: 'goerli-alpha-2'
+  },
+  {
+    name: 'Mainnet',
+    value: 'mainnet-alpha'
+  }
 ]
 
 const networkExplorerUrls = {

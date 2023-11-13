@@ -5,16 +5,16 @@ const Notices = [
   'Solidity contracts are compiled on a server hosted by Nethermind'
 ]
 
-const BackgroundNotices = () => {
+const BackgroundNotices: React.FC = () => {
   return (
     <div>
-      <p className="text-center">Notices</p>
+      <p className='text-center'>Notices</p>
       {
-        <ul className="list-group">
+        <ul className='list-group'>
           {Notices.map((notice, index) => {
             return (
-              <li className="list-group-item d-flex justify-content-left align-items-center disabled">
-                <span className="badge badge-primary badge-pill mr-2">
+              <li className='list-group-item d-flex justify-content-left align-items-center disabled' key={index}>
+                <span className='badge badge-primary badge-pill mr-2'>
                   {index + 1}
                 </span>
                 {notice}

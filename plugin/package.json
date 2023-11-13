@@ -25,6 +25,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^4.10.1",
+    "vite-plugin-checker": "^0.6.2",
     "vite-plugin-svgr": "^4.0.0",
     "web-vitals": "^2.1.4",
     "yup": "^1.2.0",

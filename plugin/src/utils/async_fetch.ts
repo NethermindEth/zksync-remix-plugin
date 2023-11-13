@@ -1,6 +1,6 @@
 import { apiUrl } from './network'
 
-export async function asyncFetch (method: string, getterMethod: string) {
+export async function asyncFetch (method: string, getterMethod: string): Promise<Response> {
   const response = await fetch(`${apiUrl}/${method}`, {
     method: 'GET',
     redirect: 'follow',
@@ -22,7 +22,7 @@ export async function asyncFetch (method: string, getterMethod: string) {
       }
     })
   } catch (e) {
-    throw new Error(`Error while running process with id ${pid}, error: ${e}`)
+    throw new Error(`Error while running process with id ${pid}, error: ${String(e)}`)
   }
 }
 

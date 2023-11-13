@@ -14,7 +14,7 @@ import { DeployedContractsContext } from '../../contexts/DeployedContractsContex
 import { type DeployedContract } from '../../types/contracts'
 import { type Transaction } from '../../types/transaction'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
-import { Contract } from 'ethers'
+import { type Contract } from 'ethers'
 
 interface DeploymentProps {
   setActiveTab: (tab: AccordianTabs) => void
@@ -22,17 +22,24 @@ interface DeploymentProps {
 
 const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const remixClient = useContext(RemixClientContext)
-  const { transactions, setTransactions } = useContext(TransactionContext)
-  const { contracts, selectedContract, setContracts, setSelectedContract } =
+  const {
+    transactions,
+    setTransactions
+  } = useContext(TransactionContext)
+  const {
+    contracts,
+    selectedContract
+  } =
     useContext(CompiledContractsContext)
 
   const { account } = useContext(ConnectionContext)
 
   const {
-    contracts: deployedContracts, selectedContract: deployedSelectedContract,
-    setContracts: deployedSetContracts, setSelectedContract: deployedSetSelectedContract
+    contracts: deployedContracts,
+    setContracts: deployedSetContracts,
+    setSelectedContract: deployedSetSelectedContract
   } =
-      useContext(DeployedContractsContext)
+    useContext(DeployedContractsContext)
 
   const [inputs, setInputs] = useState<string[]>([])
 
@@ -41,7 +48,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       return abiElement.type === 'constructor'
     })
 
-    if (constructor == undefined || constructor?.inputs == undefined) {
+    if (constructor === undefined || constructor?.inputs === undefined) {
       setInputs([])
       return
     }
@@ -49,10 +56,10 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     setInputs(new Array(constructor?.inputs.length).fill(''))
   }, [selectedContract])
 
-  async function deploy () {
+  async function deploy (): Promise<void> {
     //   Deploy contract
     if (selectedContract == null) {
-      remixClient.call(
+      await remixClient.call(
         'notification' as any,
         'toast',
         'No contract selected'
@@ -62,7 +69,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     }
 
     if (account == null) {
-      remixClient.call(
+      await remixClient.call(
         'notification' as any,
         'toast',
         'No account selected'
@@ -71,7 +78,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       return
     }
 
-    remixClient.terminal.log({
+    await remixClient.terminal.log({
       value: `Deploying contract ${selectedContract.contractName} with account ${account.address}`,
       type: 'info'
     })
@@ -83,7 +90,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     )
 
     try {
-      let contract: Contract = await factory.deploy(...inputs)
+      const contract: Contract = await factory.deploy(...inputs)
 
       remixClient.emit('statusChanged', {
         key: 'loading',
@@ -106,36 +113,38 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 
       contractOutputTx.data = contractOutputTx.data.slice(0, contractOutputTx.data.length / 3) + '...'
 
-      // @ts-expect-error
+      // @ts-expect-error: customData is returned properly but the type is not defined
       contractOutputTx.customData.factoryDeps = '[ <...> ]'
 
-      remixClient.terminal.log({
+      await remixClient.terminal.log({
         value: `${JSON.stringify(contractOutputTx, null, 2)}`,
         type: 'info'
       })
 
-      const deployedContract = {
+      const deployedContract: DeployedContract = {
         ...selectedContract,
         bytecode: selectedContract.bytecode,
         transactionHash: txHash,
         address
-      } as DeployedContract
+      }
 
       deployedSetContracts([deployedContract, ...deployedContracts])
       deployedSetSelectedContract(deployedContract)
 
       setActiveTab('interaction')
 
-      const transaction = {
+      const transaction: Transaction = {
         type: 'deploy',
         txId: txHash,
-        env: 'local'
-      } as Transaction
+        env: 'local',
+        account,
+        provider: null
+      }
 
       setTransactions([transaction, ...transactions])
     } catch (e) {
-      remixClient.terminal.log({
-        value: `Error: ${(e as any).code}`,
+      await remixClient.terminal.log({
+        value: `Error: ${JSON.stringify(e)}`,
         type: 'error'
       })
 
@@ -145,10 +154,10 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         title: `Contract ${selectedContract.contractName} failed to deploy!`
       })
 
-      remixClient.call(
+      await remixClient.call(
         'notification' as any,
         'toast',
-        `Error: ${(e as any).code}`
+        `Error: ${JSON.stringify(e)}`
       )
     }
   }
@@ -158,30 +167,32 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       <Container>
         {contracts.length > 0
           ? (
-                <div>
-                  <CompiledContracts show={'contract'}></CompiledContracts>
-                  {
-                    (selectedContract != null)
-                      ? <div>
-                        <ConstructorInput inputs={inputs} setInputs={setInputs}></ConstructorInput>
+            <div>
+              <CompiledContracts show={'contract'}></CompiledContracts>
+              {
+                (selectedContract != null)
+                  ? <div>
+                    <ConstructorInput inputs={inputs} setInputs={setInputs}></ConstructorInput>
 
-                        <button
-                          className="btn btn-primary btn-block d-block w-100 text-break mb-1 mt-2 px-0"
-                          onClick={() => {
-                            deploy()
-                          }}
-                        >
-                          Deploy
-                        </button>
+                    <button
+                      className='btn btn-primary btn-block d-block w-100 text-break mb-1 mt-2 px-0'
+                      onClick={() => {
+                        deploy().catch((err) => {
+                          console.log(err)
+                        })
+                      }}
+                    >
+                      Deploy
+                    </button>
 
-                      </div>
-                      : <>
-                        </>
-                  }
-                </div>
+                  </div>
+                  : <>
+                  </>
+              }
+            </div>
             )
           : (
-          <p>No contracts ready for deployment yet, compile a solidity contract</p>
+            <p>No contracts ready for deployment yet, compile a solidity contract</p>
             )}
       </Container>
     </>

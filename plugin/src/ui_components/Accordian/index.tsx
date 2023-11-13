@@ -9,15 +9,19 @@ export interface IFCProps {
 
 // eslint-disable-next-line react/display-name
 export const AccordionTrigger = React.forwardRef<any, any>(
-  ({ children, className, ...props }, forwardedRef) => (
-    <AccordionPrimitive.Header className="AccordionHeader">
+  ({
+    children,
+    className,
+    ...props
+  }, forwardedRef) => (
+    <AccordionPrimitive.Header className='AccordionHeader'>
       <AccordionPrimitive.Trigger
         className={'AccordionTrigger'}
         {...props}
         ref={forwardedRef}
       >
         {children}
-        <BsChevronDown className="AccordionChevron" aria-hidden />
+        <BsChevronDown className='AccordionChevron' aria-hidden />
       </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>
   )
@@ -25,13 +29,17 @@ export const AccordionTrigger = React.forwardRef<any, any>(
 
 // eslint-disable-next-line react/display-name
 export const AccordionContent = React.forwardRef<any, any>(
-  ({ children, className, ...props }, forwardedRef) => (
+  ({
+    children,
+    className,
+    ...props
+  }, forwardedRef) => (
     <AccordionPrimitive.Content
       className={'AccordionContent'}
       {...props}
       ref={forwardedRef}
     >
-      <div className="AccordionContentText">{children}</div>
+      <div className='AccordionContentText'>{children}</div>
     </AccordionPrimitive.Content>
   )
 )
@@ -44,6 +52,7 @@ interface IAccordian {
   value?: any
   children: React.ReactNode
 }
+
 const Accordian: React.FC<IAccordian> = ({
   type = 'single',
   children,
@@ -51,7 +60,7 @@ const Accordian: React.FC<IAccordian> = ({
   value
 }) => (
   <AccordionPrimitive.Root
-    className="AccordionRoot"
+    className='AccordionRoot'
     type={type}
     value={value}
     defaultValue={defaultValue}

@@ -13,6 +13,30 @@ interface DeployedContract extends Contract {
   address: string
   transactionHash: string
 }
+// #[derive(Debug, Deserialize, Serialize)]
+// #[serde(crate = "rocket::serde")]
+// pub struct CompileResponse {
+//   pub status: String,
+//     pub message: String,
+//     pub file_content: Vec<SolFile>,
+// }
+//
+// #[derive(Debug, Deserialize, Serialize)]
+// #[serde(crate = "rocket::serde")]
+// pub struct SolFile {
+//   pub file_name: String,
+//     pub file_content: String,
+// }
+interface CompilationResult {
+  status: string
+  message: string
+  file_content: SolFile[]
+}
+
+interface SolFile {
+  file_name: string
+  file_content: string
+}
 
 interface Input {
   name: string
@@ -28,7 +52,8 @@ interface AbiElement {
   type: string
 }
 
-interface Abi extends Array<AbiElement> {}
+interface Abi extends Array<AbiElement> {
+}
 
 type Output = Input
 
@@ -38,5 +63,7 @@ export type {
   Contract,
   Input,
   Output,
-  DeployedContract
+  DeployedContract,
+  CompilationResult,
+  SolFile
 }

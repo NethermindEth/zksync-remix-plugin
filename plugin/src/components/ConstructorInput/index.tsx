@@ -2,14 +2,8 @@
 
 import React, { useContext, useEffect, useState } from 'react'
 import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
-import {
-  generateInputName,
-  getContractNameFromFullName,
-  getSelectedContractIndex,
-  getShortenedHash
-} from '../../utils/utils'
+import { generateInputName } from '../../utils/utils'
 import { type AbiElement, type Input } from '../../types/contracts'
-import { RemixClientContext } from '../../contexts/RemixClientContext'
 import InputField from '../InputField'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -18,7 +12,10 @@ interface ConstructorContractsProps {
   setInputs: (input: string[]) => void
 }
 
-const ConstructorInput: React.FC<ConstructorContractsProps> = ({ inputs, setInputs }: ConstructorContractsProps) => {
+const ConstructorInput: React.FC<ConstructorContractsProps> = ({
+  inputs,
+  setInputs
+}: ConstructorContractsProps) => {
   const { selectedContract } = useContext(
     CompiledContractsContext
   )
@@ -36,13 +33,14 @@ const ConstructorInput: React.FC<ConstructorContractsProps> = ({ inputs, setInpu
   return (
     <>
       {
-        (constructor != null) && (constructor).inputs.map((input: Input, index: number) => {
+        constructor?.inputs.map((input: Input, index: number) => {
           return (
-            <InputField name={generateInputName(input)} index={index} value={inputs[index]} onChange={(index, newValue) => {
-              const newInputs = [...inputs]
-              newInputs[index] = newValue
-              setInputs(newInputs)
-            }}/>
+              <InputField name={generateInputName(input)} index={index} value={inputs[index]}
+                          onChange={(index, newValue) => {
+                            const newInputs = [...inputs]
+                            newInputs[index] = newValue
+                            setInputs(newInputs)
+                          }} key={index}/>
           )
         }
         )

@@ -26,15 +26,15 @@ const App: React.FC = () => {
 
   return (
     <RemixClientContext.Provider value={remixClient}>
-      <div className="shell">
+      <div className='shell'>
         {pluginLoaded
           ? (
             <Plugin />
             )
           : (
-          <FullScreenOverlay>
-            <Loader />
-          </FullScreenOverlay>
+            <FullScreenOverlay>
+              <Loader />
+            </FullScreenOverlay>
             )}
       </div>
     </RemixClientContext.Provider>

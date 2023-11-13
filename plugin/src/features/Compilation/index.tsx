@@ -4,18 +4,14 @@ import React, { useContext, useEffect } from 'react'
 import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
 import { RemixClientContext } from '../../contexts/RemixClientContext'
 import { apiUrl } from '../../utils/network'
-import {
-  artifactFolder,
-  getFileExtension,
-  getFileNameFromPath
-} from '../../utils/utils'
+import { artifactFolder, getFileExtension, getFileNameFromPath } from '../../utils/utils'
 import './styles.css'
 import Container from '../../ui_components/Container'
 import storage from '../../utils/storage'
 import { ethers } from 'ethers'
 import CompilationContext from '../../contexts/CompilationContext'
 import { type AccordianTabs } from '../Plugin'
-import { type Contract } from '../../types/contracts'
+import { type CompilationResult, type Contract } from '../../types/contracts'
 import { asyncFetch } from '../../utils/async_fetch'
 import VersionContext from '../../contexts/VersionContext'
 
@@ -27,7 +23,11 @@ interface CompilationProps {
 const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   const remixClient = useContext(RemixClientContext)
 
-  const { contracts, selectedContract, setContracts, setSelectedContract } = useContext(
+  const {
+    contracts,
+    setContracts,
+    setSelectedContract
+  } = useContext(
     CompiledContractsContext
   )
 
@@ -51,11 +51,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   } = useContext(CompilationContext)
 
   const {
-    solidityVersion,
-    setSolidityVersion,
-    versions,
-    setVersions
-  } = useContext(VersionContext);
+    solidityVersion
+  } = useContext(VersionContext)
 
   const [currWorkspacePath, setCurrWorkspacePath] = React.useState<string>('')
 
@@ -231,7 +228,9 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
 
         setTomlPaths(allTomlPaths)
-        if (activeTomlPath === '' || activeTomlPath === undefined) { setActiveTomlPath(tomlPaths[0]) }
+        if (activeTomlPath === '' || activeTomlPath === undefined) {
+          setActiveTomlPath(tomlPaths[0])
+        }
       } catch (e) {
         console.log('error: ', e)
       }
@@ -239,7 +238,9 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   }, [currWorkspacePath])
 
   useEffect(() => {
-    if (activeTomlPath === '' || activeTomlPath === undefined) { setActiveTomlPath(tomlPaths[0]) }
+    if (activeTomlPath === '' || activeTomlPath === undefined) {
+      setActiveTomlPath(tomlPaths[0])
+    }
   }, [tomlPaths])
 
   useEffect(() => {
@@ -382,11 +383,14 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       }
 
       // get Json body from response
-      const compileResult = JSON.parse(await response.text())
+      const compileResult = JSON.parse(await response.text()) as CompilationResult
 
       if (compileResult.status !== 'Success') {
         setStatus('Reporting Errors...')
-        await remixClient.terminal.log(compileResult.message)
+        await remixClient.terminal.log({
+          value: compileResult.message,
+          type: 'error'
+        })
 
         const errorLets = compileResult.message.trim().split('\n')
 
@@ -429,12 +433,12 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         })
 
         // trim sierra message to get last line
-        const lastLine = compileResult.message.trim().split('\n').pop().trim()
+        const lastLine = compileResult.message.trim().split('\n').pop()?.trim()
 
         remixClient.emit('statusChanged', {
           key: 'failed',
           type: 'error',
-          title: lastLine.startsWith('Error') ? lastLine : 'Compilation Failed'
+          title: (lastLine ?? '').startsWith('Error') ? lastLine : 'Compilation Failed'
         })
         throw new Error(
           'Solidity Compilation Failed, logs can be read in the terminal log'
@@ -469,8 +473,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
               'notification' as any,
               'toast',
               e.message +
-                ' try deleting the files: ' +
-                artifactsPath
+              ' try deleting the files: ' +
+              artifactsPath
             )
           }
           remixClient.emit('statusChanged', {
@@ -509,12 +513,12 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     return (
       <Container>
         {activeTomlPath && tomlPaths?.length > 0 && (
-          <div className="project-dropdown-wrapper d-flex flex-column mb-3">
+          <div className='project-dropdown-wrapper d-flex flex-column mb-3'>
             <div className='mx-auto'>Compile a single Solidity file:</div>
           </div>
         )}
         <button
-          className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-1 px-0"
+          className='btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-1 px-0'
           style={{
             cursor: `${
               !validation || !currentFilename ? 'not-allowed' : 'pointer'
@@ -524,38 +528,38 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           aria-disabled={!validation || !currentFilename || isCompiling}
           onClick={onClick}
         >
-          <div className="d-flex align-items-center justify-content-center">
-            <div className="text-truncate overflow-hidden text-nowrap">
+          <div className='d-flex align-items-center justify-content-center'>
+            <div className='text-truncate overflow-hidden text-nowrap'>
               {!validation
                 ? (
-                <span>Select a valid solidity file</span>
+                  <span>Select a valid solidity file</span>
                   )
                 : (
-                <>
-                  <div className="d-flex align-items-center justify-content-center">
-                    {isLoading
-                      ? (
-                      <>
+                  <>
+                    <div className='d-flex align-items-center justify-content-center'>
+                      {isLoading
+                        ? (
+                          <>
                         <span
-                          className="spinner-border spinner-border-sm"
-                          role="status"
-                          aria-hidden="true"
+                          className='spinner-border spinner-border-sm'
+                          role='status'
+                          aria-hidden='true'
                         >
                           {' '}
                         </span>
-                        <span style={{ paddingLeft: '0.5rem' }}>{status}</span>
-                      </>
-                        )
-                      : (
-                      <div className="text-truncate overflow-hidden text-nowrap">
-                        <span>Compile</span>
-                        <span className="ml-1 text-nowrap">
+                            <span style={{ paddingLeft: '0.5rem' }}>{status}</span>
+                          </>
+                          )
+                        : (
+                          <div className='text-truncate overflow-hidden text-nowrap'>
+                            <span>Compile</span>
+                            <span className='ml-1 text-nowrap'>
                           {currentFilename}
                         </span>
-                      </div>
-                        )}
-                  </div>
-                </>
+                          </div>
+                          )}
+                    </div>
+                  </>
                   )}
             </div>
           </div>

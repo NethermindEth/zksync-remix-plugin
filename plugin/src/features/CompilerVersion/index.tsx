@@ -1,5 +1,5 @@
 import * as D from '../../ui_components/Dropdown'
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext, useEffect } from 'react'
 import { apiUrl } from '../../utils/network'
 import { RemixClientContext } from '../../contexts/RemixClientContext'
 import Nethermind from '../../components/NM'
@@ -16,9 +16,9 @@ const SolidityVersion: React.FC = () => {
     setSolidityVersion,
     versions,
     setVersions
-  } = useContext(VersionContext);
+  } = useContext(VersionContext)
 
-  const fetchVersions = async () => {
+  const fetchVersions = async (): Promise<void> => {
     try {
       if (apiUrl !== undefined) {
         await remixClient.call(
@@ -62,11 +62,11 @@ const SolidityVersion: React.FC = () => {
   }, [remixClient])
 
   return (
-    <div className="version-wrapper">
+    <div className='version-wrapper'>
       <div>
         <D.Root>
           <D.Trigger>
-            <label className="solidity-version-legend">
+            <label className='solidity-version-legend'>
               Using zksolc-{solidityVersion} <BsChevronDown />
             </label>
           </D.Trigger>
@@ -88,12 +88,12 @@ const SolidityVersion: React.FC = () => {
           </D.Portal>
         </D.Root>
       </div>
-      <div className="version-right">
-        <label className="nethermind-powered">
+      <div className='version-right'>
+        <label className='nethermind-powered'>
           <span style={{ marginRight: '4px' }}>Powered by </span>
-          <Nethermind size="xs" />
+          <Nethermind size='xs' />
         </label>
-        <label className="plugin-version">
+        <label className='plugin-version'>
           Plugin version: {pluginVersion}
         </label>
       </div>

@@ -1,15 +1,12 @@
 // A component that reads the compiled contracts from the context and displays them in a select
 
 import React, { useContext, useEffect, useState } from 'react'
-import {
-  generateInputName
-} from '../../utils/utils'
+import { generateInputName } from '../../utils/utils'
 import { type AbiElement, type Input } from '../../types/contracts'
 import { RemixClientContext } from '../../contexts/RemixClientContext'
 import InputField from '../InputField'
 import { DeployedContractsContext } from '../../contexts/DeployedContractsContext'
 import { Contract } from 'ethers'
-import { Provider, Wallet } from 'zksync-web3'
 import TransactionContext from '../../contexts/TransactionContext'
 import { type Transaction } from '../../types/transaction'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
@@ -23,10 +20,13 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
   const [inputs, setInputs] = useState<string[]>([])
   const { selectedContract } = useContext(DeployedContractsContext)
   const remixClient = useContext(RemixClientContext)
-  const { transactions, setTransactions } = useContext(TransactionContext)
+  const {
+    transactions,
+    setTransactions
+  } = useContext(TransactionContext)
   const { account } = useContext(ConnectionContext)
 
-  const callContract = async () => {
+  const callContract = async (): Promise<void> => {
     if (selectedContract == null) {
       await remixClient.terminal.log('No contract selected' as any)
       return
@@ -59,11 +59,13 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
       })
 
       if (element.stateMutability !== 'view') {
-        const transaction = {
+        const transaction: Transaction = {
           type: 'invoke',
           txId: result.hash,
-          env: 'localhost'
-        } as Transaction
+          env: 'localhost',
+          account,
+          provider: null
+        }
 
         setTransactions([transaction, ...transactions])
       }
@@ -89,7 +91,7 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
       await remixClient.call(
         'notification' as any,
         'toast',
-        `Error: ${(e as any).code}`
+        `Error: ${String(e)}`
       )
     }
   }
@@ -101,20 +103,19 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
   return (
     <>
       <button onClick={() => {
-        callContract()
+        callContract().catch(console.error)
       }} className={`btn btn-primary btn-block d-block w-100 text-break mb-1 mt-2 px-0 ${
         element.stateMutability === 'view' ? '' : 'btn-warning'
-      }`} >{element.name}</button>
+      }`}>{element.name}</button>
       {
         element.inputs.map((input: Input, index: number) => {
           return (
-            <div>
-              <InputField placeholder={generateInputName(input)} index={index} value={inputs[index]} onChange={(index, newValue) => {
-                const newInputs = [...inputs]
-                newInputs[index] = newValue
-                setInputs(newInputs)
-              }}/>
-            </div>
+              <InputField key={index} placeholder={generateInputName(input)} index={index} value={inputs[index]}
+                          onChange={(index, newValue) => {
+                            const newInputs = [...inputs]
+                            newInputs[index] = newValue
+                            setInputs(newInputs)
+                          }}/>
           )
         })
       }

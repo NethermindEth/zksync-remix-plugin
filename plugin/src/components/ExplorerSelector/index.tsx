@@ -33,7 +33,10 @@ const ExplorerSelector: React.FC<IExplorerSelector> = ({
   isInline,
   controlHook
 }) => {
-  const { explorer, setExplorer } = controlHook
+  const {
+    explorer,
+    setExplorer
+  } = controlHook
   return (
     <div
       className={`${(isInline === true) ? 'inline-root-wrapper' : ''}`}
@@ -41,12 +44,12 @@ const ExplorerSelector: React.FC<IExplorerSelector> = ({
         e.stopPropagation()
       }}
     >
-      <div className="selectors-wrapper">
+      <div className='selectors-wrapper'>
         <D.Root>
           <D.Trigger>
-            <div className="network-dropdown-trigger">
+            <div className='network-dropdown-trigger'>
               <img
-                className="img-explorer-logo"
+                className='img-explorer-logo'
                 src={explorerToLogo(explorer)}
               />
             </div>
@@ -56,14 +59,14 @@ const ExplorerSelector: React.FC<IExplorerSelector> = ({
               {Object.keys(EXPLORERS).map((v, i) => {
                 return (
                   <D.Item
-                    className="styled-dropdown-item"
+                    className='styled-dropdown-item'
                     key={i}
                     onClick={() => {
                       setExplorer(v as keyof typeof EXPLORERS)
                     }}
                   >
                     <img
-                      className="img-explorer-logo"
+                      className='img-explorer-logo'
                       src={explorerToLogo(v as keyof typeof EXPLORERS)}
                     />
                     <p>{v}</p>

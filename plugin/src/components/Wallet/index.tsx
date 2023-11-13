@@ -1,8 +1,6 @@
 /* eslint-disable multiline-ternary */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import React, { useContext, useEffect, useState } from 'react'
-
-import copy from 'copy-to-clipboard'
+import React from 'react'
 import './wallet.css'
 
 const Wallet: React.FC = () => {

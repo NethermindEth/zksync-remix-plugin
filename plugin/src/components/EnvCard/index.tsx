@@ -1,6 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useContext, type ReactNode, useState } from 'react'
-import React from 'react'
+import React, { type ReactNode, useContext, useState } from 'react'
 import './envCard.css'
 import EnvironmentContext from '../../contexts/EnvironmentContext'
 
@@ -19,13 +18,13 @@ export const EnvCard: React.FC<EnvCardProps> = ({
   const [prevEnv, setPrevEnv] = useState<string>(env)
 
   return (
-    <div className="border-top border-bottom">
+    <div className='border-top border-bottom'>
       {header !== '' && (
-        <div className="card-header">
+        <div className='card-header'>
           {/* <h5 className="mb-0">{header}</h5> */}
           <button
-            type="button"
-            className="mb-0 btn btn-sm float-left env-btn"
+            type='button'
+            className='mb-0 btn btn-sm float-left env-btn'
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onClick={async () => {
               setEnv(prevEnv)
@@ -34,8 +33,8 @@ export const EnvCard: React.FC<EnvCardProps> = ({
             {header}
           </button>
           <button
-            type="button"
-            className="mb-0 btn btn-sm btn-outline-secondary float-right rounded-pill env-testnet-btn"
+            type='button'
+            className='mb-0 btn btn-sm btn-outline-secondary float-right rounded-pill env-testnet-btn'
             onClick={(e) => {
               if (env !== 'manual') setPrevEnv(env)
               setEnv('manual')
@@ -46,7 +45,7 @@ export const EnvCard: React.FC<EnvCardProps> = ({
           </button>
         </div>
       )}
-      <div className="card-body">{children}</div>
+      <div className='card-body'>{children}</div>
     </div>
   )
 }

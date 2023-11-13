@@ -1,24 +1,22 @@
 // A component that reads the compiled contracts from the context and displays them in a select
 
 import React, { useContext } from 'react'
-import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
-import {
-  getContractNameFromFullName,
-  getSelectedContractIndex,
-  getShortenedHash
-} from '../../utils/utils'
+import { getContractNameFromFullName, getSelectedContractIndex } from '../../utils/utils'
 import { DeployedContractsContext } from '../../contexts/DeployedContractsContext'
-import Container from '../../ui_components/Container'
 import FunctionalInput from '../FunctionalInput'
 import './deployedContracts.css'
-import { ConnectionContext } from '../../contexts/ConnectionContext'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 
 const DeployedContracts: React.FC = () => {
-  const { contracts, selectedContract, setSelectedContract } = useContext(
+  const {
+    contracts,
+    selectedContract,
+    setSelectedContract
+  } = useContext(
     DeployedContractsContext
   )
+
   function handleCompiledContractSelectionChange (event: any): void {
     event.preventDefault()
     setSelectedContract(contracts[event.target.value])
@@ -27,8 +25,8 @@ const DeployedContracts: React.FC = () => {
   return (
     <>
       <select
-        className="custom-select"
-        aria-label=".form-select-sm example"
+        className='custom-select'
+        aria-label='.form-select-sm example'
         onChange={(e) => {
           handleCompiledContractSelectionChange(e)
         }}
@@ -46,22 +44,22 @@ const DeployedContracts: React.FC = () => {
       {selectedContract != null
         ? (
           <div>
-              { selectedContract.abi.map(
-                (abiElement, index) => {
-                  return abiElement.type !== 'constructor' && (
-                            <div key={index} className={'methodBox'}>
-                                <FunctionalInput element={abiElement}></FunctionalInput>
-                            </div>
-                  )
-                }
-              )
+            {selectedContract.abi.map(
+              (abiElement, index) => {
+                return abiElement.type !== 'constructor' && (
+                  <div key={index} className={'methodBox'}>
+                    <FunctionalInput element={abiElement}></FunctionalInput>
+                  </div>
+                )
               }
+            )
+            }
           </div>
           )
         : (
-            <div>
-              <p>No contract selected</p>
-            </div>
+          <div>
+            <p>No contract selected</p>
+          </div>
           )
       }
 

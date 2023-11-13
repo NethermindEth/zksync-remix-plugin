@@ -7,14 +7,21 @@ import EnvironmentContext from '../../contexts/EnvironmentContext'
 
 const EnvironmentSelector: React.FC = () => {
   const { setProvider } = useContext(ConnectionContext)
-  const { env, setEnv, setDevnet } = useContext(EnvironmentContext)
+  const {
+    env,
+    setEnv,
+    setDevnet
+  } = useContext(EnvironmentContext)
 
   async function handleEnvironmentChange (event: any): Promise<void> {
     const value = parseInt(event.target.value)
     if (value > 0) {
       setDevnet(devnets[value - 1])
-      if (value === 2) setEnv('remoteDevnet')
-      else setEnv('localDevnet')
+      if (value === 2) {
+        setEnv('remoteDevnet')
+      } else {
+        setEnv('localDevnet')
+      }
       setProvider(null)
       return
     }
@@ -28,10 +35,10 @@ const EnvironmentSelector: React.FC = () => {
   }
 
   return (
-    <div className="environment-selector-wrapper">
+    <div className='environment-selector-wrapper'>
       <select
-        className="custom-select"
-        aria-label=".form-select-sm example"
+        className='custom-select'
+        aria-label='.form-select-sm example'
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         onChange={handleEnvironmentChange}
         defaultValue={getDefualtIndex()}

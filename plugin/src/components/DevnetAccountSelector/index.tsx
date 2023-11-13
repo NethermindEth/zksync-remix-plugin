@@ -1,9 +1,4 @@
-import {
-  getRoundedNumber,
-  getSelectedAccountIndex,
-  getShortenedHash,
-  weiToEth
-} from '../../utils/utils'
+import { getRoundedNumber, getSelectedAccountIndex, getShortenedHash, weiToEth } from '../../utils/utils'
 import { getAccounts, updateBalances } from '../../utils/network'
 import React, { useContext, useEffect, useState } from 'react'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
@@ -16,7 +11,12 @@ import copy from 'copy-to-clipboard'
 import TransactionContext from '../../contexts/TransactionContext'
 
 const DevnetAccountSelector: React.FC = () => {
-  const { account, setAccount, provider, setProvider } = useContext(ConnectionContext)
+  const {
+    account,
+    setAccount,
+    provider,
+    setProvider
+  } = useContext(ConnectionContext)
   const remixClient = useContext(RemixClientContext)
   const {
     env,
@@ -40,31 +40,30 @@ const DevnetAccountSelector: React.FC = () => {
   useEffect(() => {
     let isSubscribed = true
 
-    const interval = setInterval(async () => {
-      try {
-        const response = await fetch(`${devnet.url}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_blockNumber', params: [], id: 1 })
-        })
+    const interval = setInterval(() => {
+      (async () => {
+        try {
+          const response = await fetch(`${devnet.url}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              jsonrpc: '2.0',
+              method: 'eth_blockNumber',
+              params: [],
+              id: 1
+            })
+          })
 
-        if (response.status === 200) {
-          const responseBody = await response.json()
-          if (responseBody.result != null && isSubscribed) {
-            setIsDevnetAlive(true)
-          } else if (isSubscribed) {
+          const isAlive = isSubscribed && response.status === 200 && (await response.json()).result != null
+          setIsDevnetAlive(isAlive)
+        } catch (error) {
+          if (isSubscribed) {
             setIsDevnetAlive(false)
           }
-        } else if (isSubscribed) {
-          setIsDevnetAlive(false)
         }
-      } catch (error) {
-        if (isSubscribed) {
-          setIsDevnetAlive(false)
-        }
-      }
+      })().catch(console.error)
     }, 1000)
 
     return () => {
@@ -168,7 +167,6 @@ const DevnetAccountSelector: React.FC = () => {
       new Wallet(
         availableDevnetAccounts[event.target.value].private_key,
         provider ?? newProvider
-
       )
     )
   }
@@ -178,11 +176,11 @@ const DevnetAccountSelector: React.FC = () => {
   }, [env])
   return (
     <>
-      <label className="">Devnet account selection</label>
-      <div className="devnet-account-selector-wrapper">
+      <label className=''>Devnet account selection</label>
+      <div className='devnet-account-selector-wrapper'>
         <select
-          className="custom-select"
-          aria-label=".form-select-sm example"
+          className='custom-select'
+          aria-label='.form-select-sm example'
           onChange={handleAccountChange}
           value={accountIdx}
           defaultValue={getSelectedAccountIndex(
@@ -193,26 +191,26 @@ const DevnetAccountSelector: React.FC = () => {
           {isDevnetAlive && availableDevnetAccounts.length > 0
             ? availableDevnetAccounts.map((account, index) => {
               return (
-                  <option value={index} key={index}>
-                    {`${getShortenedHash(
-                      account.address ?? '',
-                      6,
-                      4
-                    )}
+                <option value={index} key={index}>
+                  {`${getShortenedHash(
+                    account.address ?? '',
+                    6,
+                    4
+                  )}
                     (${getRoundedNumber(weiToEth(account.initial_balance), 2)} ether)`
-                    }
-                  </option>
+                  }
+                </option>
               )
             })
             : ([
-                <option value={-1} key={-1}>
-                  No accounts found
-                </option>
+              <option value={-1} key={-1}>
+                No accounts found
+              </option>
               ] as JSX.Element[])}
         </select>
-        <div className="position-relative">
+        <div className='position-relative'>
           <button
-            className="btn"
+            className='btn'
             onClick={() => {
               copy(account?.address ?? '')
               setCopied(true)
@@ -224,14 +222,14 @@ const DevnetAccountSelector: React.FC = () => {
             <MdCopyAll />
           </button>
           {showCopied && (
-            <p className="position-absolute text-copied">Copied</p>
+            <p className='position-absolute text-copied'>Copied</p>
           )}
         </div>
         <button
-          className="btn refresh"
+          className='btn refresh'
           // eslint-disable-next-line @typescript-eslint/no-misused-promises
           onClick={refreshDevnetAccounts}
-          title="Refresh devnet accounts"
+          title='Refresh devnet accounts'
           data-loading={accountRefreshing ? 'loading' : 'loaded'}
         >
           <MdRefresh />
