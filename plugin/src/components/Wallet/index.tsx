@@ -1,7 +1,7 @@
 /* eslint-disable multiline-ternary */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { useAccount } from 'wagmi'
+import { useAccount, useNetwork } from 'wagmi'
 import React, { useContext, useEffect, useState } from 'react'
 
 import copy from 'copy-to-clipboard'
@@ -9,16 +9,18 @@ import './wallet.css'
 import * as zksync from 'zksync-web3'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
 import { useWalletClient } from 'wagmi'
-
+import { MdCopyAll } from 'react-icons/md'
+import {  trimStr } from '../../utils/utils'
 
 
 const Wallet = () => {
   const {isConnected} = useAccount()
   const { data: walletClient } = useWalletClient()
   const { setAccount, setProvider } = useContext(ConnectionContext)
+  const chainConnected = useNetwork()
+  const [showCopied, setCopied] = useState(false)
 
   useEffect(() =>  {
-    
     if (walletClient ){
       const network = {
         chainId: walletClient.chain.id,
@@ -94,7 +96,16 @@ const Wallet = () => {
               }
 
               return (
-                <div style={{ display: 'flex', gap: 12 }}>
+                <div style={{ display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '1rem',
+                            }}>
+                <div style={{ display: 'flex',
+                            flexDirection: 'row',
+                            gap: '1rem',
+                            alignItems: 'center',
+                            }} >
                   <button
                     onClick={openChainModal}
                     style={{ display: 'flex', alignItems: 'center' }}
@@ -129,6 +140,44 @@ const Wallet = () => {
                       ? ` (${account.displayBalance})`
                       : ''}
                   </button>
+                </div>
+
+                <div className="wallet-account-wrapper">
+                    <p
+                      className="text account"
+                      title={account.address}
+                    >
+                      <a
+                        href={`${chainConnected.chain?.blockExplorers?.default.url}/address/${account.address as string ?? ''}`}
+                        target="_blank"
+                        rel="noreferer noopener noreferrer"
+                      >
+                        {trimStr(
+                          account.address ?? '',
+                          10
+                        )}
+                      </a>
+                    </p>
+                    <span style={{ position: 'relative' }}>
+                      <button
+                        className="btn p-0"
+                        onClick={() => {
+                          copy(account.address ?? '')
+                          setCopied(true)
+                          setTimeout(() => {
+                            setCopied(false)
+                          }, 1000)
+                        }}
+                      >
+                        <MdCopyAll />
+                      </button>
+                      {showCopied && (
+                        <p style={{ position: 'absolute', right: 0, minWidth: '70px' }}>
+                          Copied
+                        </p>
+                      )}
+                    </span>
+                  </div>
                 </div>
               );
             })()}
