@@ -8,10 +8,10 @@ import { getDefaultWallets, RainbowKitProvider, darkTheme, Chain} from "@rainbow
 
 import { configureChains, createConfig, WagmiConfig } from 'wagmi';
 import { publicProvider } from 'wagmi/providers/public';
-import {zkSyncTestnet} from 'viem/chains'
+import {zkSyncTestnet, zkSync} from 'viem/chains'
 
 const { chains, publicClient } = configureChains(
-  [zkSyncTestnet],
+  [zkSyncTestnet, zkSync],
   [publicProvider()]
 );
 
