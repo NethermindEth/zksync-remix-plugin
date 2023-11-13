@@ -64,7 +64,7 @@ const Environment: React.FC<EnvironmentProps> = () => {
           <AccordionContent>
             <>
               <div className="flex">
-                {/* {env !== 'manual' ? ( */}
+                {env !== 'manual' ? (
                   <>
                     <div className="flex">
                       <label className="">Environment selection</label>
@@ -103,7 +103,9 @@ const Environment: React.FC<EnvironmentProps> = () => {
                       )}
                     </div>
                   </>
-                <ManualAccount prevEnv={prevEnv}/>
+                ) : (
+                  <ManualAccount prevEnv={prevEnv}/>
+                )}
               </div>
             </>
           </AccordionContent>
