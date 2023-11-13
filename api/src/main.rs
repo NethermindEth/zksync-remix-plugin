@@ -22,9 +22,9 @@ use tracing::info;
 
 #[launch]
 async fn rocket() -> _ {
-    // if let Err(err) = init_logger() {
-    //     eprintln!("Error initializing logger: {}", err);
-    // }
+    if let Err(err) = init_logger() {
+        eprintln!("Error initializing logger: {}", err);
+    }
 
     let number_of_workers = match std::env::var("WORKER_THREADS") {
         Ok(v) => v.parse::<u32>().unwrap_or(2u32),

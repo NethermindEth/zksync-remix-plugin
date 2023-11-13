@@ -22,7 +22,7 @@ pub async fn do_save_code(
     version: String,
     remix_file_path: PathBuf,
 ) -> Result<String> {
-    if (ALLOWED_VERSIONS.contains(&version.as_str())) == false {
+    if !ALLOWED_VERSIONS.contains(&version.as_str()) {
         return Err(ApiError::VersionNotSupported(version));
     }
 

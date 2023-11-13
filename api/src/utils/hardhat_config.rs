@@ -11,29 +11,30 @@ pub struct HardhatConfig {
     pub paths: PathsConfig,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug, Default)]
 pub struct ZksolcConfig {
     pub version: String,
     pub settings: serde_json::Value,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug, Default)]
 pub struct SolidityConfig {
     pub version: String,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug, Default)]
 pub struct PathsConfig {
     pub sources: String,
     pub artifacts: String,
 }
 
+#[derive(Default)]
 pub struct HardhatConfigBuilder {
     config: HardhatConfig,
 }
 
-impl HardhatConfig {
-    pub fn new() -> Self {
+impl Default for HardhatConfig {
+    fn default() -> Self {
         Self {
             name: Self::generate_random_name(),
             zksolc: ZksolcConfig {
@@ -48,6 +49,12 @@ impl HardhatConfig {
                 artifacts: "./artifacts".to_string(),
             },
         }
+    }
+}
+
+impl HardhatConfig {
+    pub fn new() -> Self {
+        Self::default()
     }
 
     pub fn to_string_config(&self) -> String {
@@ -122,9 +129,7 @@ export default config;
 
 impl HardhatConfigBuilder {
     pub fn new() -> Self {
-        Self {
-            config: HardhatConfig::new(),
-        }
+        Self::default()
     }
 
     pub fn zksolc_version(&mut self, version: &str) -> &mut Self {

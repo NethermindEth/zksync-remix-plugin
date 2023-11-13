@@ -38,8 +38,8 @@ const SolidityVersion: React.FC = () => {
 
         setVersions(allowedVersions)
 
-        if (versions.length > 0 && solidityVersion === '') {
-          setSolidityVersion(versions[0])
+        if (allowedVersions.length > 0) {
+          setSolidityVersion(allowedVersions[0])
         }
       }
     } catch (e) {

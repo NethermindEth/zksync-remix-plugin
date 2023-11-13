@@ -128,7 +128,7 @@ pub fn to_human_error(
 pub fn to_human_error_batch(diagnostics: Vec<Diagnostic>) -> String {
     diagnostics
         .into_iter()
-        .map(|diagnostic| to_human_error(diagnostic))
+        .map(to_human_error)
         .collect::<Vec<String>>()
         .join("\n")
 }

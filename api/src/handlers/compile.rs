@@ -2,7 +2,7 @@ use crate::handlers::process::{do_process_command, fetch_process_result};
 use crate::handlers::types::{ApiCommand, ApiCommandResult, CompileResponse, SolFile};
 use crate::rate_limiter::RateLimited;
 use crate::types::{ApiError, Result};
-use crate::utils::hardhat_config::{HardhatConfig, HardhatConfigBuilder};
+use crate::utils::hardhat_config::HardhatConfigBuilder;
 use crate::utils::lib::{
     check_file_ext, get_file_path, path_buf_to_string, status_code_to_message,
     to_human_error_batch, ALLOWED_VERSIONS, ARTIFACTS_ROOT, SOL_ROOT,
@@ -71,7 +71,7 @@ pub async fn do_compile(
     version: String,
     remix_file_path: PathBuf,
 ) -> Result<Json<CompileResponse>> {
-    if ALLOWED_VERSIONS.contains(&version.as_str()) == false {
+    if !ALLOWED_VERSIONS.contains(&version.as_str()) {
         return Err(ApiError::VersionNotSupported(version));
     }
 
