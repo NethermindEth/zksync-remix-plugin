@@ -36,4 +36,8 @@ pub enum ApiError {
     MutexUnlockError,
     #[error("Error('s) raised while trying to parse sol file: \n{0}")]
     FailedToParseSol(String),
+    #[error("Failed to write file: {0}")]
+    FailedToWriteFile(IoError),
+    #[error("Unsupported version: {0}")]
+    VersionNotSupported(String),
 }

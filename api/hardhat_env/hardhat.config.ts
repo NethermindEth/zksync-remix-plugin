@@ -37,6 +37,10 @@ const config: HardhatUserConfig = {
   solidity: {
     version: "0.8.17",
   },
+  // path to the directory with contracts
+  paths: {
+    sources: "./contracts",
+  },
 };
 
 export default config;

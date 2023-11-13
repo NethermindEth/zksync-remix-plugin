@@ -31,7 +31,10 @@ pub async fn dispatch_command(command: ApiCommand) -> Result<ApiCommandResult, A
             Ok(result) => Ok(ApiCommandResult::CompilerVersion(result)),
             Err(e) => Err(e),
         },
-        ApiCommand::Compile(remix_file_path) => match do_compile(remix_file_path).await {
+        ApiCommand::Compile {
+            path: remix_file_path,
+            version,
+        } => match do_compile(version, remix_file_path).await {
             Ok(compile_response) => Ok(ApiCommandResult::Compile(compile_response.into_inner())),
             Err(e) => Err(e),
         },
