@@ -103,9 +103,7 @@ const Environment: React.FC<EnvironmentProps> = () => {
                       )}
                     </div>
                   </>
-                ) : (
-                  <ManualAccount prevEnv={prevEnv}/>
-                )
+                <ManualAccount prevEnv={prevEnv}/>
               </div>
             </>
           </AccordionContent>
