@@ -18,7 +18,7 @@ const { chains, publicClient } = configureChains(
 
 const { connectors } = getDefaultWallets({
   appName: 'Zk',
-  projectId: '630093679339d9e6a59508feafbae4ce',
+  projectId: '630093679339d9e6a59508feafbae4ce', // only for walletconnect wallet, TODO is there a better place to store this id?
   chains
 });
 
