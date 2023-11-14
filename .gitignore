@@ -14,5 +14,4 @@ Cargo.lock
 *.pdb
 node_modules
 .idea/
-.env
 api/logs
