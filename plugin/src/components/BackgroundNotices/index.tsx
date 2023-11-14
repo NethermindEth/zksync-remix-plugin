@@ -1,7 +1,7 @@
 import React from 'react'
 
 const Notices = [
-  'The zksync Remix Plugin is in Alpha',
+  'The zkSync Remix Plugin is in Alpha',
   'Solidity contracts are compiled on a server hosted by Nethermind'
 ]
 

@@ -61,7 +61,8 @@ const getSelectedContractIndex = (
 ): number => {
   if (selectedContract != null) {
     return contracts.findIndex(
-      (contract) => contract.sourceName === selectedContract.sourceName
+      (contract) =>
+        `${contract.sourceName}:${contract.contractName}` === `${selectedContract.sourceName}:${selectedContract.contractName}`
     )
   }
   return 0

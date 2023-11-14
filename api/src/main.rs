@@ -14,9 +14,7 @@ use crate::rate_limiter::RateLimiter;
 use crate::tracing_log::init_logger;
 use crate::worker::WorkerEngine;
 use handlers::compile::{compile, compile_async, get_compile_result};
-use handlers::compiler_version::{
-    compiler_version, compiler_version_async, get_compiler_version_result,
-};
+use handlers::compiler_version::{allowed_versions, compiler_version};
 use handlers::process::get_process_status;
 use handlers::save_code::save_code;
 use handlers::{health, who_is_this};
@@ -60,9 +58,8 @@ async fn rocket() -> _ {
                 get_compile_result,
                 save_code,
                 compiler_version,
-                compiler_version_async,
-                get_compiler_version_result,
                 get_process_status,
+                allowed_versions,
                 health,
                 who_is_this,
             ],

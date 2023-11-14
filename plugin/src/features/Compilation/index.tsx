@@ -17,6 +17,7 @@ import CompilationContext from '../../contexts/CompilationContext'
 import { type AccordianTabs } from '../Plugin'
 import { type Contract } from '../../types/contracts'
 import { asyncFetch } from '../../utils/async_fetch'
+import VersionContext from '../../contexts/VersionContext'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface CompilationProps {
@@ -48,6 +49,13 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     activeTomlPath,
     setActiveTomlPath
   } = useContext(CompilationContext)
+
+  const {
+    solidityVersion,
+    setSolidityVersion,
+    versions,
+    setVersions
+  } = useContext(VersionContext);
 
   const [currWorkspacePath, setCurrWorkspacePath] = React.useState<string>('')
 
@@ -334,7 +342,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
       setStatus('Parsing solidity code...')
       let response = await fetch(
-        `${apiUrl}/save_code/${hashDir}/${currentFilePath}`,
+        `${apiUrl}/save_code/${solidityVersion}/${hashDir}/${currentFilePath}`,
         {
           method: 'POST',
           body: currentFileContent,
@@ -356,7 +364,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
       setStatus('Compiling...')
 
-      response = await asyncFetch(`compile-async/${hashDir}/${currentFilePath}`, 'compile-result')
+      response = await asyncFetch(`compile-async/${solidityVersion}/${hashDir}/${currentFilePath}`, 'compile-result')
 
       if (!response.ok) {
         await remixClient.call(
