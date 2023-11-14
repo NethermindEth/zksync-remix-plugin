@@ -1,7 +1,7 @@
 import { atom } from 'jotai'
 import { type Devnet, type DevnetAccount, devnets } from '../utils/network'
 
-const devnetAtom = atom<Devnet>(devnets[0])
+const devnetAtom = atom<Devnet>(devnets[1])
 
 const envAtom = atom<string>('remoteDevnet')
 
