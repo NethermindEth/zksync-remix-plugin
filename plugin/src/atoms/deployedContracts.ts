@@ -1,4 +1,4 @@
-import { DeployedContract } from '../types/contracts'
+import { type DeployedContract } from '../types/contracts'
 import { atom } from 'jotai'
 
 const deployedContractsAtom = atom<DeployedContract[]>([])

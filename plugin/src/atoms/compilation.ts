@@ -24,7 +24,7 @@ interface SetCompilationValue {
 }
 
 const compilationAtom = atom(
-(get) => {
+  (get) => {
     return {
       status: get(statusAtom),
       currentFilename: get(currentFilenameAtom),

@@ -9,12 +9,11 @@ import * as zksync from 'zksync-web3'
 import ConstructorInput from '../../components/ConstructorInput'
 import { type DeployedContract } from '../../types/contracts'
 import { type Transaction } from '../../types/transaction'
-import { Contract } from 'ethers'
-import { useAtom } from 'jotai/react/useAtom'
+import { type Contract } from 'ethers'
+import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import { transactionsAtom } from '../../atoms/transaction'
 import useRemixClient from '../../hooks/useRemixClient'
 import { contractsAtom, selectedContractAtom } from '../../atoms/compiledContracts'
-import { useAtomValue } from 'jotai/react/useAtomValue'
 import { accountAtom } from '../../atoms/connection'
 import { deployedContractsAtom, deployedSelectedContractAtom } from '../../atoms/deployedContracts'
 
@@ -24,15 +23,15 @@ interface DeploymentProps {
 
 const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const { remixClient } = useRemixClient()
-  const [ transactions, setTransactions ] = useAtom(transactionsAtom)
+  const [transactions, setTransactions] = useAtom(transactionsAtom)
 
-  const [contracts, setContracts] = useAtom(contractsAtom)
-  const [selectedContract, setSelectedContract] = useAtom(selectedContractAtom)
+  const contracts = useAtomValue(contractsAtom)
+  const selectedContract = useAtomValue(selectedContractAtom)
 
   const account = useAtomValue(accountAtom)
 
   const [deployedContracts, deployedSetContracts] = useAtom(deployedContractsAtom)
-  const [deployedSelectedContract, deployedSetSelectedContract] = useAtom(deployedSelectedContractAtom)
+  const deployedSetSelectedContract = useSetAtom(deployedSelectedContractAtom)
 
   const [inputs, setInputs] = useState<string[]>([])
 

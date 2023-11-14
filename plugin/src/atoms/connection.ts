@@ -1,5 +1,5 @@
 import { atom } from 'jotai'
-import { Provider, Wallet } from 'zksync-web3'
+import { type Provider, type Wallet } from 'zksync-web3'
 
 const providerAtom = atom<Provider | null>(null)
 

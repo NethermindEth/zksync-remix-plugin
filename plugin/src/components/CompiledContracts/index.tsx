@@ -3,8 +3,7 @@
 import React from 'react'
 import { getContractNameFromFullName, getSelectedContractIndex } from '../../utils/utils'
 import { contractsAtom, selectedContractAtom } from '../../atoms/compiledContracts'
-import { useAtomValue } from 'jotai/react/useAtomValue'
-import { useAtom } from 'jotai/react/useAtom'
+import { useAtomValue, useAtom } from 'jotai'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface CompiledContractsProps {
@@ -13,7 +12,7 @@ interface CompiledContractsProps {
 
 const CompiledContracts: React.FC<CompiledContractsProps> = (props) => {
   const
-    contracts= useAtomValue(contractsAtom)
+    contracts = useAtomValue(contractsAtom)
   const [
     selectedContract,
     setSelectedContract

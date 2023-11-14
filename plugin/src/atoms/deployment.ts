@@ -1,5 +1,5 @@
 import { atom } from 'jotai'
-import { Input } from '../types/contracts'
+import { type Input } from '../types/contracts'
 
 const isDeployingAtom = atom<boolean>(false)
 
@@ -17,20 +17,20 @@ interface SetDeploymentAtom {
 }
 
 const deploymentAtom = atom((get) => {
-    return {
-      isDeploying: get(isDeployingAtom),
-      deployStatus: get(deployStatusAtom),
-      constructorInputs: get(constructorInputsAtom),
-      notEnoughInputs: get(notEnoughInputsAtom)
-    }
-  }, (_get, set, newValue: SetDeploymentAtom) => {
-    switch (newValue?.key) {
-      case 'isDeploying': typeof newValue?.value === 'boolean' && set(isDeployingAtom, newValue?.value); break
-      case 'deployStatus': typeof newValue?.value === 'string' && set(deployStatusAtom, newValue?.value); break
-      case 'constructorInputs': Array.isArray(newValue?.value) && set(constructorInputsAtom, newValue?.value); break
-      case 'notEnoughInputs': typeof newValue?.value === 'boolean' && set(notEnoughInputsAtom, newValue?.value); break
-    }
+  return {
+    isDeploying: get(isDeployingAtom),
+    deployStatus: get(deployStatusAtom),
+    constructorInputs: get(constructorInputsAtom),
+    notEnoughInputs: get(notEnoughInputsAtom)
   }
+}, (_get, set, newValue: SetDeploymentAtom) => {
+  switch (newValue?.key) {
+    case 'isDeploying': typeof newValue?.value === 'boolean' && set(isDeployingAtom, newValue?.value); break
+    case 'deployStatus': typeof newValue?.value === 'string' && set(deployStatusAtom, newValue?.value); break
+    case 'constructorInputs': Array.isArray(newValue?.value) && set(constructorInputsAtom, newValue?.value); break
+    case 'notEnoughInputs': typeof newValue?.value === 'boolean' && set(notEnoughInputsAtom, newValue?.value); break
+  }
+}
 )
 
 export { isDeployingAtom, deployStatusAtom, constructorInputsAtom, notEnoughInputsAtom, deploymentAtom }

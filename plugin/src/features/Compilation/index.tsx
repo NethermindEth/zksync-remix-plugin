@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import React, { useContext, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { apiUrl } from '../../utils/network'
 import { artifactFolder, getFileExtension, getFileNameFromPath } from '../../utils/utils'
 import './styles.css'
@@ -18,10 +18,8 @@ import {
   noFileSelectedAtom,
   statusAtom, tomlPathsAtom
 } from '../../atoms/compilation'
-import { useAtom } from 'jotai/react/useAtom'
-import { useAtomValue } from 'jotai/react/useAtomValue'
-import { useSetAtom } from 'jotai/react/useSetAtom'
-import { solidityVersionAtom, versionsAtom } from '../../atoms/version'
+import { useAtom, useAtomValue, useSetAtom } from 'jotai'
+import { solidityVersionAtom } from '../../atoms/version'
 import { contractsAtom, selectedContractAtom } from '../../atoms/compiledContracts'
 import useRemixClient from '../../hooks/useRemixClient'
 
@@ -34,7 +32,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   const { remixClient } = useRemixClient()
 
   const [contracts, setContracts] = useAtom(contractsAtom)
-  const [selectedContract, setSelectedContract] = useAtom(selectedContractAtom)
+  const setSelectedContract = useSetAtom(selectedContractAtom)
 
   const {
     status,
@@ -44,7 +42,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     noFileSelected,
     hashDir,
     tomlPaths,
-    activeTomlPath,
+    activeTomlPath
   } = useAtomValue(compilationAtom)
 
   const setStatus = useSetAtom(statusAtom)
@@ -56,8 +54,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   const setActiveTomlPath = useSetAtom(activeTomlPathAtom)
   const setIsValidSolidity = useSetAtom(isValidSolidityAtom)
 
-  const [solidityVersion, setSolidityVersion] = useAtom(solidityVersionAtom)
-  const [versions, setVersions] = useAtom(versionsAtom)
+  const solidityVersion = useAtomValue(solidityVersionAtom)
 
   const [currWorkspacePath, setCurrWorkspacePath] = React.useState<string>('')
 

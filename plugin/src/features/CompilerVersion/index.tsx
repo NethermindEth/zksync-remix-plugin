@@ -1,11 +1,10 @@
 import * as D from '../../ui_components/Dropdown'
-import React, { useContext, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { apiUrl } from '../../utils/network'
 import Nethermind from '../../components/NM'
 import './style.css'
 import { BsChevronDown } from 'react-icons/bs'
-import { useAtomValue } from 'jotai/react/useAtomValue'
-import { useAtom } from 'jotai/react/useAtom'
+import { useAtom } from 'jotai'
 import { solidityVersionAtom, versionsAtom } from '../../atoms/version'
 import useRemixClient from '../../hooks/useRemixClient'
 

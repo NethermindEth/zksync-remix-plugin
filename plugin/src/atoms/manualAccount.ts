@@ -1,5 +1,5 @@
 import { atom } from 'jotai'
-import { ManualAccount } from '../types/accounts'
+import { type ManualAccount } from '../types/accounts'
 
 const accountsAtom = atom<ManualAccount[]>([])
 

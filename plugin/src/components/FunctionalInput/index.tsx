@@ -1,15 +1,14 @@
 // A component that reads the compiled contracts from the context and displays them in a select
 
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { generateInputName } from '../../utils/utils'
 import { type AbiElement, type Input } from '../../types/contracts'
 import InputField from '../InputField'
 import { Contract } from 'ethers'
 import { type Transaction } from '../../types/transaction'
 import useRemixClient from '../../hooks/useRemixClient'
-import { useAtomValue } from 'jotai/react/useAtomValue'
+import { useAtomValue, useAtom } from 'jotai'
 import { deployedSelectedContractAtom } from '../../atoms/deployedContracts'
-import { useAtom } from 'jotai/react/useAtom'
 import { transactionsAtom } from '../../atoms/transaction'
 import { accountAtom } from '../../atoms/connection'
 

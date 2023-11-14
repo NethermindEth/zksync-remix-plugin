@@ -1,8 +1,8 @@
-import React, { useContext } from 'react'
+import React from 'react'
 import Container from '../../ui_components/Container'
 import TransactionCard from './TransactionCard'
 import { type IExplorerSelector } from '../../utils/misc'
-import { useAtomValue } from 'jotai/react/useAtomValue'
+import { useAtomValue } from 'jotai'
 import { transactionsAtom } from '../../atoms/transaction'
 
 const TransactionHistory: React.FC<IExplorerSelector> = (props) => {

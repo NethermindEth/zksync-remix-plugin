@@ -2,9 +2,8 @@ import React from 'react'
 import { devnets } from '../../utils/network'
 
 import './styles.css'
-import { useAtom } from 'jotai/react/useAtom'
+import { useAtom, useSetAtom } from 'jotai'
 import { devnetAtom, envAtom } from '../../atoms/environment'
-import { useSetAtom } from 'jotai/react/useSetAtom'
 import { providerAtom } from '../../atoms/connection'
 
 const EnvironmentSelector: React.FC = () => {
@@ -12,8 +11,8 @@ const EnvironmentSelector: React.FC = () => {
     env,
     setEnv] = useAtom(envAtom)
   const
-    setDevnet
-   = useSetAtom(devnetAtom)
+    setDevnet =
+   useSetAtom(devnetAtom)
   const setProvider = useSetAtom(providerAtom)
 
   async function handleEnvironmentChange (event: any): Promise<void> {

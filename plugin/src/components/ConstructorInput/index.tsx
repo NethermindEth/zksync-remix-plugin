@@ -2,11 +2,11 @@
 
 import React, { useEffect, useState } from 'react'
 import {
-  generateInputName,
+  generateInputName
 } from '../../utils/utils'
 import { type AbiElement, type Input } from '../../types/contracts'
 import InputField from '../InputField'
-import { useAtomValue } from 'jotai/react/useAtomValue'
+import { useAtomValue } from 'jotai'
 import { selectedContractAtom } from '../../atoms/compiledContracts'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface

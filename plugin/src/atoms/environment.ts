@@ -1,5 +1,5 @@
 import { atom } from 'jotai'
-import { Devnet, DevnetAccount, devnets } from '../utils/network'
+import { type Devnet, type DevnetAccount, devnets } from '../utils/network'
 
 const devnetAtom = atom<Devnet>(devnets[0])
 
@@ -12,9 +12,9 @@ const selectedDevnetAccountAtom = atom<null | DevnetAccount>(null)
 const availableDevnetAccountsAtom = atom<DevnetAccount[]>([])
 
 export {
-    devnetAtom,
-    envAtom,
-    isDevnetAliveAtom,
-    selectedDevnetAccountAtom,
-    availableDevnetAccountsAtom
+  devnetAtom,
+  envAtom,
+  isDevnetAliveAtom,
+  selectedDevnetAccountAtom,
+  availableDevnetAccountsAtom
 }

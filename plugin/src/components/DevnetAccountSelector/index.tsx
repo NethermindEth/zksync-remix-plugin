@@ -1,14 +1,13 @@
 import { getRoundedNumber, getSelectedAccountIndex, getShortenedHash, weiToEth } from '../../utils/utils'
 import { getAccounts, updateBalances } from '../../utils/network'
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Provider, Wallet } from 'zksync-web3'
 import { MdCopyAll, MdRefresh } from 'react-icons/md'
 import './devnetAccountSelector.css'
 import copy from 'copy-to-clipboard'
-import { useAtom } from 'jotai/react/useAtom'
+import { useAtom, useAtomValue } from 'jotai'
 import { accountAtom, providerAtom } from '../../atoms/connection'
 import useRemixClient from '../../hooks/useRemixClient'
-import { useAtomValue } from 'jotai/react/useAtomValue'
 import {
   availableDevnetAccountsAtom,
   devnetAtom,
@@ -22,13 +21,13 @@ const DevnetAccountSelector: React.FC = () => {
   const { remixClient } = useRemixClient()
 
   const [account, setAccount] = useAtom(accountAtom)
-  const [ provider, setProvider ] = useAtom(providerAtom)
+  const [provider, setProvider] = useAtom(providerAtom)
 
   const env = useAtomValue(envAtom)
   const devnet = useAtomValue(devnetAtom)
-  const [ isDevnetAlive, setIsDevnetAlive ] = useAtom(isDevnetAliveAtom)
-  const [ selectedDevnetAccount, setSelectedDevnetAccount ] = useAtom(selectedDevnetAccountAtom)
-  const [ availableDevnetAccounts, setAvailableDevnetAccounts] = useAtom(availableDevnetAccountsAtom)
+  const [isDevnetAlive, setIsDevnetAlive] = useAtom(isDevnetAliveAtom)
+  const [selectedDevnetAccount, setSelectedDevnetAccount] = useAtom(selectedDevnetAccountAtom)
+  const [availableDevnetAccounts, setAvailableDevnetAccounts] = useAtom(availableDevnetAccountsAtom)
 
   const transactions = useAtomValue(transactionsAtom)
 

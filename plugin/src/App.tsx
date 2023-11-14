@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import './App.css'
 import Plugin from './features/Plugin'
 import Loader from './ui_components/CircularLoader'
 import FullScreenOverlay from './ui_components/FullScreenOverlay'
-import { useAtomValue } from 'jotai/react/useAtomValue'
+import { useAtomValue } from 'jotai'
 import { pluginLoaded } from './atoms/remixClient'
 
 const App: React.FC = () => {

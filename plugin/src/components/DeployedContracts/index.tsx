@@ -3,19 +3,18 @@
 import React from 'react'
 import {
   getContractNameFromFullName,
-  getSelectedContractIndex,
+  getSelectedContractIndex
 } from '../../utils/utils'
 import FunctionalInput from '../FunctionalInput'
 import './deployedContracts.css'
-import { useAtomValue } from 'jotai/react/useAtomValue'
-import { useAtom } from 'jotai/react/useAtom'
+import { useAtomValue, useAtom } from 'jotai'
 import { deployedContractsAtom, deployedSelectedContractAtom } from '../../atoms/deployedContracts'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 
 const DeployedContracts: React.FC = () => {
   const
-    contracts= useAtomValue(deployedContractsAtom)
+    contracts = useAtomValue(deployedContractsAtom)
   const [
     selectedContract,
     setSelectedContract

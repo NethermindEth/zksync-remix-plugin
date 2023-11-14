@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
-import React, { type ReactNode, useContext, useState } from 'react'
+import React, { type ReactNode, useState } from 'react'
 import './envCard.css'
-import { useAtomValue } from 'jotai/react/useAtomValue'
+import { useAtomValue } from 'jotai'
 import { envAtom } from '../../atoms/environment'
 
 interface EnvCardProps {

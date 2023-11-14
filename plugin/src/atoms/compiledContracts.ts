@@ -1,5 +1,5 @@
 import { atom } from 'jotai'
-import { Contract } from '../types/contracts'
+import { type Contract } from '../types/contracts'
 
 const contractsAtom = atom<Contract[]>([])
 
