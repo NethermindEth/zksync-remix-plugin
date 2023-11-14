@@ -1,24 +1,23 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
-  type Network,
   networks as networkConstants
 } from '../../utils/constants'
-import { ConnectionContext } from '../../contexts/ConnectionContext'
 import { ethers } from 'ethers'
 
-import ManualAccountContext from '../../contexts/ManualAccountContext'
 import storage from '../../utils/storage'
-import { RemixClientContext } from '../../contexts/RemixClientContext'
-import TransactionContext from '../../contexts/TransactionContext'
-import EnvironmentContext from '../../contexts/EnvironmentContext'
 
 import './index.css'
 import { BiCopy, BiPlus } from 'react-icons/bi'
-import { getExplorerUrl, trimStr } from '../../utils/utils'
+import { trimStr } from '../../utils/utils'
 import { MdRefresh, MdCheckCircleOutline } from 'react-icons/md'
 import copy from 'copy-to-clipboard'
-import ExplorerSelector, { useCurrentExplorer } from '../ExplorerSelector'
+import useRemixClient from '../../hooks/useRemixClient'
+import { useAtom } from 'jotai/react/useAtom'
+import { accountAtom, providerAtom } from '../../atoms/connection'
+import { transactionsAtom } from '../../atoms/transaction'
+import { envAtom } from '../../atoms/environment'
+import { accountsAtom, networkNameAtom, selectedAccountAtom } from '../../atoms/manualAccount'
 
 // TODOS: move state parts to contexts
 // Account address selection
@@ -26,31 +25,19 @@ import ExplorerSelector, { useCurrentExplorer } from '../ExplorerSelector'
 const ManualAccount: React.FC<{
   prevEnv: string
 }> = ({ prevEnv }) => {
-  const OZaccountClassHash =
-    '0x2794ce20e5f2ff0d40e632cb53845b9f4e526ebd8471983f7dbd355b721d5a'
+  const { remixClient } = useRemixClient()
 
-  const balanceContractAddress =
-    '0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7'
+  const [account, setAccount] = useAtom(accountAtom)
+  const [provider, setProvider] = useAtom(providerAtom)
+  const [transactions, setTransactions] = useAtom(transactionsAtom)
 
-  const { account, provider, setAccount, setProvider } =
-    useContext(ConnectionContext)
+  const [env, setEnv] = useAtom(envAtom)
+
+  const [accounts, setAccounts] = useAtom(accountsAtom)
+  const [selectedAccount, setSelectedAccount] = useAtom(selectedAccountAtom)
+  const [networkName, setNetworkName] = useAtom(networkNameAtom)
 
   const [accountDeploying, setAccountDeploying] = useState(false)
-
-  const remixClient = useContext(RemixClientContext)
-
-  const { transactions, setTransactions } = useContext(TransactionContext)
-
-  const { env, setEnv } = useContext(EnvironmentContext)
-
-  const {
-    accounts,
-    setAccounts,
-    selectedAccount,
-    setSelectedAccount,
-    networkName,
-    setNetworkName
-  } = useContext(ManualAccountContext)
 
   useEffect(() => {
     setNetworkName(networkConstants[0].value)

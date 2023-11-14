@@ -1,9 +1,12 @@
 import { PluginClient } from '@remixproject/plugin'
 import { createClient } from '@remixproject/plugin-webview'
-import { createContext } from 'react'
 
 const remixClient = createClient(new PluginClient())
 
-const RemixClientContext = createContext(remixClient)
+const useRemixClient = (): {
+  remixClient: typeof remixClient
+} => {
+  return { remixClient }
+}
 
-export { RemixClientContext }
+export default useRemixClient

@@ -1,16 +1,13 @@
 // A component that reads the compiled contracts from the context and displays them in a select
 
-import React, { useContext, useEffect, useState } from 'react'
-import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
+import React, { useEffect, useState } from 'react'
 import {
   generateInputName,
-  getContractNameFromFullName,
-  getSelectedContractIndex,
-  getShortenedHash
 } from '../../utils/utils'
 import { type AbiElement, type Input } from '../../types/contracts'
-import { RemixClientContext } from '../../contexts/RemixClientContext'
 import InputField from '../InputField'
+import { useAtomValue } from 'jotai/react/useAtomValue'
+import { selectedContractAtom } from '../../atoms/compiledContracts'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface ConstructorContractsProps {
@@ -19,9 +16,7 @@ interface ConstructorContractsProps {
 }
 
 const ConstructorInput: React.FC<ConstructorContractsProps> = ({ inputs, setInputs }: ConstructorContractsProps) => {
-  const { selectedContract } = useContext(
-    CompiledContractsContext
-  )
+  const selectedContract = useAtomValue(selectedContractAtom)
 
   const [constructor, setConstructor] = useState<AbiElement | undefined>(undefined)
 

@@ -5,14 +5,15 @@ import {
   generateInputName
 } from '../../utils/utils'
 import { type AbiElement, type Input } from '../../types/contracts'
-import { RemixClientContext } from '../../contexts/RemixClientContext'
 import InputField from '../InputField'
-import { DeployedContractsContext } from '../../contexts/DeployedContractsContext'
 import { Contract } from 'ethers'
-import { Provider, Wallet } from 'zksync-web3'
-import TransactionContext from '../../contexts/TransactionContext'
 import { type Transaction } from '../../types/transaction'
-import { ConnectionContext } from '../../contexts/ConnectionContext'
+import useRemixClient from '../../hooks/useRemixClient'
+import { useAtomValue } from 'jotai/react/useAtomValue'
+import { deployedSelectedContractAtom } from '../../atoms/deployedContracts'
+import { useAtom } from 'jotai/react/useAtom'
+import { transactionsAtom } from '../../atoms/transaction'
+import { accountAtom } from '../../atoms/connection'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface CompiledContractsProps {
@@ -20,11 +21,13 @@ interface CompiledContractsProps {
 }
 
 const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledContractsProps) => {
+  const { remixClient } = useRemixClient()
+
+  const selectedContract = useAtomValue(deployedSelectedContractAtom)
+  const [transactions, setTransactions] = useAtom(transactionsAtom)
+  const account = useAtomValue(accountAtom)
+
   const [inputs, setInputs] = useState<string[]>([])
-  const { selectedContract } = useContext(DeployedContractsContext)
-  const remixClient = useContext(RemixClientContext)
-  const { transactions, setTransactions } = useContext(TransactionContext)
-  const { account } = useContext(ConnectionContext)
 
   const callContract = async () => {
     if (selectedContract == null) {

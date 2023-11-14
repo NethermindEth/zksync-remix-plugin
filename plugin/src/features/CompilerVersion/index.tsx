@@ -1,22 +1,20 @@
 import * as D from '../../ui_components/Dropdown'
 import React, { useContext, useEffect, useState } from 'react'
 import { apiUrl } from '../../utils/network'
-import { RemixClientContext } from '../../contexts/RemixClientContext'
 import Nethermind from '../../components/NM'
 import './style.css'
 import { BsChevronDown } from 'react-icons/bs'
-import VersionContext from '../../contexts/VersionContext'
+import { useAtomValue } from 'jotai/react/useAtomValue'
+import { useAtom } from 'jotai/react/useAtom'
+import { solidityVersionAtom, versionsAtom } from '../../atoms/version'
+import useRemixClient from '../../hooks/useRemixClient'
 
 const SolidityVersion: React.FC = () => {
-  const remixClient = useContext(RemixClientContext)
+  const { remixClient } = useRemixClient()
   const pluginVersion = process.env.REACT_APP_VERSION !== undefined ? `v${process.env.REACT_APP_VERSION}` : 'v0.2.0'
 
-  const {
-    solidityVersion,
-    setSolidityVersion,
-    versions,
-    setVersions
-  } = useContext(VersionContext);
+  const [solidityVersion, setSolidityVersion] = useAtom(solidityVersionAtom)
+  const [versions, setVersions] = useAtom(versionsAtom)
 
   const fetchVersions = async () => {
     try {

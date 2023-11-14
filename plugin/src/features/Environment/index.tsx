@@ -2,38 +2,34 @@
 import React, { useContext, useState } from 'react'
 import DevnetAccountSelector from '../../components/DevnetAccountSelector'
 import './styles.css'
-import { RemixClientContext } from '../../contexts/RemixClientContext'
 import EnvironmentSelector from '../../components/EnvironmentSelector'
-import { ConnectionContext } from '../../contexts/ConnectionContext'
 import Wallet from '../../components/Wallet'
 import { RxDotFilled } from 'react-icons/rx'
-import EnvironmentContext from '../../contexts/EnvironmentContext'
 import Accordian, {
   AccordianItem,
   AccordionContent,
   AccordionTrigger
 } from '../../ui_components/Accordian'
 import ManualAccount from '../../components/ManualAccount'
+import useRemixClient from '../../hooks/useRemixClient'
+import { useAtom } from 'jotai/react/useAtom'
+import { accountAtom, providerAtom } from '../../atoms/connection'
+import { useSetAtom } from 'jotai/react/useSetAtom'
+import { envAtom, isDevnetAliveAtom } from '../../atoms/environment'
+import { useAtomValue } from 'jotai/react/useAtomValue'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface EnvironmentProps {}
 
 const Environment: React.FC<EnvironmentProps> = () => {
   // Using the context
-  const remixClient = useContext(RemixClientContext)
-  const { setAccount, setProvider } =
-    useContext(ConnectionContext)
+  const { remixClient } = useRemixClient()
+  const setAccount = useSetAtom(accountAtom)
+  const setProvider = useSetAtom(providerAtom)
 
-  const {
-    env,
-    setEnv,
-    isDevnetAlive
-  } = useContext(EnvironmentContext)
+  const [env, setEnv] = useAtom(envAtom)
+  const isDevnetAlive = useAtomValue(isDevnetAliveAtom)
   const [prevEnv, setPrevEnv] = useState<string>(env)
-
-  // START: WALLET
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  // END: WALLET
 
   const [currentPane, setCurrentPane] = useState('environment')
 
