@@ -1,7 +1,6 @@
 /* eslint-disable multiline-ternary */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import  { useContext, useEffect } from 'react'
-import './wallet.css'
 import * as zksync from 'zksync-web3'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
 import { useWalletClient } from 'wagmi'
