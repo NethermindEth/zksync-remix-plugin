@@ -14,7 +14,9 @@ import { DeployedContractsContext } from '../../contexts/DeployedContractsContex
 import { type DeployedContract } from '../../types/contracts'
 import { type Transaction } from '../../types/transaction'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
+import EnvironmentContext from '../../contexts/EnvironmentContext'
 import { Contract } from 'ethers'
+import { useWalletClient } from 'wagmi'
 
 interface DeploymentProps {
   setActiveTab: (tab: AccordianTabs) => void
@@ -25,7 +27,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const { transactions, setTransactions } = useContext(TransactionContext)
   const { contracts, selectedContract, setContracts, setSelectedContract } =
     useContext(CompiledContractsContext)
-
+  const { env } = useContext(EnvironmentContext)
+  const { data: walletClient } = useWalletClient()
   const { account } = useContext(ConnectionContext)
 
   const {
@@ -127,9 +130,11 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       setActiveTab('interaction')
 
       const transaction = {
+        account: account,
         type: 'deploy',
         txId: txHash,
-        env: 'local'
+        env: env,
+        chain: walletClient?.chain
       } as Transaction
 
       setTransactions([transaction, ...transactions])

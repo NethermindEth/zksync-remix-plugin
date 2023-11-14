@@ -11,7 +11,6 @@ import FullScreenOverlay from './ui_components/FullScreenOverlay'
 const remixClient = createClient(new PluginClient())
 
 
-// 3. Create modal
 const App: React.FC = () => {
   const [pluginLoaded, setPluginLoaded] = useState<boolean>(false)
 

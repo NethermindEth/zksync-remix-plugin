@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { type Transaction } from '../../types/transaction'
 import './transactioncard.css'
 import { type Network, type networkExplorerUrls } from '../../utils/constants'
@@ -35,25 +35,25 @@ const NetworkTag: React.FC<NetworkTypeTag> = ({ type }) => {
 
 interface TransactionCardProps {
   transaction: Transaction
-  explorer: keyof typeof networkExplorerUrls
+  // explorer: keyof typeof networkExplorerUrls
 }
 
 const TransactionCard: React.FC<TransactionCardProps> = ({
-  transaction, explorer
+  transaction
 }) => {
-  const { account, txId, env } = transaction
-
-  const cardRef = useRef<HTMLDivElement>(null)
-  const [chain, setChain] = React.useState<string>('goerli-alpha')
+  const { account, txId, env, chain } = transaction
+  const [address, setAddress] = useState<string | null>(null);
 
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    setTimeout(async () => {
-      if (transaction.provider == null) return
-      const chainId = await transaction.provider.getChainId()
-      setChain(chainId ?? 'unknown')
-    })
-  })
+    const fetchAddress = async () => {
+      const addr = await account?.getAddress();
+      setAddress(addr);
+    };
+
+    fetchAddress();
+  }, [account]);  
+
+  const cardRef = useRef<HTMLDivElement>(null)
 
   return (
     <div className="maincard" ref={cardRef}>
@@ -64,17 +64,17 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
         <p>From: </p>
          { (env === 'localDevnet' || env === 'remoteDevnet')
            ? <a
-          title={account?.address}
+          title={address}
           target="_blank" rel="noreferrer"
         >
-          {account?.address}
+          {address}
         </a>
            : <a
-          title={account?.address}
-          href={`${getExplorerUrl(explorer, chain as Network)}/contract/${account?.address ?? ''}`}
+          title={address}
+          href={`${chain?.blockExplorers?.default.url}/address/${address ?? ''}`}
           target="_blank" rel="noreferrer"
         >
-          {account?.address}
+          {address}
         </a> }
       </div>
       <div className="txn-wrapper">
@@ -83,13 +83,13 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
           ? <a target="_blank" title={txId} rel="noreferrer">
           {txId}
         </a>
-          : <a href={`${getExplorerUrl(explorer, chain as Network)}/tx/${txId}`} target="_blank" title={txId} rel="noreferrer">
+          : <a href={`${chain?.blockExplorers?.default.url}/tx/${txId}`} target="_blank" title={txId} rel="noreferrer">
         {txId}
       </a>}
       </div>
       <div className="txn-network">
         { (env === 'localDevnet' || env === 'remoteDevnet') ? <p>Network</p> : <p>Chain</p> }
-        <NetworkTag type={(env === 'localDevnet' || env === 'remoteDevnet') ? env : chain} />
+        <NetworkTag type={(env === 'localDevnet' || env === 'remoteDevnet') ? env : chain?.name} />
       </div>
     </div>
   )
