@@ -1,17 +1,20 @@
-import React, { useContext } from 'react'
+import React from 'react'
 import { devnets } from '../../utils/network'
-import { ConnectionContext } from '../../contexts/ConnectionContext'
 
 import './styles.css'
-import EnvironmentContext from '../../contexts/EnvironmentContext'
+import { useAtom } from 'jotai/react/useAtom'
+import { devnetAtom, envAtom } from '../../atoms/environment'
+import { useSetAtom } from 'jotai/react/useSetAtom'
+import { providerAtom } from '../../atoms/connection'
 
 const EnvironmentSelector: React.FC = () => {
-  const { setProvider } = useContext(ConnectionContext)
-  const {
+  const [
     env,
-    setEnv,
+    setEnv] = useAtom(envAtom)
+  const
     setDevnet
-  } = useContext(EnvironmentContext)
+   = useSetAtom(devnetAtom)
+  const setProvider = useSetAtom(providerAtom)
 
   async function handleEnvironmentChange (event: any): Promise<void> {
     const value = parseInt(event.target.value)

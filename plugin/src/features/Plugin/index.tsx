@@ -1,7 +1,4 @@
-import React, { useState } from 'react'
-import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
-import { ConnectionContext } from '../../contexts/ConnectionContext'
-import { type Contract, type DeployedContract, type Input } from '../../types/contracts'
+import React, { useEffect, useState } from 'react'
 import { Environment } from '../Environment'
 import './styles.css'
 import Compilation from '../Compilation'
@@ -10,21 +7,15 @@ import Interaction from '../Interaction'
 import Accordian, { AccordianItem, AccordionContent, AccordionTrigger } from '../../ui_components/Accordian'
 import TransactionHistory from '../TransactionHistory'
 import CompilerVersion from '../CompilerVersion'
-import CompilationContext from '../../contexts/CompilationContext'
-import DeploymentContext from '../../contexts/DeploymentContext'
-import { type Devnet, type DevnetAccount, devnets } from '../../utils/network'
-import EnvironmentContext from '../../contexts/EnvironmentContext'
-import ManualAccountContext from '../../contexts/ManualAccountContext'
-import { type Transaction } from '../../types/transaction'
-import TransactionContext from '../../contexts/TransactionContext'
 import StateAction from '../../components/StateAction'
-import type { ManualAccount } from '../../types/accounts'
-import { networks } from '../../utils/constants'
 import BackgroundNotices from '../../components/BackgroundNotices'
 import ExplorerSelector, { useCurrentExplorer } from '../../components/ExplorerSelector'
-import { DeployedContractsContext } from '../../contexts/DeployedContractsContext'
-import { type Provider, type Wallet } from 'zksync-web3'
-import VersionContext from '../../contexts/VersionContext'
+import { useAtomValue } from 'jotai/react/useAtomValue'
+import { isCompilingAtom, statusAtom } from '../../atoms/compilation'
+import { deploymentAtom, deployStatusAtom, isDeployingAtom } from '../../atoms/deployment'
+import { useSetAtom } from 'jotai/react/useSetAtom'
+import useRemixClient from '../../hooks/useRemixClient'
+import { pluginLoaded } from '../../atoms/remixClient'
 
 export type AccordianTabs =
   | 'compile'
@@ -35,59 +26,11 @@ export type AccordianTabs =
 
 const Plugin: React.FC = () => {
   // Compilation Context state variables
-  const [status, setStatus] = useState('Compiling...')
-  const [currentFilename, setCurrentFilename] = useState('')
-  const [isCompiling, setIsCompiling] = useState(false)
-  const [isValidSolidity, setIsValidSolidity] = useState(false)
-  const [noFileSelected, setNoFileSelected] = useState(false)
-  const [hashDir, setHashDir] = useState('')
-  const [tomlPaths, setTomlPaths] = useState<string[]>([])
-  const [activeTomlPath, setActiveTomlPath] = useState('')
+  const status = useAtomValue(statusAtom)
+  const isCompiling = useAtomValue(isCompilingAtom)
 
   // Deployment Context state variables
-  const [isDeploying, setIsDeploying] = useState(false)
-  const [deployStatus, setDeployStatus] = useState('')
-  const [constructorInputs, setConstructorInputs] = useState<Input[]>([])
-  const [notEnoughInputs, setNotEnoughInputs] = useState(false)
-
-  // Environment Context state variables
-  const [devnet, setDevnet] = useState<Devnet>(devnets[1])
-  const [env, setEnv] = useState<string>('remoteDevnet')
-  const [isDevnetAlive, setIsDevnetAlive] = useState<boolean>(true)
-  const [selectedDevnetAccount, setSelectedDevnetAccount] =
-    useState<DevnetAccount | null>(null)
-  const [availableDevnetAccounts, setAvailableDevnetAccounts] = useState<
-  DevnetAccount[]
-  >([])
-
-  // Manual Account Context state variables
-  const [accounts, setAccounts] = useState<ManualAccount[]>([])
-  const [selectedAccount, setSelectedAccount] = useState<ManualAccount | null>(
-    null
-  )
-  const [networkName, setNetworkName] = useState<string>(networks[0].value)
-
-  // Transaction History Context state variables
-  const [transactions, setTransactions] = useState<Transaction[]>([])
-
-  // Compilation Context state variables
-  const [compiledContracts, setCompiledContracts] = useState<Contract[]>([])
-  const [selectedContract, setSelectedContract] = useState<Contract | null>(
-    null
-  )
-
-  // Connection Context state variables
-  const [provider, setProvider] = useState<Provider | null>(
-    null
-  )
-  const [account, setAccount] = useState<Wallet | null>(
-    null
-  )
-
-  const [deployedContracts, setDeployedContracts] = useState<DeployedContract[]>([])
-  const [selectedDeployedContract, setSelectedDeployedContract] = useState<DeployedContract | null>(
-    null
-  )
+  const { isDeploying, deployStatus } = useAtomValue(deploymentAtom)
 
   // Interaction state variables
   const [interactionStatus, setInteractionStatus] = useState<'loading' | 'success' | 'error' | ''>('')
@@ -95,8 +38,20 @@ const Plugin: React.FC = () => {
   const [currentAccordian, setCurrentAccordian] =
     useState<AccordianTabs>('compile')
 
-  const [solidityVersion, setSolidityVersion] = useState('')
-  const [versions, setVersions] = useState<string[]>([])
+  const setPluginLoaded = useSetAtom(pluginLoaded)
+  const { remixClient } = useRemixClient()
+
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    const id = setTimeout(async (): Promise<void> => {
+      await remixClient.onload(() => {
+        setPluginLoaded(true)
+      })
+    }, 1)
+    return () => {
+      clearInterval(id)
+    }
+  }, [])
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const handleTabView = (clicked: AccordianTabs) => {
@@ -113,84 +68,13 @@ const Plugin: React.FC = () => {
     // add a button for selecting the solidity version
     <>
       <div className='plugin-wrapper'>
-        <EnvironmentContext.Provider
-          value={{
-            devnet,
-            setDevnet,
-            env,
-            setEnv,
-            isDevnetAlive,
-            setIsDevnetAlive,
-            selectedDevnetAccount,
-            setSelectedDevnetAccount,
-            availableDevnetAccounts,
-            setAvailableDevnetAccounts
-          }}
-        >
-          <CompiledContractsContext.Provider
-            value={{
-              contracts: compiledContracts,
-              setContracts: setCompiledContracts,
-              selectedContract,
-              setSelectedContract
-            }}
-          >
-            <DeployedContractsContext.Provider
-              value={{
-                contracts: deployedContracts,
-                setContracts: setDeployedContracts,
-                selectedContract: selectedDeployedContract,
-                setSelectedContract: setSelectedDeployedContract
-              }}
-            >
-              <ConnectionContext.Provider
-                value={{
-                  provider,
-                  setProvider,
-                  account,
-                  setAccount
-                }}
-              >
-                <TransactionContext.Provider
-                  value={{
-                    transactions,
-                    setTransactions
-                  }}
-                >
-                  <div className='plugin-main-wrapper'>
-                    <VersionContext.Provider
-                      value={{
-                        solidityVersion,
-                        setSolidityVersion,
-                        versions,
-                        setVersions
-                      }}>
-                      <CompilerVersion />
+                    <div className='plugin-main-wrapper'>
+                    <CompilerVersion />
                       <Accordian
                         type='single'
                         value={currentAccordian}
                         defaultValue={'compile'}
-                      >
-                        {/*  Compilation part */}
-                        <CompilationContext.Provider
-                          value={{
-                            status,
-                            setStatus,
-                            currentFilename,
-                            setCurrentFilename,
-                            isCompiling,
-                            setIsCompiling,
-                            isValidSolidity,
-                            setIsValidSolidity,
-                            noFileSelected,
-                            setNoFileSelected,
-                            hashDir,
-                            setHashDir,
-                            tomlPaths,
-                            setTomlPaths,
-                            activeTomlPath,
-                            setActiveTomlPath
-                          }}
+
                         >
                           <AccordianItem value='compile'>
                             <AccordionTrigger
@@ -218,20 +102,7 @@ const Plugin: React.FC = () => {
                               <Compilation setAccordian={setCurrentAccordian} />
                             </AccordionContent>
                           </AccordianItem>
-                        </CompilationContext.Provider>
-                        <DeploymentContext.Provider
-                          value={{
-                            isDeploying,
-                            setIsDeploying,
-                            deployStatus,
-                            setDeployStatus,
-                            constructorInputs,
-                            setConstructorInputs,
-                            notEnoughInputs,
-                            setNotEnoughInputs
-                          }}
-                        >
-                          <AccordianItem value='deploy'>
+                        <AccordianItem value='deploy'>
                             <AccordionTrigger
                               onClick={() => {
                                 handleTabView('deploy')
@@ -279,7 +150,7 @@ const Plugin: React.FC = () => {
                               <Interaction setInteractionStatus={setInteractionStatus} />
                             </AccordionContent>
                           </AccordianItem>
-                        </DeploymentContext.Provider>
+
                         {/*  Transactions start */}
                         <AccordianItem value='transactions'>
                           <AccordionTrigger
@@ -308,28 +179,11 @@ const Plugin: React.FC = () => {
                       <div className='mt-5'>
                         <BackgroundNotices />
                       </div>
-                    </VersionContext.Provider>
-                  </div>
+                    </div>
                   <div>
-                    <ManualAccountContext.Provider
-                      value={{
-                        accounts,
-                        setAccounts,
-                        selectedAccount,
-                        setSelectedAccount,
-                        networkName,
-                        setNetworkName
-                      }}
-                    >
-                      {/*  Env section */}
-                      <Environment />
-                    </ManualAccountContext.Provider>
-                  </div>
-                </TransactionContext.Provider>
-              </ConnectionContext.Provider>
-            </DeployedContractsContext.Provider>
-          </CompiledContractsContext.Provider>
-        </EnvironmentContext.Provider>
+                    <Environment />
+                    </div>
+
       </div>
     </>
   )

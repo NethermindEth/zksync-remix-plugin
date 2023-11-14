@@ -1,45 +1,38 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import CompiledContracts from '../../components/CompiledContracts'
-import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
 import './styles.css'
 import Container from '../../ui_components/Container'
 
-import { RemixClientContext } from '../../contexts/RemixClientContext'
 import { type AccordianTabs } from '../Plugin'
-import TransactionContext from '../../contexts/TransactionContext'
 import * as zksync from 'zksync-web3'
 import ConstructorInput from '../../components/ConstructorInput'
-import { DeployedContractsContext } from '../../contexts/DeployedContractsContext'
 import { type DeployedContract } from '../../types/contracts'
 import { type Transaction } from '../../types/transaction'
-import { ConnectionContext } from '../../contexts/ConnectionContext'
-import { type Contract } from 'ethers'
+import { Contract } from 'ethers'
+import { useAtom } from 'jotai/react/useAtom'
+import { transactionsAtom } from '../../atoms/transaction'
+import useRemixClient from '../../hooks/useRemixClient'
+import { contractsAtom, selectedContractAtom } from '../../atoms/compiledContracts'
+import { useAtomValue } from 'jotai/react/useAtomValue'
+import { accountAtom } from '../../atoms/connection'
+import { deployedContractsAtom, deployedSelectedContractAtom } from '../../atoms/deployedContracts'
 
 interface DeploymentProps {
   setActiveTab: (tab: AccordianTabs) => void
 }
 
 const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
-  const remixClient = useContext(RemixClientContext)
-  const {
-    transactions,
-    setTransactions
-  } = useContext(TransactionContext)
-  const {
-    contracts,
-    selectedContract
-  } =
-    useContext(CompiledContractsContext)
+  const { remixClient } = useRemixClient()
+  const [ transactions, setTransactions ] = useAtom(transactionsAtom)
 
-  const { account } = useContext(ConnectionContext)
+  const [contracts, setContracts] = useAtom(contractsAtom)
+  const [selectedContract, setSelectedContract] = useAtom(selectedContractAtom)
 
-  const {
-    contracts: deployedContracts,
-    setContracts: deployedSetContracts,
-    setSelectedContract: deployedSetSelectedContract
-  } =
-    useContext(DeployedContractsContext)
+  const account = useAtomValue(accountAtom)
+
+  const [deployedContracts, deployedSetContracts] = useAtom(deployedContractsAtom)
+  const [deployedSelectedContract, deployedSetSelectedContract] = useAtom(deployedSelectedContractAtom)
 
   const [inputs, setInputs] = useState<string[]>([])
 

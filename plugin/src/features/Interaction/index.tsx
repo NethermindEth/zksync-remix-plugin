@@ -8,7 +8,9 @@ import React, { useContext } from 'react'
 import Container from '../../ui_components/Container'
 import './index.css'
 import DeployedContracts from '../../components/DeployedContracts'
-import { DeployedContractsContext } from '../../contexts/DeployedContractsContext'
+import { deployedContractsAtom, deployedSelectedContractAtom } from '../../atoms/deployedContracts'
+import { useAtomValue } from 'jotai/react/useAtomValue'
+import useRemixClient from '../../hooks/useRemixClient'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface InteractionProps {
@@ -16,10 +18,10 @@ interface InteractionProps {
 }
 
 const Interaction: React.FC<InteractionProps> = (props) => {
-  const {
-    contracts,
-    selectedContract
-  } = useContext(DeployedContractsContext)
+  const contracts = useAtomValue(deployedContractsAtom)
+  const selectedContract = useAtomValue(deployedSelectedContractAtom)
+
+  const { remixClient } = useRemixClient()
 
   return (
     <Container>

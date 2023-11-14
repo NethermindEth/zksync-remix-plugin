@@ -1,19 +1,21 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import React, { useContext, useEffect, useState } from 'react'
+import React, {  useEffect, useState } from 'react'
 import { networks as networkConstants } from '../../utils/constants'
-import { ConnectionContext } from '../../contexts/ConnectionContext'
 import { ethers } from 'ethers'
 
-import ManualAccountContext from '../../contexts/ManualAccountContext'
 import storage from '../../utils/storage'
-import { RemixClientContext } from '../../contexts/RemixClientContext'
-import EnvironmentContext from '../../contexts/EnvironmentContext'
 
 import './index.css'
 import { BiCopy, BiPlus } from 'react-icons/bi'
 import { trimStr } from '../../utils/utils'
 import { MdCheckCircleOutline, MdRefresh } from 'react-icons/md'
 import copy from 'copy-to-clipboard'
+import useRemixClient from '../../hooks/useRemixClient'
+import { useAtom } from 'jotai/react/useAtom'
+import { accountAtom, providerAtom } from '../../atoms/connection'
+import { transactionsAtom } from '../../atoms/transaction'
+import { envAtom } from '../../atoms/environment'
+import { accountsAtom, networkNameAtom, selectedAccountAtom } from '../../atoms/manualAccount'
 
 // TODOS: move state parts to contexts
 // Account address selection
@@ -21,27 +23,19 @@ import copy from 'copy-to-clipboard'
 const ManualAccount: React.FC<{
   prevEnv: string
 }> = ({ prevEnv }) => {
-  const {
-    account,
-    provider
-  } =
-    useContext(ConnectionContext)
+  const { remixClient } = useRemixClient()
+
+  const [account, setAccount] = useAtom(accountAtom)
+  const [provider, setProvider] = useAtom(providerAtom)
+  const [transactions, setTransactions] = useAtom(transactionsAtom)
+
+  const [env, setEnv] = useAtom(envAtom)
+
+  const [accounts, setAccounts] = useAtom(accountsAtom)
+  const [selectedAccount, setSelectedAccount] = useAtom(selectedAccountAtom)
+  const [networkName, setNetworkName] = useAtom(networkNameAtom)
 
   const [accountDeploying] = useState(false)
-
-  const remixClient = useContext(RemixClientContext)
-
-  const {
-    setEnv
-  } = useContext(EnvironmentContext)
-
-  const {
-    accounts,
-    setAccounts,
-    selectedAccount,
-    networkName,
-    setNetworkName
-  } = useContext(ManualAccountContext)
 
   useEffect(() => {
     setNetworkName(networkConstants[0].value)

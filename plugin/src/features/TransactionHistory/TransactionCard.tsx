@@ -55,8 +55,7 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     setTimeout(async () => {
       if (transaction.provider == null) return
-      const chainId = 'unknown'
-      setChain(chainId ?? 'unknown')
+      setChain('unknown')
     })
   })
 

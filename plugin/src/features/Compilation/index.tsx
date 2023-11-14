@@ -1,19 +1,29 @@
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import React, { useContext, useEffect } from 'react'
-import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
-import { RemixClientContext } from '../../contexts/RemixClientContext'
 import { apiUrl } from '../../utils/network'
 import { artifactFolder, getFileExtension, getFileNameFromPath } from '../../utils/utils'
 import './styles.css'
 import Container from '../../ui_components/Container'
 import storage from '../../utils/storage'
 import { ethers } from 'ethers'
-import CompilationContext from '../../contexts/CompilationContext'
 import { type AccordianTabs } from '../Plugin'
 import { type CompilationResult, type Contract } from '../../types/contracts'
 import { asyncFetch } from '../../utils/async_fetch'
-import VersionContext from '../../contexts/VersionContext'
+import {
+  activeTomlPathAtom,
+  compilationAtom,
+  currentFilenameAtom, hashDirAtom,
+  isCompilingAtom, isValidSolidityAtom,
+  noFileSelectedAtom,
+  statusAtom, tomlPathsAtom
+} from '../../atoms/compilation'
+import { useAtom } from 'jotai/react/useAtom'
+import { useAtomValue } from 'jotai/react/useAtomValue'
+import { useSetAtom } from 'jotai/react/useSetAtom'
+import { solidityVersionAtom, versionsAtom } from '../../atoms/version'
+import { contractsAtom, selectedContractAtom } from '../../atoms/compiledContracts'
+import useRemixClient from '../../hooks/useRemixClient'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface CompilationProps {
@@ -21,38 +31,33 @@ interface CompilationProps {
 }
 
 const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
-  const remixClient = useContext(RemixClientContext)
+  const { remixClient } = useRemixClient()
 
-  const {
-    contracts,
-    setContracts,
-    setSelectedContract
-  } = useContext(
-    CompiledContractsContext
-  )
+  const [contracts, setContracts] = useAtom(contractsAtom)
+  const [selectedContract, setSelectedContract] = useAtom(selectedContractAtom)
 
   const {
     status,
-    setStatus,
     currentFilename,
-    setCurrentFilename,
     isCompiling,
-    setIsCompiling,
     isValidSolidity,
-    setIsValidSolidity,
     noFileSelected,
-    setNoFileSelected,
     hashDir,
-    setHashDir,
     tomlPaths,
-    setTomlPaths,
     activeTomlPath,
-    setActiveTomlPath
-  } = useContext(CompilationContext)
+  } = useAtomValue(compilationAtom)
 
-  const {
-    solidityVersion
-  } = useContext(VersionContext)
+  const setStatus = useSetAtom(statusAtom)
+  const setCurrentFilename = useSetAtom(currentFilenameAtom)
+  const setIsCompiling = useSetAtom(isCompilingAtom)
+  const setNoFileSelected = useSetAtom(noFileSelectedAtom)
+  const setHashDir = useSetAtom(hashDirAtom)
+  const setTomlPaths = useSetAtom(tomlPathsAtom)
+  const setActiveTomlPath = useSetAtom(activeTomlPathAtom)
+  const setIsValidSolidity = useSetAtom(isValidSolidityAtom)
+
+  const [solidityVersion, setSolidityVersion] = useAtom(solidityVersionAtom)
+  const [versions, setVersions] = useAtom(versionsAtom)
 
   const [currWorkspacePath, setCurrWorkspacePath] = React.useState<string>('')
 

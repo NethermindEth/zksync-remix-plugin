@@ -1,35 +1,36 @@
 import { getRoundedNumber, getSelectedAccountIndex, getShortenedHash, weiToEth } from '../../utils/utils'
 import { getAccounts, updateBalances } from '../../utils/network'
 import React, { useContext, useEffect, useState } from 'react'
-import { ConnectionContext } from '../../contexts/ConnectionContext'
 import { Provider, Wallet } from 'zksync-web3'
-import { RemixClientContext } from '../../contexts/RemixClientContext'
 import { MdCopyAll, MdRefresh } from 'react-icons/md'
 import './devnetAccountSelector.css'
-import EnvironmentContext from '../../contexts/EnvironmentContext'
 import copy from 'copy-to-clipboard'
-import TransactionContext from '../../contexts/TransactionContext'
+import { useAtom } from 'jotai/react/useAtom'
+import { accountAtom, providerAtom } from '../../atoms/connection'
+import useRemixClient from '../../hooks/useRemixClient'
+import { useAtomValue } from 'jotai/react/useAtomValue'
+import {
+  availableDevnetAccountsAtom,
+  devnetAtom,
+  envAtom,
+  isDevnetAliveAtom,
+  selectedDevnetAccountAtom
+} from '../../atoms/environment'
+import { transactionsAtom } from '../../atoms/transaction'
 
 const DevnetAccountSelector: React.FC = () => {
-  const {
-    account,
-    setAccount,
-    provider,
-    setProvider
-  } = useContext(ConnectionContext)
-  const remixClient = useContext(RemixClientContext)
-  const {
-    env,
-    devnet,
-    isDevnetAlive,
-    setIsDevnetAlive,
-    selectedDevnetAccount,
-    setSelectedDevnetAccount,
-    availableDevnetAccounts,
-    setAvailableDevnetAccounts
-  } = useContext(EnvironmentContext)
+  const { remixClient } = useRemixClient()
 
-  const { transactions } = useContext(TransactionContext)
+  const [account, setAccount] = useAtom(accountAtom)
+  const [ provider, setProvider ] = useAtom(providerAtom)
+
+  const env = useAtomValue(envAtom)
+  const devnet = useAtomValue(devnetAtom)
+  const [ isDevnetAlive, setIsDevnetAlive ] = useAtom(isDevnetAliveAtom)
+  const [ selectedDevnetAccount, setSelectedDevnetAccount ] = useAtom(selectedDevnetAccountAtom)
+  const [ availableDevnetAccounts, setAvailableDevnetAccounts] = useAtom(availableDevnetAccountsAtom)
+
+  const transactions = useAtomValue(transactionsAtom)
 
   const [accountRefreshing, setAccountRefreshing] = useState(false)
   const [showCopied, setCopied] = useState(false)

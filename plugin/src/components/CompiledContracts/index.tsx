@@ -1,8 +1,10 @@
 // A component that reads the compiled contracts from the context and displays them in a select
 
-import React, { useContext } from 'react'
-import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
+import React from 'react'
 import { getContractNameFromFullName, getSelectedContractIndex } from '../../utils/utils'
+import { contractsAtom, selectedContractAtom } from '../../atoms/compiledContracts'
+import { useAtomValue } from 'jotai/react/useAtomValue'
+import { useAtom } from 'jotai/react/useAtom'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface CompiledContractsProps {
@@ -10,13 +12,12 @@ interface CompiledContractsProps {
 }
 
 const CompiledContracts: React.FC<CompiledContractsProps> = (props) => {
-  const {
-    contracts,
+  const
+    contracts= useAtomValue(contractsAtom)
+  const [
     selectedContract,
     setSelectedContract
-  } = useContext(
-    CompiledContractsContext
-  )
+  ] = useAtom(selectedContractAtom)
 
   function handleCompiledContractSelectionChange (event: any): void {
     event.preventDefault()

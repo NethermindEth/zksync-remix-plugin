@@ -1,7 +1,8 @@
 /* eslint-disable react/prop-types */
 import React, { type ReactNode, useContext, useState } from 'react'
 import './envCard.css'
-import EnvironmentContext from '../../contexts/EnvironmentContext'
+import { useAtomValue } from 'jotai/react/useAtomValue'
+import { envAtom } from '../../atoms/environment'
 
 interface EnvCardProps {
   header: string
@@ -14,7 +15,7 @@ export const EnvCard: React.FC<EnvCardProps> = ({
   setEnv,
   children
 }) => {
-  const { env } = useContext(EnvironmentContext)
+  const env = useAtomValue(envAtom)
   const [prevEnv, setPrevEnv] = useState<string>(env)
 
   return (

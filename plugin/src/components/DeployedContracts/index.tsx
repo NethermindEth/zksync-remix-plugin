@@ -1,21 +1,25 @@
 // A component that reads the compiled contracts from the context and displays them in a select
 
-import React, { useContext } from 'react'
-import { getContractNameFromFullName, getSelectedContractIndex } from '../../utils/utils'
-import { DeployedContractsContext } from '../../contexts/DeployedContractsContext'
+import React from 'react'
+import {
+  getContractNameFromFullName,
+  getSelectedContractIndex,
+} from '../../utils/utils'
 import FunctionalInput from '../FunctionalInput'
 import './deployedContracts.css'
+import { useAtomValue } from 'jotai/react/useAtomValue'
+import { useAtom } from 'jotai/react/useAtom'
+import { deployedContractsAtom, deployedSelectedContractAtom } from '../../atoms/deployedContracts'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 
 const DeployedContracts: React.FC = () => {
-  const {
-    contracts,
+  const
+    contracts= useAtomValue(deployedContractsAtom)
+  const [
     selectedContract,
     setSelectedContract
-  } = useContext(
-    DeployedContractsContext
-  )
+  ] = useAtom(deployedSelectedContractAtom)
 
   function handleCompiledContractSelectionChange (event: any): void {
     event.preventDefault()
