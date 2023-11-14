@@ -9,7 +9,6 @@
     "@matterlabs/hardhat-zksync-verify": "^0.1.8",
     "@matterlabs/zksync-contracts": "^0.6.1",
     "@nomiclabs/hardhat-etherscan": "^3.1.7",
-    "@openzeppelin/contracts": "^4.9.3",
     "@types/chai": "^4.3.4",
     "@types/mocha": "^10.0.1",
     "ethers": "^5.7.2",
