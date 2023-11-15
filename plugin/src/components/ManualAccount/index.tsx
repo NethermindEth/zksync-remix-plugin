@@ -15,12 +15,13 @@ import { accountAtom, providerAtom } from '../../atoms/connection'
 import { envAtom } from '../../atoms/environment'
 import { accountsAtom, networkNameAtom, selectedAccountAtom } from '../../atoms/manualAccount'
 import { useAtomValue, useSetAtom, useAtom } from 'jotai'
+import { type EnvType } from '../../types/transaction'
 
 // TODOS: move state parts to contexts
 // Account address selection
 // network selection drop down
 const ManualAccount: React.FC<{
-  prevEnv: string
+  prevEnv: EnvType
 }> = ({ prevEnv }) => {
   const { remixClient } = useRemixClient()
 

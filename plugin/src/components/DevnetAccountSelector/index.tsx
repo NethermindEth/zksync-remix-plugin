@@ -212,7 +212,7 @@ const DevnetAccountSelector: React.FC = () => {
           <button
             className='btn'
             onClick={() => {
-              copy(account?.address ?? '')
+              copy((account as Wallet)?.address ?? '')
               setCopied(true)
               setTimeout(() => {
                 setCopied(false)

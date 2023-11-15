@@ -1,8 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { type Transaction } from '../../types/transaction'
 import './transactioncard.css'
-import { type Network, type networkExplorerUrls } from '../../utils/constants'
-import { getExplorerUrl } from '../../utils/utils'
 
 interface TagType {
   type: 'deploy' | 'declare' | 'invoke' | 'deployAccount'
@@ -47,15 +45,15 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
     env
     , chain
   } = transaction
-  const [address, setAddress] = useState<string | null>(null)
+  const [address, setAddress] = useState<string | undefined>(undefined)
 
   useEffect(() => {
-    const fetchAddress = async () => {
+    const fetchAddress = async (): Promise<void> => {
       const addr = await account?.getAddress()
       setAddress(addr)
     }
 
-    fetchAddress()
+    fetchAddress().catch(console.error)
   }, [account])
 
   const cardRef = useRef<HTMLDivElement>(null)
@@ -76,7 +74,7 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
           </a>
           : <a
             title={address}
-            href={`${chain?.blockExplorers?.default.url}/address/${address ?? ''}`}
+            href={`${String(chain?.blockExplorers?.default.url)}/address/${address ?? ''}`}
             target='_blank' rel='noreferrer'
           >
             {address}
@@ -88,14 +86,14 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
           ? <a target='_blank' title={txId} rel='noreferrer'>
             {txId}
           </a>
-          : <a href={`${chain?.blockExplorers?.default.url}/tx/${txId}`} target='_blank' title={txId}
+          : <a href={`${String(chain?.blockExplorers?.default.url)}/tx/${txId}`} target='_blank' title={txId}
                rel='noreferrer'>
             {txId}
           </a>}
       </div>
       <div className='txn-network'>
         {(env === 'localDevnet' || env === 'remoteDevnet') ? <p>Network</p> : <p>Chain</p>}
-        <NetworkTag type={(env === 'localDevnet' || env === 'remoteDevnet') ? env : chain?.name} />
+        <NetworkTag type={(env === 'localDevnet' || env === 'remoteDevnet') ? env : (chain?.name === undefined ? '' : chain?.name)} />
       </div>
     </div>
   )

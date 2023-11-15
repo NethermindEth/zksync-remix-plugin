@@ -6,7 +6,6 @@ import EnvironmentSelector from '../../components/EnvironmentSelector'
 import Wallet from '../../components/Wallet'
 import ManualAccount from '../../components/ManualAccount'
 import { RxDotFilled } from 'react-icons/rx'
-import EnvironmentContext from '../../contexts/EnvironmentContext'
 import Accordian, {
   AccordianItem,
   AccordionContent,
@@ -14,6 +13,7 @@ import Accordian, {
 } from '../../ui_components/Accordian'
 import { useAtom, useAtomValue } from 'jotai'
 import { envAtom, isDevnetAliveAtom } from '../../atoms/environment'
+import { type EnvType } from '../../types/transaction'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface EnvironmentProps {
@@ -22,7 +22,7 @@ interface EnvironmentProps {
 const Environment: React.FC<EnvironmentProps> = () => {
   const [env, setEnv] = useAtom(envAtom)
   const isDevnetAlive = useAtomValue(isDevnetAliveAtom)
-  const [prevEnv, setPrevEnv] = useState<string>(env)
+  const [prevEnv, setPrevEnv] = useState<EnvType>(env)
 
   const [currentPane, setCurrentPane] = useState('environment')
 

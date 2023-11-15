@@ -9,29 +9,22 @@ import * as zksync from 'zksync-web3'
 import ConstructorInput from '../../components/ConstructorInput'
 import { type DeployedContract } from '../../types/contracts'
 import { type Transaction } from '../../types/transaction'
-import { ConnectionContext } from '../../contexts/ConnectionContext'
-import EnvironmentContext from '../../contexts/EnvironmentContext'
 import { type Contract } from 'ethers'
 import { useWalletClient } from 'wagmi'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import { transactionsAtom } from '../../atoms/transaction'
 import useRemixClient from '../../hooks/useRemixClient'
 import { contractsAtom, selectedContractAtom } from '../../atoms/compiledContracts'
-import { accountAtom } from '../../atoms/connection'
+import { accountAtom, providerAtom } from '../../atoms/connection'
 import { deployedContractsAtom, deployedSelectedContractAtom } from '../../atoms/deployedContracts'
+import { envAtom } from '../../atoms/environment'
 
 interface DeploymentProps {
   setActiveTab: (tab: AccordianTabs) => void
 }
 
 const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
-  const remixClient = useContext(RemixClientContext)
-  const { transactions, setTransactions } = useContext(TransactionContext)
-  const { contracts, selectedContract, setContracts, setSelectedContract } =
-    useContext(CompiledContractsContext)
-  const { env } = useContext(EnvironmentContext)
   const { data: walletClient } = useWalletClient()
-  const { account } = useContext(ConnectionContext)
   const { remixClient } = useRemixClient()
   const [transactions, setTransactions] = useAtom(transactionsAtom)
 
@@ -44,6 +37,9 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const deployedSetSelectedContract = useSetAtom(deployedSelectedContractAtom)
 
   const [inputs, setInputs] = useState<string[]>([])
+
+  const env = useAtomValue(envAtom)
+  const provider = useAtomValue(providerAtom)
 
   useEffect(() => {
     const constructor = selectedContract?.abi.find((abiElement) => {
@@ -81,7 +77,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     }
 
     await remixClient.terminal.log({
-      value: `Deploying contract ${selectedContract.contractName} with account ${account.address}`,
+      value: `Deploying contract ${selectedContract.contractName}`,
       type: 'info'
     })
 
@@ -140,8 +136,9 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         type: 'deploy',
         txId: txHash,
         env,
-        chain: walletClient?.chain
-      } as Transaction
+        chain: walletClient?.chain,
+        provider
+      }
 
       setTransactions([transaction, ...transactions])
     } catch (e) {

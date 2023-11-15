@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react'
+import React from 'react'
 import Container from '../../ui_components/Container'
 import TransactionCard from './TransactionCard'
 import { type IExplorerSelector } from '../../utils/misc'

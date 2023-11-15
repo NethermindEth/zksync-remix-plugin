@@ -1,9 +1,10 @@
 import { atom } from 'jotai'
 import { type Devnet, type DevnetAccount, devnets } from '../utils/network'
+import { type EnvType } from '../types/transaction'
 
 const devnetAtom = atom<Devnet>(devnets[1])
 
-const envAtom = atom<string>('remoteDevnet')
+const envAtom = atom<EnvType>('remoteDevnet')
 
 const isDevnetAliveAtom = atom<boolean>(true)
 

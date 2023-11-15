@@ -10,9 +10,9 @@ import useRemixClient from '../../hooks/useRemixClient'
 import { useAtomValue, useAtom } from 'jotai'
 import { deployedSelectedContractAtom } from '../../atoms/deployedContracts'
 import { transactionsAtom } from '../../atoms/transaction'
-import { accountAtom } from '../../atoms/connection'
-import EnvironmentContext from '../../contexts/EnvironmentContext'
+import { accountAtom, providerAtom } from '../../atoms/connection'
 import { useWalletClient } from 'wagmi'
+import { envAtom } from '../../atoms/environment'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface CompiledContractsProps {
@@ -21,10 +21,14 @@ interface CompiledContractsProps {
 
 const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledContractsProps) => {
   const { remixClient } = useRemixClient()
+  const { data: walletClient } = useWalletClient()
 
   const selectedContract = useAtomValue(deployedSelectedContractAtom)
   const [transactions, setTransactions] = useAtom(transactionsAtom)
   const account = useAtomValue(accountAtom)
+
+  const env = useAtomValue(envAtom)
+  const provider = useAtomValue(providerAtom)
 
   const [inputs, setInputs] = useState<string[]>([])
 
@@ -66,8 +70,9 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
           type: 'invoke',
           txId: result.hash,
           env,
-          chain: walletClient?.chain
-        } as Transaction
+          chain: walletClient?.chain,
+          provider
+        }
 
         setTransactions([transaction, ...transactions])
       }

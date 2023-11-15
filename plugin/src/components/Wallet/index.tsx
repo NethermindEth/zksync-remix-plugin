@@ -1,27 +1,30 @@
 /* eslint-disable multiline-ternary */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { useContext, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import './wallet.css'
 import * as zksync from 'zksync-web3'
-import { ConnectionContext } from '../../contexts/ConnectionContext'
 import { useWalletClient } from 'wagmi'
-import EnvironmentContext from '../../contexts/EnvironmentContext'
+import { accountAtom, providerAtom } from '../../atoms/connection'
+import { useAtomValue, useSetAtom } from 'jotai'
+import { envAtom } from '../../atoms/environment'
 
-const Wallet = () => {
+const Wallet: React.FC = () => {
   const { data: walletClient } = useWalletClient()
-  const { setAccount, setProvider } = useContext(ConnectionContext)
-  const { env } = useContext(EnvironmentContext)
+  const setAccount = useSetAtom(accountAtom)
+  const setProvider = useSetAtom(providerAtom)
+  const env = useAtomValue(envAtom)
 
-  useEffect(() => {
+  useEffect((): void => {
     if (walletClient != null) {
       const network = {
         chainId: walletClient.chain.id,
         name: walletClient.chain.name
       }
-      const newprovider = new zksync.Web3Provider(walletClient.transport, network)
-      const newsigner = newprovider.getSigner(walletClient.account.address)
-      setAccount(newsigner)
-      setProvider(walletClient)
+      const newProvider = new zksync.Web3Provider(walletClient.transport, network)
+      const newSigner = newProvider.getSigner(walletClient.account.address)
+
+      setAccount(newSigner)
+      setProvider(newProvider)
     }
   }, [walletClient?.account.address, walletClient?.chain.id, env])
 
