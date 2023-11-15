@@ -11,9 +11,8 @@ import { type DeployedContract } from '../../types/contracts'
 import { type Transaction } from '../../types/transaction'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
 import EnvironmentContext from '../../contexts/EnvironmentContext'
-import { Contract } from 'ethers'
-import { useWalletClient } from 'wagmi'
 import { type Contract } from 'ethers'
+import { useWalletClient } from 'wagmi'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import { transactionsAtom } from '../../atoms/transaction'
 import useRemixClient from '../../hooks/useRemixClient'
@@ -137,10 +136,10 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       setActiveTab('interaction')
 
       const transaction: Transaction = {
-        account: account,
+        account,
         type: 'deploy',
         txId: txHash,
-        env: env,
+        env,
         chain: walletClient?.chain
       } as Transaction
 

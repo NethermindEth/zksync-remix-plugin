@@ -12,8 +12,6 @@ import Accordian, {
   AccordionContent,
   AccordionTrigger
 } from '../../ui_components/Accordian'
-import Accordian, { AccordianItem, AccordionContent, AccordionTrigger } from '../../ui_components/Accordian'
-import ManualAccount from '../../components/ManualAccount'
 import { useAtom, useAtomValue } from 'jotai'
 import { envAtom, isDevnetAliveAtom } from '../../atoms/environment'
 

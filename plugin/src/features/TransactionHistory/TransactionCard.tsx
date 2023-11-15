@@ -45,17 +45,18 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
     account,
     txId,
     env
- , chain } = transaction
-  const [address, setAddress] = useState<string | null>(null);
+    , chain
+  } = transaction
+  const [address, setAddress] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchAddress = async () => {
-      const addr = await account?.getAddress();
-      setAddress(addr);
-    };
+      const addr = await account?.getAddress()
+      setAddress(addr)
+    }
 
-    fetchAddress();
-  }, [account]);
+    fetchAddress()
+  }, [account])
 
   const cardRef = useRef<HTMLDivElement>(null)
 

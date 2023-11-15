@@ -62,10 +62,10 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
 
       if (element.stateMutability !== 'view') {
         const transaction: Transaction = {
-          account: account,
+          account,
           type: 'invoke',
           txId: result.hash,
-          env: env,
+          env,
           chain: walletClient?.chain
         } as Transaction
 
