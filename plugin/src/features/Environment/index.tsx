@@ -6,11 +6,7 @@ import EnvironmentSelector from '../../components/EnvironmentSelector'
 import Wallet from '../../components/Wallet'
 import ManualAccount from '../../components/ManualAccount'
 import { RxDotFilled } from 'react-icons/rx'
-import Accordian, {
-  AccordianItem,
-  AccordionContent,
-  AccordionTrigger
-} from '../../ui_components/Accordian'
+import Accordian, { AccordianItem, AccordionContent, AccordionTrigger } from '../../ui_components/Accordian'
 import { useAtom, useAtomValue } from 'jotai'
 import { envAtom, isDevnetAliveAtom } from '../../atoms/environment'
 import { type EnvType } from '../../types/transaction'
@@ -40,7 +36,7 @@ const Environment: React.FC<EnvironmentProps> = () => {
               <p>Environment</p>
               <button
                 type='button'
-                className='mb-0 btn btn-sm btn-outline-secondary float-right rounded-pill env-testnet-btn'
+                className='mb-0 btn float-right rounded-pill env-testnet-btn'
                 onClick={(e) => {
                   e.stopPropagation()
                   if (env !== 'manual') setPrevEnv(env)
@@ -53,10 +49,10 @@ const Environment: React.FC<EnvironmentProps> = () => {
           </AccordionTrigger>
           <AccordionContent>
             <>
-              <div className='flex'>
+              <div className='flex flex-column'>
                 {env !== 'manual' ? (
                   <>
-                    <div className='flex'>
+                    <div className='flex flex-column'>
                       <label className=''>Environment selection</label>
                       <div className='flex_dot'>
                         <EnvironmentSelector />
@@ -85,7 +81,7 @@ const Environment: React.FC<EnvironmentProps> = () => {
                               )}
                       </div>
                     </div>
-                    <div className='flex'>
+                    <div className='flex flex-column'>
                       {['localDevnet', 'remoteDevnet'].includes(env) ? (
                         <DevnetAccountSelector />
                       ) : (

@@ -7,14 +7,15 @@ const Notices = [
 
 const BackgroundNotices: React.FC = () => {
   return (
-    <div>
-      <p className='text-center'>Notices</p>
+    <div className={'bg-transparent'}>
+      <p className='text-center text-md text-light'>Notices</p>
       {
         <ul className='list-group'>
           {Notices.map((notice, index) => {
             return (
-              <li className='list-group-item d-flex justify-content-left align-items-center disabled' key={index}>
-                <span className='badge badge-primary badge-pill mr-2'>
+              <li className='list-group-item d-flex justify-content-left align-items-center text-disabled bg-primary'
+                  key={index}>
+                <span className='badge badge-information badge-pilled mr-2'>
                   {index + 1}
                 </span>
                 {notice}

@@ -13,6 +13,7 @@ interface DeployedContract extends Contract {
   address: string
   transactionHash: string
 }
+
 // #[derive(Debug, Deserialize, Serialize)]
 // #[serde(crate = "rocket::serde")]
 // pub struct CompileResponse {

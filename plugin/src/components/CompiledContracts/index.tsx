@@ -3,7 +3,7 @@
 import React from 'react'
 import { getContractNameFromFullName, getSelectedContractIndex } from '../../utils/utils'
 import { contractsAtom, selectedContractAtom } from '../../atoms/compiledContracts'
-import { useAtomValue, useAtom } from 'jotai'
+import { useAtom, useAtomValue } from 'jotai'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface CompiledContractsProps {

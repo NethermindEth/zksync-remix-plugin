@@ -29,7 +29,10 @@ const Plugin: React.FC = () => {
   const isCompiling = useAtomValue(isCompilingAtom)
 
   // Deployment Context state variables
-  const { isDeploying, deployStatus } = useAtomValue(deploymentAtom)
+  const {
+    isDeploying,
+    deployStatus
+  } = useAtomValue(deploymentAtom)
 
   // Interaction state variables
   const [interactionStatus, setInteractionStatus] = useState<'loading' | 'success' | 'error' | ''>('')
@@ -67,20 +70,20 @@ const Plugin: React.FC = () => {
     // add a button for selecting the solidity version
     <>
       <div className='plugin-wrapper'>
-                    <div className='plugin-main-wrapper'>
-                    <CompilerVersion />
-                      <Accordian
-                        type='single'
-                        value={currentAccordian}
-                        defaultValue={'compile'}
+        <div className='plugin-main-wrapper'>
+          <CompilerVersion />
+          <Accordian
+            type='single'
+            value={currentAccordian}
+            defaultValue={'compile'}
 
-                        >
-                          <AccordianItem value='compile'>
-                            <AccordionTrigger
-                              onClick={() => {
-                                handleTabView('compile')
-                              }}
-                            >
+          >
+            <AccordianItem value='compile'>
+              <AccordionTrigger
+                onClick={() => {
+                  handleTabView('compile')
+                }}
+              >
                                 <span
                                   className='d-flex align-items-center'
                                   style={{ gap: '0.5rem' }}
@@ -96,17 +99,17 @@ const Plugin: React.FC = () => {
                                     }
                                   />
                                 </span>
-                            </AccordionTrigger>
-                            <AccordionContent>
-                              <Compilation setAccordian={setCurrentAccordian} />
-                            </AccordionContent>
-                          </AccordianItem>
-                        <AccordianItem value='deploy'>
-                            <AccordionTrigger
-                              onClick={() => {
-                                handleTabView('deploy')
-                              }}
-                            >
+              </AccordionTrigger>
+              <AccordionContent>
+                <Compilation setAccordian={setCurrentAccordian} />
+              </AccordionContent>
+            </AccordianItem>
+            <AccordianItem value='deploy'>
+              <AccordionTrigger
+                onClick={() => {
+                  handleTabView('deploy')
+                }}
+              >
                                 <span
                                   className='d-flex align-items-center'
                                   style={{ gap: '0.5rem' }}
@@ -124,17 +127,17 @@ const Plugin: React.FC = () => {
                                     }
                                   />
                                 </span>
-                            </AccordionTrigger>
-                            <AccordionContent>
-                              <Deployment setActiveTab={setCurrentAccordian} />
-                            </AccordionContent>
-                          </AccordianItem>
-                          <AccordianItem value='interaction'>
-                            <AccordionTrigger
-                              onClick={() => {
-                                handleTabView('interaction')
-                              }}
-                            >
+              </AccordionTrigger>
+              <AccordionContent>
+                <Deployment setActiveTab={setCurrentAccordian} />
+              </AccordionContent>
+            </AccordianItem>
+            <AccordianItem value='interaction'>
+              <AccordionTrigger
+                onClick={() => {
+                  handleTabView('interaction')
+                }}
+              >
                                 <span
                                   className='d-flex align-items-center'
                                   style={{ gap: '0.5rem' }}
@@ -144,19 +147,19 @@ const Plugin: React.FC = () => {
                                     value={interactionStatus}
                                   />
                                 </span>
-                            </AccordionTrigger>
-                            <AccordionContent>
-                              <Interaction setInteractionStatus={setInteractionStatus} />
-                            </AccordionContent>
-                          </AccordianItem>
+              </AccordionTrigger>
+              <AccordionContent>
+                <Interaction setInteractionStatus={setInteractionStatus} />
+              </AccordionContent>
+            </AccordianItem>
 
-                        {/*  Transactions start */}
-                        <AccordianItem value='transactions'>
-                          <AccordionTrigger
-                            onClick={() => {
-                              handleTabView('transactions')
-                            }}
-                          >
+            {/*  Transactions start */}
+            <AccordianItem value='transactions'>
+              <AccordionTrigger
+                onClick={() => {
+                  handleTabView('transactions')
+                }}
+              >
                               <span
                                 className='d-flex align-items-center'
                                 style={{ gap: '0.5rem' }}
@@ -169,19 +172,19 @@ const Plugin: React.FC = () => {
                                   controlHook={explorerHook}
                                 />
                               </span>
-                          </AccordionTrigger>
-                          <AccordionContent>
-                            <TransactionHistory controlHook={explorerHook} />
-                          </AccordionContent>
-                        </AccordianItem>
-                      </Accordian>
-                      <div className='mt-5'>
-                        <BackgroundNotices />
-                      </div>
-                    </div>
-                  <div>
-                    <Environment />
-                    </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <TransactionHistory controlHook={explorerHook} />
+              </AccordionContent>
+            </AccordianItem>
+          </Accordian>
+          <div className='mt-5'>
+            <BackgroundNotices />
+          </div>
+        </div>
+        <div>
+          <Environment />
+        </div>
 
       </div>
     </>

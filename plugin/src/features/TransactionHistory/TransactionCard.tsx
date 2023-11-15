@@ -43,7 +43,8 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
     account,
     txId,
     env
-    , chain
+    ,
+    chain
   } = transaction
   const [address, setAddress] = useState<string | undefined>(undefined)
 
@@ -93,7 +94,8 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
       </div>
       <div className='txn-network'>
         {(env === 'localDevnet' || env === 'remoteDevnet') ? <p>Network</p> : <p>Chain</p>}
-        <NetworkTag type={(env === 'localDevnet' || env === 'remoteDevnet') ? env : (chain?.name === undefined ? '' : chain?.name)} />
+        <NetworkTag
+          type={(env === 'localDevnet' || env === 'remoteDevnet') ? env : (chain?.name === undefined ? '' : chain?.name)} />
       </div>
     </div>
   )

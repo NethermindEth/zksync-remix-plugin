@@ -1,9 +1,7 @@
 // A component that reads the compiled contracts from the context and displays them in a select
 
 import React, { useEffect, useState } from 'react'
-import {
-  generateInputName
-} from '../../utils/utils'
+import { generateInputName } from '../../utils/utils'
 import { type AbiElement, type Input } from '../../types/contracts'
 import InputField from '../InputField'
 import { useAtomValue } from 'jotai'
@@ -41,7 +39,7 @@ const ConstructorInput: React.FC<ConstructorContractsProps> = ({
                             const newInputs = [...inputs]
                             newInputs[index] = newValue
                             setInputs(newInputs)
-                          }} key={index}/>
+                          }} key={index} />
           )
         }
         )

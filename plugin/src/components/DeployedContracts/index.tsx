@@ -1,13 +1,10 @@
 // A component that reads the compiled contracts from the context and displays them in a select
 
 import React from 'react'
-import {
-  getContractNameFromFullName,
-  getSelectedContractIndex
-} from '../../utils/utils'
+import { getContractNameFromFullName, getSelectedContractIndex } from '../../utils/utils'
 import FunctionalInput from '../FunctionalInput'
 import './deployedContracts.css'
-import { useAtomValue, useAtom } from 'jotai'
+import { useAtom, useAtomValue } from 'jotai'
 import { deployedContractsAtom, deployedSelectedContractAtom } from '../../atoms/deployedContracts'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface

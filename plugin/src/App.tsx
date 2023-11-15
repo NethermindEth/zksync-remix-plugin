@@ -8,15 +8,15 @@ import { pluginLoaded } from './atoms/remixClient'
 
 const App: React.FC = () => {
   return (
-    <div className="shell">
+    <div className='shell bg-primary'>
       {useAtomValue(pluginLoaded)
         ? (
           <Plugin />
           )
         : (
-        <FullScreenOverlay>
-          <Loader />
-        </FullScreenOverlay>
+          <FullScreenOverlay>
+            <Loader />
+          </FullScreenOverlay>
           )}
     </div>
   )

@@ -175,7 +175,7 @@ const DevnetAccountSelector: React.FC = () => {
     setAccountIdx(0)
   }, [env])
   return (
-    <>
+    <div className='mt-2'>
       <label className=''>Devnet account selection</label>
       <div className='devnet-account-selector-wrapper'>
         <select
@@ -235,7 +235,7 @@ const DevnetAccountSelector: React.FC = () => {
           <MdRefresh />
         </button>
       </div>
-    </>
+    </div>
   )
 }
 

@@ -13,10 +13,13 @@ import { asyncFetch } from '../../utils/async_fetch'
 import {
   activeTomlPathAtom,
   compilationAtom,
-  currentFilenameAtom, hashDirAtom,
-  isCompilingAtom, isValidSolidityAtom,
+  currentFilenameAtom,
+  hashDirAtom,
+  isCompilingAtom,
+  isValidSolidityAtom,
   noFileSelectedAtom,
-  statusAtom, tomlPathsAtom
+  statusAtom,
+  tomlPathsAtom
 } from '../../atoms/compilation'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import { solidityVersionAtom } from '../../atoms/version'
@@ -520,7 +523,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           </div>
         )}
         <button
-          className='btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-1 px-0'
+          className='btn btn-primary w-100 text-break remixui_disabled mb-1 mt-1 px-0'
           style={{
             cursor: `${
               !validation || !currentFilename ? 'not-allowed' : 'pointer'

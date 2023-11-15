@@ -16,7 +16,15 @@ const tomlPathsAtom = atom<string[]>([])
 
 const activeTomlPathAtom = atom<string>('')
 
-type CompilationKeys = 'status' | 'currentFilename' | 'isCompiling' | 'isValidSolidity' | 'noFileSelected' | 'hashDir' | 'tomlPaths' | 'activeTomlPath'
+type CompilationKeys =
+  'status'
+  | 'currentFilename'
+  | 'isCompiling'
+  | 'isValidSolidity'
+  | 'noFileSelected'
+  | 'hashDir'
+  | 'tomlPaths'
+  | 'activeTomlPath'
 
 interface SetCompilationValue {
   key: CompilationKeys
@@ -38,16 +46,44 @@ const compilationAtom = atom(
   },
   (_get, set, newValue: SetCompilationValue) => {
     switch (newValue?.key) {
-      case 'status': typeof newValue?.value === 'string' && set(statusAtom, newValue?.value); break
-      case 'currentFilename': typeof newValue?.value === 'string' && set(currentFilenameAtom, newValue?.value); break
-      case 'isCompiling': typeof newValue?.value === 'boolean' && set(isCompilingAtom, newValue?.value); break
-      case 'isValidSolidity': typeof newValue?.value === 'boolean' && set(isValidSolidityAtom, newValue?.value); break
-      case 'noFileSelected': typeof newValue?.value === 'boolean' && set(noFileSelectedAtom, newValue?.value); break
-      case 'hashDir': typeof newValue?.value === 'string' && set(hashDirAtom, newValue?.value); break
-      case 'tomlPaths': Array.isArray(newValue?.value) && set(tomlPathsAtom, newValue?.value); break
-      case 'activeTomlPath': typeof newValue?.value === 'string' && set(activeTomlPathAtom, newValue?.value); break
+      case 'status':
+        typeof newValue?.value === 'string' && set(statusAtom, newValue?.value)
+        break
+      case 'currentFilename':
+        typeof newValue?.value === 'string' && set(currentFilenameAtom, newValue?.value)
+        break
+      case 'isCompiling':
+        typeof newValue?.value === 'boolean' && set(isCompilingAtom, newValue?.value)
+        break
+      case 'isValidSolidity':
+        typeof newValue?.value === 'boolean' && set(isValidSolidityAtom, newValue?.value)
+        break
+      case 'noFileSelected':
+        typeof newValue?.value === 'boolean' && set(noFileSelectedAtom, newValue?.value)
+        break
+      case 'hashDir':
+        typeof newValue?.value === 'string' && set(hashDirAtom, newValue?.value)
+        break
+      case 'tomlPaths':
+        Array.isArray(newValue?.value) && set(tomlPathsAtom, newValue?.value)
+        break
+      case 'activeTomlPath':
+        typeof newValue?.value === 'string' && set(activeTomlPathAtom, newValue?.value)
+        break
     }
   }
 )
 
-export { statusAtom, currentFilenameAtom, isCompilingAtom, isValidSolidityAtom, noFileSelectedAtom, hashDirAtom, tomlPathsAtom, activeTomlPathAtom, compilationAtom, type SetCompilationValue, type CompilationKeys }
+export {
+  statusAtom,
+  currentFilenameAtom,
+  isCompilingAtom,
+  isValidSolidityAtom,
+  noFileSelectedAtom,
+  hashDirAtom,
+  tomlPathsAtom,
+  activeTomlPathAtom,
+  compilationAtom,
+  type SetCompilationValue,
+  type CompilationKeys
+}

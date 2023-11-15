@@ -14,7 +14,7 @@ import useRemixClient from '../../hooks/useRemixClient'
 import { accountAtom, providerAtom } from '../../atoms/connection'
 import { envAtom } from '../../atoms/environment'
 import { accountsAtom, networkNameAtom, selectedAccountAtom } from '../../atoms/manualAccount'
-import { useAtomValue, useSetAtom, useAtom } from 'jotai'
+import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import { type EnvType } from '../../types/transaction'
 
 // TODOS: move state parts to contexts

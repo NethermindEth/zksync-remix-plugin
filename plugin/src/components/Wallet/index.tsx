@@ -30,7 +30,7 @@ const Wallet: React.FC = () => {
 
   return (
     <div
-      className="flex"
+      className='flex'
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -38,8 +38,8 @@ const Wallet: React.FC = () => {
         padding: '1rem 0rem'
       }}
     >
-      <div className="wallet-actions">
-      <w3m-button />
+      <div className='wallet-actions'>
+        <w3m-button />
       </div>
     </div>
   )

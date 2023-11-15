@@ -22,10 +22,10 @@ const TransactionHistory: React.FC<IExplorerSelector> = (props) => {
           : (
               transactions.map((transaction, index) => {
                 return <TransactionCard key={transaction.txId} transaction={transaction}
-                                       />
+              />
               })
             )
-            }
+        }
       </div>
     </Container>
   )

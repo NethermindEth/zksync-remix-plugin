@@ -12,7 +12,7 @@ const EnvironmentSelector: React.FC = () => {
     setEnv] = useAtom(envAtom)
   const
     setDevnet =
-   useSetAtom(devnetAtom)
+      useSetAtom(devnetAtom)
   const setProvider = useSetAtom(providerAtom)
 
   async function handleEnvironmentChange (event: any): Promise<void> {
