@@ -14,7 +14,7 @@ import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
 import { InjectedConnector } from 'wagmi/connectors/injected'
 import { EIP6963Connector, walletConnectProvider } from "@web3modal/wagmi";
 
-const projectId = '630093679339d9e6a59508feafbae4ce' // TODO who owns this? make sure nethermind owns this and move to a config file may be ?
+const projectId = import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID // TODO who owns this? make sure nethermind owns this
 
 const { chains, publicClient } = configureChains([zkSyncTestnet, zkSync], [walletConnectProvider({ projectId }), publicProvider()]);
 
