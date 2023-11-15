@@ -9,6 +9,10 @@ import * as zksync from 'zksync-web3'
 import ConstructorInput from '../../components/ConstructorInput'
 import { type DeployedContract } from '../../types/contracts'
 import { type Transaction } from '../../types/transaction'
+import { ConnectionContext } from '../../contexts/ConnectionContext'
+import EnvironmentContext from '../../contexts/EnvironmentContext'
+import { Contract } from 'ethers'
+import { useWalletClient } from 'wagmi'
 import { type Contract } from 'ethers'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import { transactionsAtom } from '../../atoms/transaction'
@@ -22,6 +26,13 @@ interface DeploymentProps {
 }
 
 const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
+  const remixClient = useContext(RemixClientContext)
+  const { transactions, setTransactions } = useContext(TransactionContext)
+  const { contracts, selectedContract, setContracts, setSelectedContract } =
+    useContext(CompiledContractsContext)
+  const { env } = useContext(EnvironmentContext)
+  const { data: walletClient } = useWalletClient()
+  const { account } = useContext(ConnectionContext)
   const { remixClient } = useRemixClient()
   const [transactions, setTransactions] = useAtom(transactionsAtom)
 
@@ -126,12 +137,12 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       setActiveTab('interaction')
 
       const transaction: Transaction = {
+        account: account,
         type: 'deploy',
         txId: txHash,
-        env: 'local',
-        account,
-        provider: null
-      }
+        env: env,
+        chain: walletClient?.chain
+      } as Transaction
 
       setTransactions([transaction, ...transactions])
     } catch (e) {

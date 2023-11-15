@@ -1,4 +1,5 @@
 import React from 'react'
+import React, { useContext, useEffect } from 'react'
 import Container from '../../ui_components/Container'
 import TransactionCard from './TransactionCard'
 import { type IExplorerSelector } from '../../utils/misc'
@@ -19,12 +20,14 @@ const TransactionHistory: React.FC<IExplorerSelector> = (props) => {
           ? (
             <div>No transactions yet</div>
             )
-          : (
+          :
+          (
               transactions.map((transaction, index) => {
                 return <TransactionCard key={transaction.txId} transaction={transaction}
-                                      explorer={props.controlHook.explorer} />
+                                       />
               })
-            )}
+            )
+            }
       </div>
     </Container>
   )

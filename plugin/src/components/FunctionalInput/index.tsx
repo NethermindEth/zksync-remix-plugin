@@ -11,6 +11,8 @@ import { useAtomValue, useAtom } from 'jotai'
 import { deployedSelectedContractAtom } from '../../atoms/deployedContracts'
 import { transactionsAtom } from '../../atoms/transaction'
 import { accountAtom } from '../../atoms/connection'
+import EnvironmentContext from '../../contexts/EnvironmentContext'
+import { useWalletClient } from 'wagmi'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface CompiledContractsProps {
@@ -60,12 +62,12 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
 
       if (element.stateMutability !== 'view') {
         const transaction: Transaction = {
+          account: account,
           type: 'invoke',
           txId: result.hash,
-          env: 'localhost',
-          account,
-          provider: null
-        }
+          env: env,
+          chain: walletClient?.chain
+        } as Transaction
 
         setTransactions([transaction, ...transactions])
       }

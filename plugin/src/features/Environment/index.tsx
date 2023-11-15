@@ -4,7 +4,14 @@ import DevnetAccountSelector from '../../components/DevnetAccountSelector'
 import './styles.css'
 import EnvironmentSelector from '../../components/EnvironmentSelector'
 import Wallet from '../../components/Wallet'
+import ManualAccount from '../../components/ManualAccount'
 import { RxDotFilled } from 'react-icons/rx'
+import EnvironmentContext from '../../contexts/EnvironmentContext'
+import Accordian, {
+  AccordianItem,
+  AccordionContent,
+  AccordionTrigger
+} from '../../ui_components/Accordian'
 import Accordian, { AccordianItem, AccordionContent, AccordionTrigger } from '../../ui_components/Accordian'
 import ManualAccount from '../../components/ManualAccount'
 import { useAtom, useAtomValue } from 'jotai'
