@@ -9,7 +9,6 @@ import TransactionHistory from '../TransactionHistory'
 import CompilerVersion from '../CompilerVersion'
 import StateAction from '../../components/StateAction'
 import BackgroundNotices from '../../components/BackgroundNotices'
-import ExplorerSelector, { useCurrentExplorer } from '../../components/ExplorerSelector'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { isCompilingAtom, statusAtom } from '../../atoms/compilation'
 import { deploymentAtom } from '../../atoms/deployment'
@@ -63,8 +62,6 @@ const Plugin: React.FC = () => {
       setCurrentAccordian(clicked)
     }
   }
-
-  const explorerHook = useCurrentExplorer()
 
   return (
     // add a button for selecting the solidity version
@@ -165,16 +162,10 @@ const Plugin: React.FC = () => {
                                 style={{ gap: '0.5rem' }}
                               >
                                 <p style={{ all: 'unset' }}> Transactions</p>
-                                {/*  Select explorer */}
-                                <ExplorerSelector
-                                  path=''
-                                  isTextVisible={false}
-                                  controlHook={explorerHook}
-                                />
                               </span>
               </AccordionTrigger>
               <AccordionContent>
-                <TransactionHistory controlHook={explorerHook} />
+                <TransactionHistory />
               </AccordionContent>
             </AccordianItem>
           </Accordian>
