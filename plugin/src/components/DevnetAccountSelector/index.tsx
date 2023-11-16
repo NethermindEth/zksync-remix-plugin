@@ -102,7 +102,7 @@ const DevnetAccountSelector: React.FC = () => {
   }, [isDevnetAlive])
 
   const updateAccountBalances = async (): Promise<void> => {
-    const updatedAccounts = await updateBalances(availableDevnetAccounts)
+    const updatedAccounts = await updateBalances(availableDevnetAccounts, devnet.url)
     setAvailableDevnetAccounts(updatedAccounts)
   }
   const refreshDevnetAccounts = async (): Promise<void> => {

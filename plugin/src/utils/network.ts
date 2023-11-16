@@ -3,7 +3,6 @@ import { Wallet } from 'zksync-web3'
 
 const apiUrl: string = import.meta.env.VITE_API_URL ?? 'solidity-compile-remix-test.nethermind.io'
 const devnetUrl = 'http://localhost:8011'
-//  process.env.REACT_APP_DEVNET_URL ?? 'http://localhost:8011'
 const remoteDevnetUrl = process.env.VITE_REMOTE_DEVNET_URL ?? 'https://zksync-devnet.nethermind.dev'
 
 interface Devnet {
@@ -41,7 +40,7 @@ const getAccounts = async (customDevnetUrl: string): Promise<DevnetAccount[]> =>
     const address = wallet.address
 
     try {
-      const initialBalance = await getAccountBalance(address)
+      const initialBalance = await getAccountBalance(address, customDevnetUrl)
 
       const result: DevnetAccount = {
         initial_balance: initialBalance,
@@ -68,11 +67,11 @@ const getAccounts = async (customDevnetUrl: string): Promise<DevnetAccount[]> =>
 
 const updateBalances = async (
   accounts: DevnetAccount[],
-  customDevnetUrl: string = devnetUrl
+  customDevnetUrl: string
 ): Promise<DevnetAccount[]> => {
   const accountPromises: Array<Promise<DevnetAccount>> = accounts.map(async (account: DevnetAccount) => {
     try {
-      const initialBalance = await getAccountBalance(account.address)
+      const initialBalance = await getAccountBalance(account.address, customDevnetUrl)
 
       const result: DevnetAccount = {
         initial_balance: initialBalance,
@@ -99,7 +98,7 @@ const updateBalances = async (
 
 const getAccountBalance = async (
   address: string,
-  customDevnetUrl: string = devnetUrl
+  customDevnetUrl: string
 ): Promise<number> => {
   const response = await fetch(`${customDevnetUrl}`, {
     method: 'POST',
@@ -114,9 +113,7 @@ const getAccountBalance = async (
     })
   })
   const account = await response.json()
-
   const numberHex = account.result
-
   return parseInt(numberHex, 16)
 }
 
