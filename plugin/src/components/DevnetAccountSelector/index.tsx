@@ -1,4 +1,4 @@
-import { getRoundedNumber, getSelectedAccountIndex, getShortenedHash, weiToEth } from '../../utils/utils'
+import { getRoundedNumber, getShortenedHash, weiToEth } from '../../utils/utils'
 import { getAccounts, updateBalances } from '../../utils/network'
 import React, { useEffect, useState } from 'react'
 import { Provider, Wallet } from 'zksync-web3'
@@ -16,6 +16,8 @@ import {
   selectedDevnetAccountAtom
 } from '../../atoms/environment'
 import { transactionsAtom } from '../../atoms/transaction'
+import { BsCheck, BsChevronDown } from 'react-icons/bs'
+import * as D from '../../ui_components/Dropdown'
 
 const DevnetAccountSelector: React.FC = () => {
   const { remixClient } = useRemixClient()
@@ -155,62 +157,75 @@ const DevnetAccountSelector: React.FC = () => {
     setProvider(newProvider)
   }, [devnet, selectedDevnetAccount])
 
-  function handleAccountChange (event: any): void {
-    if (event.target.value === -1) {
+  function handleAccountChange (index: number): void {
+    if (index === -1) {
       return
     }
-    setAccountIdx(event.target.value)
-    setSelectedDevnetAccount(availableDevnetAccounts[event.target.value])
+    setAccountIdx(index)
+    setSelectedDevnetAccount(availableDevnetAccounts[index])
     const newProvider = new Provider(devnet.url)
     if (provider == null) setProvider(newProvider)
     setAccount(
       new Wallet(
-        availableDevnetAccounts[event.target.value].private_key,
+        availableDevnetAccounts[index].private_key,
         provider ?? newProvider
       )
     )
   }
+
+  const [dropdownControl, setDropdownControl] = useState(false)
 
   useEffect(() => {
     setAccountIdx(0)
   }, [env])
   return (
     <div className='mt-2'>
-      <label className=''>Devnet account selection</label>
-      <div className='devnet-account-selector-wrapper'>
-        <select
-          className='custom-select'
-          aria-label='.form-select-sm example'
-          onChange={handleAccountChange}
-          value={accountIdx}
-          defaultValue={getSelectedAccountIndex(
-            availableDevnetAccounts,
-            selectedDevnetAccount
-          )}
-        >
-          {isDevnetAlive && availableDevnetAccounts.length > 0
-            ? availableDevnetAccounts.map((account, index) => {
-              return (
-                <option value={index} key={index}>
-                  {`${getShortenedHash(
-                    account.address ?? '',
-                    6,
-                    4
-                  )}
-                    (${getRoundedNumber(weiToEth(account.initial_balance), 2)} ether)`
-                  }
-                </option>
-              )
-            })
-            : ([
-              <option value={-1} key={-1}>
-                No accounts found
-              </option>
-              ] as JSX.Element[])}
-        </select>
-        <div className='position-relative'>
+      <label className="">Devnet account selection</label>
+      <div className="devnet-account-selector-wrapper">
+        <D.Root open={dropdownControl} onOpenChange={(e) => { setDropdownControl(e) }}>
+          <D.Trigger >
+            <div className='flex flex-row justify-content-space-between align-items-center p-2 br-1 devnet-account-selector-trigger'>
+              <label className='text-light text-sm m-0'>{(availableDevnetAccounts.length !== 0 && (availableDevnetAccounts[accountIdx]?.address) !== undefined)
+                ? getShortenedHash(
+                  availableDevnetAccounts[accountIdx]?.address,
+                  6,
+                  4
+                )
+                : 'No accounts found'}</label>
+              <BsChevronDown style={{
+                transform: dropdownControl ? 'rotate(180deg)' : 'none',
+                transition: 'all 0.3s ease'
+              }} />            </div>
+          </D.Trigger>
+          <D.Portal>
+            <D.Content>
+              {isDevnetAlive && availableDevnetAccounts.length > 0
+                ? availableDevnetAccounts.map((account, index) => {
+                  return (
+                    <D.Item onClick={() => { handleAccountChange(index) }} key={index}>
+                      {accountIdx === index && <BsCheck size={18} />}
+                      {`${getShortenedHash(
+                        account.address ?? '',
+                        6,
+                        4
+                      )} (${getRoundedNumber(
+                        weiToEth(account.initial_balance),
+                        2
+                      )} ether)`}
+                    </D.Item>
+                  )
+                })
+                : ([
+                  <D.Item onClick={() => { handleAccountChange(-1) }} key={-1}>
+                    No accounts found
+                  </D.Item>
+                  ] as JSX.Element[])}
+            </D.Content>
+          </D.Portal>
+        </D.Root>
+        <div className="position-relative">
           <button
-            className='btn'
+            className="btn"
             onClick={() => {
               copy((account as Wallet)?.address ?? '')
               setCopied(true)
@@ -222,14 +237,14 @@ const DevnetAccountSelector: React.FC = () => {
             <MdCopyAll />
           </button>
           {showCopied && (
-            <p className='position-absolute text-copied'>Copied</p>
+            <p className="position-absolute text-copied">Copied</p>
           )}
         </div>
         <button
-          className='btn refresh'
+          className="btn refresh"
           // eslint-disable-next-line @typescript-eslint/no-misused-promises
           onClick={refreshDevnetAccounts}
-          title='Refresh devnet accounts'
+          title="Refresh devnet accounts"
           data-loading={accountRefreshing ? 'loading' : 'loaded'}
         >
           <MdRefresh />

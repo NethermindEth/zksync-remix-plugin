@@ -174,7 +174,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                     <ConstructorInput inputs={inputs} setInputs={setInputs}></ConstructorInput>
 
                     <button
-                      className='btn btn-primary btn-block d-block w-100 text-break mb-1 mt-2 px-0'
+                      className='deploy-btn btn btn-primary w-100 text-break mb-1 mt-2 px-0'
                       onClick={() => {
                         deploy().catch((err) => {
                           console.log(err)

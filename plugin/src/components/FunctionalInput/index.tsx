@@ -111,7 +111,7 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
     <>
       <button onClick={() => {
         callContract().catch(console.error)
-      }} className={`btn btn-primary btn-block d-block w-100 text-break mb-1 mt-2 px-0 ${
+      }} className={`btn btn-primary w-100 text-break mb-1 mt-1 px-0 ${
         element.stateMutability === 'view' ? '' : 'btn-warning'
       }`}>{element.name}</button>
       {
