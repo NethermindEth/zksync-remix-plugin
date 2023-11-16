@@ -18,6 +18,7 @@ import {
 import { transactionsAtom } from '../../atoms/transaction'
 import { BsCheck, BsChevronDown } from 'react-icons/bs'
 import * as D from '../../ui_components/Dropdown'
+import { FaCheck } from 'react-icons/fa'
 
 const DevnetAccountSelector: React.FC = () => {
   const { remixClient } = useRemixClient()
@@ -234,11 +235,8 @@ const DevnetAccountSelector: React.FC = () => {
               }, 1000)
             }}
           >
-            <MdCopyAll />
+            {showCopied ? <FaCheck /> : <MdCopyAll />}
           </button>
-          {showCopied && (
-            <p className="position-absolute text-copied">Copied</p>
-          )}
         </div>
         <button
           className="btn refresh"

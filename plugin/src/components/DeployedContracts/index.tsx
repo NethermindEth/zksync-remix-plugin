@@ -42,7 +42,7 @@ const DeployedContracts: React.FC = () => {
   return (
     <>
       <D.Root open={dropdownControl} onOpenChange={(e) => { setDropdownControl(e) }}>
-        <div className={"flex flex-row"}>
+        <div className={'flex flex-row'}>
           <D.Trigger>
             <div className="w-100 flex flex-row justify-content-space-between align-items-center p-2 br-1 devnet-trigger-wrapper">
               <label className='text-light text-sm m-0'>
