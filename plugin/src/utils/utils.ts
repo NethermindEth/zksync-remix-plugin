@@ -1,5 +1,5 @@
 import { type DevnetAccount } from '../types/accounts'
-import { type AbiElement, type Abi, type Contract, type Input } from '../types/contracts'
+import { type Abi, type AbiElement, type Contract, type Input } from '../types/contracts'
 import { type Network, networkExplorerUrls } from './constants'
 
 const getFileExtension = (filename: string): string =>
@@ -91,11 +91,11 @@ const weiToEth = (wei: number): number => {
 const getExplorerUrl = (explorer: keyof typeof networkExplorerUrls, chain: Network): string => networkExplorerUrls[explorer][chain]
 
 const trimStr = (str?: string, strip?: number): string => {
-  if (!str) {
+  if (str == null) {
     return ''
   }
   const length = str.length
-  return `${str?.slice(0, strip || 6)}...${str?.slice(length - (strip || 6))}`
+  return `${str?.slice(0, strip ?? 6)}...${str?.slice(length - (strip ?? 6))}`
 }
 
 export {

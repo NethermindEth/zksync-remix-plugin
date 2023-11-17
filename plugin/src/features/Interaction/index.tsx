@@ -3,13 +3,13 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable no-case-declarations */
 /* eslint-disable multiline-ternary */
-import React, { useContext, useEffect, useState } from 'react'
+import React from 'react'
 
 import Container from '../../ui_components/Container'
-import { RemixClientContext } from '../../contexts/RemixClientContext'
 import './index.css'
 import DeployedContracts from '../../components/DeployedContracts'
-import { DeployedContractsContext } from '../../contexts/DeployedContractsContext'
+import { deployedContractsAtom, deployedSelectedContractAtom } from '../../atoms/deployedContracts'
+import { useAtomValue } from 'jotai'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface InteractionProps {
@@ -17,9 +17,8 @@ interface InteractionProps {
 }
 
 const Interaction: React.FC<InteractionProps> = (props) => {
-  const { contracts, selectedContract } = useContext(DeployedContractsContext)
-
-  const remixClient = useContext(RemixClientContext)
+  const contracts = useAtomValue(deployedContractsAtom)
+  const selectedContract = useAtomValue(deployedSelectedContractAtom)
 
   return (
     <Container>

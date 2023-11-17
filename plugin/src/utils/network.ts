@@ -1,9 +1,8 @@
 import { type DevnetAccount } from '../types/accounts'
 import { Wallet } from 'zksync-web3'
 
-const apiUrl = import.meta.env.VITE_API_URL ?? 'solidity-compile-remix-test.nethermind.io'
+const apiUrl: string = import.meta.env.VITE_API_URL ?? 'solidity-compile-remix-test.nethermind.io'
 const devnetUrl = 'http://localhost:8011'
-//  process.env.REACT_APP_DEVNET_URL ?? 'http://localhost:8011'
 const remoteDevnetUrl = process.env.VITE_REMOTE_DEVNET_URL ?? 'https://zksync-devnet.nethermind.dev'
 
 interface Devnet {
@@ -22,15 +21,8 @@ const devnets: Devnet[] = [
   }
 ]
 
-interface JsonRpcResponse {
-  jsonrpc: string;
-  id: string;
-  result?: string;
-  error?: { code: number; message: string };
-}
-
 const getAccounts = async (customDevnetUrl: string): Promise<DevnetAccount[]> => {
-  const private_keys = [
+  const privateKeys = [
     '0xac1e735be8536c6534bb4f17f06f6afc73b2b5ba84ac2cfb12f7461b20c0bbe3',
     '0x3eb15da85647edd9a1159a4a13b9e7c56877c4eb33f614546d4db06a51868b1c',
     '0x28a574ab2de8a00364d5dd4b07c4f2f574ef7fcc2a86a197f65abaec836d1959',
@@ -43,61 +35,70 @@ const getAccounts = async (customDevnetUrl: string): Promise<DevnetAccount[]> =>
     '0x850683b40d4a740aa6e745f889a6fdc8327be76e122f5aba645a5b02d0248db8'
   ]
 
-  const accountPromises: Promise<DevnetAccount>[] = private_keys.map(async (private_key: string) => {
-    const wallet = new Wallet(private_key);
-    const address = wallet.address;
+  const accountPromises: Array<Promise<DevnetAccount>> = privateKeys.map(async (privateKey: string) => {
+    const wallet = new Wallet(privateKey)
+    const address = wallet.address
 
     try {
-      const initial_balance = await getAccountBalance(address) || '0';
+      const initialBalance = await getAccountBalance(address, customDevnetUrl)
 
-      return {
-        initial_balance,
+      const result: DevnetAccount = {
+        initial_balance: initialBalance,
         address,
-        private_key
-      } as DevnetAccount;
+        private_key: privateKey
+      }
+
+      return result
     } catch (error) {
-      console.error(`Failed to get balance for address ${address}: `, error);
-      return {
+      console.error(`Failed to get balance for address ${address}: `, error)
+
+      const result: DevnetAccount = {
         initial_balance: 0,
         address,
-        private_key
-      } as DevnetAccount;
+        private_key: privateKey
+      }
+
+      return result
     }
-  });
+  })
 
-  return Promise.all(accountPromises);
-};
-
+  return await Promise.all(accountPromises)
+}
 
 const updateBalances = async (
   accounts: DevnetAccount[],
-  customDevnetUrl: string = devnetUrl
+  customDevnetUrl: string
 ): Promise<DevnetAccount[]> => {
-  const accountPromises: Promise<DevnetAccount>[] = accounts.map(async (account: DevnetAccount) => {
+  const accountPromises: Array<Promise<DevnetAccount>> = accounts.map(async (account: DevnetAccount) => {
     try {
-      const initial_balance = await getAccountBalance(account.address) || 0;
+      const initialBalance = await getAccountBalance(account.address, customDevnetUrl)
 
-      return {
-        initial_balance,
+      const result: DevnetAccount = {
+        initial_balance: initialBalance,
         address: account.address,
         private_key: account.private_key
-      } as DevnetAccount;
+      }
+
+      return result
     } catch (error) {
-      console.error(`Failed to get balance for address ${account.address}: `, error);
-      return {
+      console.error(`Failed to get balance for address ${account.address}: `, error)
+
+      const result: DevnetAccount = {
         initial_balance: 0,
         address: account.address,
         private_key: account.private_key
-      } as DevnetAccount;
-    }
-  });
+      }
 
-  return Promise.all(accountPromises);
-};
+      return result
+    }
+  })
+
+  return await Promise.all(accountPromises)
+}
 
 const getAccountBalance = async (
   address: string,
-  customDevnetUrl: string = devnetUrl
+  customDevnetUrl: string
 ): Promise<number> => {
   const response = await fetch(`${customDevnetUrl}`, {
     method: 'POST',
@@ -112,12 +113,8 @@ const getAccountBalance = async (
     })
   })
   const account = await response.json()
-
-  const number_hex = account.result
-
-  const number = parseInt(number_hex, 16)
-
-  return number
+  const numberHex = account.result
+  return parseInt(numberHex, 16)
 }
 
 const getDevnetUrl = (network: string): string => {

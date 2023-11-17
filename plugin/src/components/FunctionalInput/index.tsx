@@ -1,18 +1,18 @@
 // A component that reads the compiled contracts from the context and displays them in a select
 
-import React, { useContext, useEffect, useState } from 'react'
-import {
-  generateInputName
-} from '../../utils/utils'
+import React, { useEffect, useState } from 'react'
+import { generateInputName } from '../../utils/utils'
 import { type AbiElement, type Input } from '../../types/contracts'
-import { RemixClientContext } from '../../contexts/RemixClientContext'
 import InputField from '../InputField'
-import { DeployedContractsContext } from '../../contexts/DeployedContractsContext'
 import { Contract } from 'ethers'
-import { Provider, Wallet } from 'zksync-web3'
-import TransactionContext from '../../contexts/TransactionContext'
 import { type Transaction } from '../../types/transaction'
-import { ConnectionContext } from '../../contexts/ConnectionContext'
+import useRemixClient from '../../hooks/useRemixClient'
+import { useAtom, useAtomValue } from 'jotai'
+import { deployedSelectedContractAtom } from '../../atoms/deployedContracts'
+import { transactionsAtom } from '../../atoms/transaction'
+import { accountAtom, providerAtom } from '../../atoms/connection'
+import { useWalletClient } from 'wagmi'
+import { envAtom } from '../../atoms/environment'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface CompiledContractsProps {
@@ -20,13 +20,19 @@ interface CompiledContractsProps {
 }
 
 const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledContractsProps) => {
-  const [inputs, setInputs] = useState<string[]>([])
-  const { selectedContract } = useContext(DeployedContractsContext)
-  const remixClient = useContext(RemixClientContext)
-  const { transactions, setTransactions } = useContext(TransactionContext)
-  const { account } = useContext(ConnectionContext)
+  const { remixClient } = useRemixClient()
+  const { data: walletClient } = useWalletClient()
 
-  const callContract = async () => {
+  const selectedContract = useAtomValue(deployedSelectedContractAtom)
+  const [transactions, setTransactions] = useAtom(transactionsAtom)
+  const account = useAtomValue(accountAtom)
+
+  const env = useAtomValue(envAtom)
+  const provider = useAtomValue(providerAtom)
+
+  const [inputs, setInputs] = useState<string[]>([])
+
+  const callContract = async (): Promise<void> => {
     if (selectedContract == null) {
       await remixClient.terminal.log('No contract selected' as any)
       return
@@ -59,11 +65,14 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
       })
 
       if (element.stateMutability !== 'view') {
-        const transaction = {
+        const transaction: Transaction = {
+          account,
           type: 'invoke',
           txId: result.hash,
-          env: 'localhost'
-        } as Transaction
+          env,
+          chain: walletClient?.chain,
+          provider
+        }
 
         setTransactions([transaction, ...transactions])
       }
@@ -89,7 +98,7 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
       await remixClient.call(
         'notification' as any,
         'toast',
-        `Error: ${(e as any).code}`
+        `Error: ${String(e)}`
       )
     }
   }
@@ -101,20 +110,19 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
   return (
     <>
       <button onClick={() => {
-        callContract()
-      }} className={`btn btn-primary btn-block d-block w-100 text-break mb-1 mt-2 px-0 ${
+        callContract().catch(console.error)
+      }} className={`btn btn-primary w-100 text-break mb-1 mt-1 px-0 ${
         element.stateMutability === 'view' ? '' : 'btn-warning'
-      }`} >{element.name}</button>
+      }`}>{element.name}</button>
       {
         element.inputs.map((input: Input, index: number) => {
           return (
-            <div>
-              <InputField placeholder={generateInputName(input)} index={index} value={inputs[index]} onChange={(index, newValue) => {
-                const newInputs = [...inputs]
-                newInputs[index] = newValue
-                setInputs(newInputs)
-              }}/>
-            </div>
+            <InputField key={index} placeholder={generateInputName(input)} index={index} value={inputs[index]}
+                        onChange={(index, newValue) => {
+                          const newInputs = [...inputs]
+                          newInputs[index] = newValue
+                          setInputs(newInputs)
+                        }} />
           )
         })
       }

@@ -3,7 +3,7 @@ import './loader.css'
 
 const Loader: React.FC = () => {
   return (
-    <div className="loader center">
+    <div className='loader center'>
       <span></span>
     </div>
   )

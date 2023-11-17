@@ -9,19 +9,28 @@ interface InputFieldProps {
   placeholder?: string
 }
 
-const InputField: React.FC<InputFieldProps> = ({ name, index, value, onChange, placeholder }) => {
+const InputField: React.FC<InputFieldProps> = ({
+  name,
+  index,
+  value,
+  onChange,
+  placeholder
+}) => {
   return (
-		<div className="input-field">
-			<label htmlFor={`input-${index}`} className="input-label">{name ? name + ':' : ''}</label>
-			<input
-				type="text"
-				id={`input-${index}`}
-				value={value}
-				onChange={(e) => { onChange(index, e.target.value) }}
-				className="input-text"
-				placeholder={placeholder || ''}
-			/>
-		</div>
+    <div className='input-field'>
+      <label htmlFor={`input-${index}`}
+             className='input-label'>{name !== '' && name !== undefined ? name + ':' : ''}</label>
+      <input
+        type='text'
+        id={`input-${index}`}
+        value={value}
+        onChange={(e) => {
+          onChange(index, e.target.value)
+        }}
+        className='input-text'
+        placeholder={placeholder ?? ''}
+      />
+    </div>
   )
 }
 

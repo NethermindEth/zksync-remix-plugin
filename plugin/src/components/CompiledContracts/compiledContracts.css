@@ -1,0 +1,15 @@
+.compiled-contracts-wrapper {
+    width: 100%;
+    border: 1px solid var(--primary-color-500);
+}
+
+.compiled-contracts-wrapper label {
+    color: white;
+
+    margin-bottom: 3px;
+
+    font-size: 0.8rem;
+
+    padding: 5px;
+}
+

@@ -1,57 +1,89 @@
-import React, { useContext } from 'react'
+import React, { useState } from 'react'
 import { devnets } from '../../utils/network'
-import { ConnectionContext } from '../../contexts/ConnectionContext'
 
 import './styles.css'
-import EnvironmentContext from '../../contexts/EnvironmentContext'
+import { useAtom, useSetAtom } from 'jotai'
+import { devnetAtom, envAtom } from '../../atoms/environment'
+import { providerAtom } from '../../atoms/connection'
+import * as D from '../../ui_components/Dropdown'
+import { BsChevronDown } from 'react-icons/bs'
 
 const EnvironmentSelector: React.FC = () => {
-  const { setProvider } = useContext(ConnectionContext)
-  const { env, setEnv, setDevnet } = useContext(EnvironmentContext)
+  const [
+    env,
+    setEnv] = useAtom(envAtom)
+  const
+    setDevnet =
+      useSetAtom(devnetAtom)
+  const setProvider = useSetAtom(providerAtom)
 
-  async function handleEnvironmentChange (event: any): Promise<void> {
-    const value = parseInt(event.target.value)
-    if (value > 0) {
+  const handleEnvironmentChange = (ipValue: string): void => {
+    const value = parseInt(ipValue)
+    if (!isNaN(value) && value > 0) {
       setDevnet(devnets[value - 1])
-      if (value === 2) setEnv('remoteDevnet')
-      else setEnv('localDevnet')
+      if (value === 2) {
+        setEnv('remoteDevnet')
+      } else {
+        setEnv('localDevnet')
+      }
       setProvider(null)
       return
     }
     setEnv('wallet')
   }
 
-  const getDefualtIndex = (): number => {
-    if (env === 'wallet') return 0
-    if (env === 'localDevnet') return 1
-    return 2
+  const getActiveEnv = (lEnv: typeof env): string => {
+    switch (lEnv) {
+      case 'manual':
+        return 'Manual'
+      case 'localDevnet':
+        return 'Local Devnet'
+      case 'remoteDevnet':
+        return 'Remote Devnet'
+      case 'wallet':
+        return 'Wallet'
+    }
   }
+
+  const [dropdownControl, setDropdownControl] = useState(false)
 
   return (
     <div className="environment-selector-wrapper">
-      <select
-        className="custom-select"
-        aria-label=".form-select-sm example"
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        onChange={handleEnvironmentChange}
-        defaultValue={getDefualtIndex()}
-      >
-        {devnets.reduce<JSX.Element[]>(
-          (acc, devnet, index) => {
-            acc.push(
-              <option value={index + 1} key={index + 1}>
-                {devnet.name}
-              </option>
-            )
-            return acc
-          },
-          [
-            <option value={0} key={0}>
-              Wallet Selection
-            </option>
-          ]
-        )}
-      </select>
+      <D.Root open={dropdownControl} onOpenChange={(e) => { setDropdownControl(e) }}>
+        <D.Trigger>
+          <div className="flex flex-row justify-content-space-between align-items-center p-2 br-1 devnet-trigger-wrapper">
+            <label className='text-light text-sm m-0'>{getActiveEnv(env)}</label>
+            <BsChevronDown style={{
+              transform: dropdownControl ? 'rotate(180deg)' : 'none',
+              transition: 'all 0.3s ease'
+            }} />
+          </div>
+        </D.Trigger>
+        <D.Portal>
+          <D.Content>
+            <D.Item
+              key={'0wallet'}
+              onClick={() => {
+                handleEnvironmentChange('0')
+              }}
+            >
+              Wallet
+            </D.Item>
+            {devnets.map((devnet, i) => {
+              return (
+                <D.Item
+                  key={i.toString() + devnet?.name}
+                  onClick={() => {
+                    handleEnvironmentChange((i + 1).toString())
+                  }}
+                >
+                  {devnet?.name}
+                </D.Item>
+              )
+            })}
+          </D.Content>
+        </D.Portal>
+      </D.Root>
     </div>
   )
 }

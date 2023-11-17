@@ -1,24 +1,21 @@
 import * as D from '../../ui_components/Dropdown'
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { apiUrl } from '../../utils/network'
-import { RemixClientContext } from '../../contexts/RemixClientContext'
 import Nethermind from '../../components/NM'
 import './style.css'
 import { BsChevronDown } from 'react-icons/bs'
-import VersionContext from '../../contexts/VersionContext'
+import { useAtom } from 'jotai'
+import { solidityVersionAtom, versionsAtom } from '../../atoms/version'
+import useRemixClient from '../../hooks/useRemixClient'
 
 const SolidityVersion: React.FC = () => {
-  const remixClient = useContext(RemixClientContext)
+  const { remixClient } = useRemixClient()
   const pluginVersion = process.env.REACT_APP_VERSION !== undefined ? `v${process.env.REACT_APP_VERSION}` : 'v0.2.0'
 
-  const {
-    solidityVersion,
-    setSolidityVersion,
-    versions,
-    setVersions
-  } = useContext(VersionContext);
+  const [solidityVersion, setSolidityVersion] = useAtom(solidityVersionAtom)
+  const [versions, setVersions] = useAtom(versionsAtom)
 
-  const fetchVersions = async () => {
+  const fetchVersions = async (): Promise<void> => {
     try {
       if (apiUrl !== undefined) {
         await remixClient.call(
@@ -62,11 +59,11 @@ const SolidityVersion: React.FC = () => {
   }, [remixClient])
 
   return (
-    <div className="version-wrapper">
+    <div className='version-wrapper'>
       <div>
         <D.Root>
           <D.Trigger>
-            <label className="solidity-version-legend">
+            <label className='solidity-version-legend'>
               Using zksolc-{solidityVersion} <BsChevronDown />
             </label>
           </D.Trigger>
@@ -88,12 +85,12 @@ const SolidityVersion: React.FC = () => {
           </D.Portal>
         </D.Root>
       </div>
-      <div className="version-right">
-        <label className="nethermind-powered">
+      <div className='version-right'>
+        <label className='nethermind-powered'>
           <span style={{ marginRight: '4px' }}>Powered by </span>
-          <Nethermind size="xs" />
+          <Nethermind size='xs' />
         </label>
-        <label className="plugin-version">
+        <label className='plugin-version'>
           Plugin version: {pluginVersion}
         </label>
       </div>

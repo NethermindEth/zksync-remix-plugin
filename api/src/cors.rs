@@ -4,7 +4,6 @@ use rocket::{Request, Response};
 use std::env;
 
 #[derive(Default)]
-
 pub struct CORS;
 
 #[rocket::async_trait]
