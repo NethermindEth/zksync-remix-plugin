@@ -2,14 +2,17 @@ name: (prod) Manual API deploy prod
 on:
   workflow_dispatch:
 
-env:
-  NODE_VERSION: '20.x'
-  BUCKET_NAME: 'zksync-remix-plugin-web'
-  PROD_BUCKET_NAME: 'zksync-remix-plugin-prod-web'
-
 permissions:
   id-token: write
   contents: read
+
+env:
+  REGISTRY: "599564732950.dkr.ecr.us-east-2.amazonaws.com"
+  REPOSITORY: "zksync-remix-plugin"
+  DEV_CLUSTER: "zksync-remix-plugin-ecs-cluster"
+  DEV_SERVICE_NAME: "rocket-development-svc"
+  PROD_CLUSTER: "zksync-remix-plugin-production-ecs-cluster"
+  PROD_SERVICE_NAME: "rocket-production-svc"
 jobs:
   Build:
     runs-on: ubuntu-latest
@@ -50,44 +53,34 @@ jobs:
           # If enabled, diagnostic information will be added to the action output.
           debug: false
 
-      - name: Inject version
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: us-east-2
+          role-to-assume: arn:aws:iam::599564732950:role/Aws-GH-Action-Assume-Role-ZKSync
+          role-session-name: GHZKSync
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          mask-password: 'true'
+
+      - name: Build, tag, and push docker image to Amazon ECR
         env:
-          SED_COMMAND: 's/\"version\"\:[ ]\"0.1.0\"/\"version\": \"0.3.0\"/g'
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: ${{ env.REPOSITORY }}
+          IMAGE_TAG: ${{ steps.determine-version.outputs.version }} # ${{ github.run_number }}
+
         run: |
-          sed -i 's/\"version\"\:[ ]\"0.1.0\"/\"version\": \"${{ steps.determine-version.outputs.version }}\"/g' ./plugin/package.json
-
-      - name: Setup Node ${{ env.NODE_VERSION }} Environment
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Install dependencies
-        run: npm install -g pnpm
-
-      - name: pnpm install
-        working-directory: ./plugin
-        run: pnpm install
-
-      - name: pnpm build
-        working-directory: ./plugin
-        run: pnpm run build
-
-      - name: 'Upload Artifact'
-        uses: actions/upload-artifact@v3
-        with:
-          name: react-github-actions-build
-          path: ./plugin/build/**/*
+          docker build -t $REGISTRY/$REPOSITORY:apiserver-$IMAGE_TAG -f ./DockerfileRocket .
+          docker push $REGISTRY/$REPOSITORY:apiserver-$IMAGE_TAG
+    outputs:
+      image-version: ${{ steps.determine-version.outputs.version }}
   Deploy_Prod:
     runs-on: ubuntu-latest
     needs: Build
     steps:
-
-      - name: Get artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: react-github-actions-build
-          path: artifact
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -95,6 +88,28 @@ jobs:
           role-to-assume: arn:aws:iam::228016254426:role/Aws-GH-Action-Assume-Role-ZKSync-Production
           role-session-name: GHZKSync
 
-      - name: Deploy to S3
-        run: aws s3 sync . s3://${{ env.PROD_BUCKET_NAME }} --acl public-read
-        working-directory: artifact
+      - name: Download task definition
+        run: |
+          aws ecs describe-task-definition --task-definition zksync-remix-production-rocket --query taskDefinition > task-definition.json
+
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: "rocket"
+          image: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:apiserver-${{ needs.Build.outputs.image-version }}      #${{ github.run_number }}
+          # inject the expected React package URL for CORS logic
+          environment-variables: |
+            RUST_LOG=INFO
+            VITE_URL=https://cairo-remix-dev.nethermind.io
+            PROMTAIL_USERNAME=${{secrets.PROMTAIL_USERNAME}}
+            PROMTAIL_PASSWORD=${{secrets.PROMTAIL_PASSWORD}}
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.PROD_SERVICE_NAME }}
+          cluster: ${{ env.PROD_CLUSTER }}
+          wait-for-service-stability: true
