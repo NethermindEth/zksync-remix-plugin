@@ -13,6 +13,10 @@ env:
   DEV_SERVICE_NAME: "rocket-development-svc"
   PROD_CLUSTER: "zksync-remix-plugin-production-ecs-cluster"
   PROD_SERVICE_NAME: "rocket-production-svc"
+  API_SERVICE_URL: "https://zksync-remix-api.nethermind.io"
+  ZKSYNC_DEVNET_URL: "https://zksync-devnet.nethermind.dev"
+  WALLETCONNECT_PROJECT_ID: '${{secrets.WALLECTCONNECT_PROJECT_ID_PROD}}'
+
 jobs:
   Build:
     runs-on: ubuntu-latest
@@ -102,7 +106,7 @@ jobs:
           # inject the expected React package URL for CORS logic
           environment-variables: |
             RUST_LOG=INFO
-            VITE_URL=https://zksync-plugin.nethermind.dev/
+            VITE_URL=https://zksync-plugin.nethermind.io/
             PROMTAIL_USERNAME=${{secrets.PROMTAIL_USERNAME}}
             PROMTAIL_PASSWORD=${{secrets.PROMTAIL_PASSWORD}}
 
