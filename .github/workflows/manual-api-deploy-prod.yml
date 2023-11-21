@@ -13,7 +13,7 @@ env:
   DEV_SERVICE_NAME: "rocket-development-svc"
   PROD_CLUSTER: "zksync-remix-plugin-production-ecs-cluster"
   PROD_SERVICE_NAME: "rocket-production-svc"
-  API_SERVICE_URL: "https://zksync-remix-api.nethermind.io"
+  API_SERVICE_URL: "https://zksync-plugin-api.nethermind.io"
   ZKSYNC_DEVNET_URL: "https://zksync-devnet.nethermind.dev"
   WALLETCONNECT_PROJECT_ID: '${{secrets.WALLECTCONNECT_PROJECT_ID_PROD}}'
 
