@@ -1,234 +1,160 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import React, { useEffect, useState } from 'react'
-import { networks as networkConstants } from '../../utils/constants'
-import { ethers } from 'ethers'
-
-import storage from '../../utils/storage'
+import React, { useEffect, useRef, useState } from 'react'
 
 import './index.css'
-import { BiCopy, BiPlus } from 'react-icons/bi'
-import { trimStr } from '../../utils/utils'
-import { MdCheckCircleOutline, MdRefresh } from 'react-icons/md'
-import copy from 'copy-to-clipboard'
-import useRemixClient from '../../hooks/useRemixClient'
-import { accountAtom, providerAtom } from '../../atoms/connection'
 import { envAtom } from '../../atoms/environment'
-import { accountsAtom, networkNameAtom, selectedAccountAtom } from '../../atoms/manualAccount'
-import { useAtom, useAtomValue, useSetAtom } from 'jotai'
+import { accountsAtom, selectedAccountAtom } from '../../atoms/manualAccount'
+import { useAtom, useSetAtom } from 'jotai'
 import { type EnvType } from '../../types/transaction'
+import * as D from '../../ui_components/Dropdown'
+import { BsChevronDown } from 'react-icons/bs'
+import { CiSquareCheck, CiSquarePlus } from 'react-icons/ci'
+import { Provider, Wallet } from 'zksync-web3'
+import { getShortenedHash } from '../../utils/utils'
+import copy from 'copy-to-clipboard'
+import { FaCheck } from 'react-icons/fa'
+import { MdCopyAll } from 'react-icons/md'
+import { formatEther } from 'ethers/lib/utils'
 
 // TODOS: move state parts to contexts
 // Account address selection
 // network selection drop down
-const ManualAccount: React.FC<{
+const ManualAccountComp: React.FC<{
   prevEnv: EnvType
 }> = ({ prevEnv }) => {
-  const { remixClient } = useRemixClient()
-
-  const account = useAtomValue(accountAtom)
-  const provider = useAtomValue(providerAtom)
-
   const setEnv = useSetAtom(envAtom)
 
+  const [dropdownControl, setDropdownControl] = useState(false)
+
+  const [selectedAccount, setSelectedAccount] = useAtom(selectedAccountAtom)
+  const [isClicked, setIsClicked] = useState(false)
   const [accounts, setAccounts] = useAtom(accountsAtom)
-  const selectedAccount = useAtomValue(selectedAccountAtom)
-  const [networkName, setNetworkName] = useAtom(networkNameAtom)
+  const balanceUpdateIntervalRef = useRef<null | NodeJS.Timeout>(null)
+  const [copied, setCopied] = React.useState(false)
 
-  const [accountDeploying] = useState(false)
+  const copyAddress = (): void => {
+    copy(selectedAccount?.address ?? '')
+    setCopied(true)
+    setTimeout(() => {
+      setCopied(false)
+    }, 1000)
+  }
 
-  useEffect(() => {
-    setNetworkName(networkConstants[0].value)
-  }, [setNetworkName])
+  const addAccount = (): void => {
+    setIsClicked(true)
+    setTimeout(() => {
+      setIsClicked(false)
+    }, 1000)
 
-  useEffect(() => {
-    const manualAccounts = storage.get('manualAccounts')
-    if (
-      manualAccounts != null &&
-      accounts.length === 0 &&
-      selectedAccount == null
-    ) {
-      const parsedAccounts = JSON.parse(manualAccounts)
-      setAccounts(parsedAccounts)
+    const wallet = Wallet.createRandom()
+    const newAccount = {
+      address: wallet.address,
+      private_key: wallet.privateKey,
+      public_key: wallet.publicKey,
+      balance: '0'
     }
-  })
+
+    setSelectedAccount(newAccount)
+    setAccounts(prevAccounts => [newAccount, ...prevAccounts])
+  }
+
+  const updateBalance = async (): Promise<void> => {
+    if (selectedAccount != null) {
+      const provider = new Provider('https://testnet.era.zksync.dev')
+      const balance = await provider.getBalance(selectedAccount.address)
+      setSelectedAccount(prevAccount => {
+        if ((prevAccount != null) && balance.toString() !== prevAccount.balance) {
+          return { ...prevAccount, balance: balance.toString() }
+        }
+        return prevAccount
+      })
+    }
+  }
+
+  useEffect(() => {
+    if (balanceUpdateIntervalRef.current !== null) {
+      clearInterval(balanceUpdateIntervalRef.current)
+    }
+
+    if (selectedAccount !== null) {
+      balanceUpdateIntervalRef.current = setInterval(updateBalance, 1000)
+    }
+
+    return () => {
+      if (balanceUpdateIntervalRef.current !== null) {
+        clearInterval(balanceUpdateIntervalRef.current)
+      }
+    }
+  }, [selectedAccount])
 
   return (
     <div className='manual-root-wrapper'>
       <button
         type='button'
-        className='mb-0 btn btn-sm btn-outline-secondary float-right rounded-pill env-testnet-btn'
+        className='mb-0 btn btn-sm btn-primary float-right rounded-pill'
         onClick={() => {
           setEnv(prevEnv)
         }}
       >
         Back to Previous
       </button>
-      <div className='network-selection-wrapper'>
-        <select
-          className='custom-select'
-          aria-label='.form-select-sm example'
-          defaultValue={
-            selectedAccount == null
-              ? -1
-              : accounts.findIndex(
-                (acc) => acc.address === selectedAccount?.address
-              )
-          }
-        >
-          {accounts.length > 0
-            ? (
-                accounts.map((account, index) => {
-                  return (
-                  <option value={index} key={index}>
-                    {trimStr(account.address, 6)}
-                  </option>
-                  )
-                })
-              )
-            : (
-              <option value={-1} key={-1}>
-                No account created yet
-              </option>
-              )}
-        </select>
-        <button
-          className='btn btn-primary'
-          onClick={(e) => {
-            e.preventDefault()
-          }}
-        >
-          <BiPlus />
-        </button>
-      </div>
-      {selectedAccount != null && (
-        <div>
-          <div className='mb-2'>
-            <div className='selected-address-wrapper'>
-              {account != null && (
-                <p className='m-0'>
-                  Address:{' '}
-                  <a
-                    target='_blank'
-                    rel='noreferer noopener noreferrer'
-                  >
-                    {trimStr(selectedAccount.address, 8)}
-                  </a>
-                </p>
-              )}
-              <div className='d-flex'>
-                <button
-                  className='btn'
-                  onClick={() => copy(selectedAccount.address)}
-                >
-                  <BiCopy />
-                </button>
-              </div>
-            </div>
-          </div>
-          {account != null && provider != null && (
-            <div className='manual-balance-wrapper'>
-              <p>
-                Balance:{' '}
-                {parseFloat(
-                  ethers.utils.formatEther(selectedAccount.balance)
-                )?.toFixed(8)}{' '}
-                ETH
-              </p>
-              <button
-                className='btn btn-refresh'
-                onClick={(e) => {
-                  e.preventDefault()
-                }}
-              >
-                <MdRefresh />
-              </button>
-            </div>
-          )}
-          {networkName === 'goerli-alpha' && (
-            <button
-              className='btn btn-secondary w-100'
-              onClick={() => {
-                copy(selectedAccount?.address ?? '')
-                remixClient.call('notification' as any, 'toast', 'ℹ️ Address copied to Clipboard').catch((err) => {
-                  console.log(err)
-                })
-                setTimeout(() => {
-                  window?.open(
-                    'https://faucet.goerli.zksync.io/',
-                    '_blank',
-                    'noopener noreferrer'
-                  )
-                }, 2000)
-              }}
-            >
-              Request funds on Zksync Faucet
-            </button>
-          )}
-        </div>
-      )}
 
-      <select
-        className='custom-select'
-        aria-label='.form-select-sm example'
-        value={networkName}
-        defaultValue={networkName}
-      >
-        {networkConstants.map((network) => {
-          return (
-            <option value={network.value} key={network.name}>
-              {network.value}
-            </option>
-          )
-        })}
-      </select>
-      <button
-        className='btn btn-primary btn-block d-block w-100 text-break remixui_disabled'
-        style={{
-          cursor: `${
-            (selectedAccount?.deployed_networks.includes(networkName) ??
-              false) ||
-            accountDeploying
-              ? 'not-allowed'
-              : 'pointer'
-          }`
-        }}
-        disabled={
-          (selectedAccount?.deployed_networks.includes(networkName) ?? false) ||
-          accountDeploying
-        }
-        aria-disabled={
-          (selectedAccount?.deployed_networks.includes(networkName) ?? false) ||
-          accountDeploying
-        }
-        onClick={(e) => {
-          e.preventDefault()
-        }}
-      >
-        {accountDeploying
-          ? (
-            <>
-            <span
-              className='spinner-border spinner-border-sm'
-              role='status'
-              aria-hidden='true'
-            />
-              <span style={{ paddingLeft: '0.5rem' }}>Deploying Account...</span>
-            </>
-            )
-          : selectedAccount?.deployed_networks.includes(networkName) ??
-          false
-            ? (
-              <>
-                <MdCheckCircleOutline color='#0fd543' size={18} />
-                <span style={{ paddingLeft: '0.5rem' }}>Account Deployed</span>
-              </>
-              )
-            : (
-                'Deploy Account'
-              )}
-      </button>
+      <div className={'flex flex-column'}>
+        <div className={'flex flex-row justify-content-space-between'}>
+          <D.Root open={dropdownControl} onOpenChange={(e) => { setDropdownControl(e) }}>
+            <D.Trigger>
+              <div className='flex flex-row justify-content-space-between align-items-center p-2 pb-1 br-1 compiled-contracts-wrapper'>
+                <label>
+                  {selectedAccount !== null ? getShortenedHash(selectedAccount.address, 16, 4) : 'No Accounts'}
+                </label>
+                <BsChevronDown style={{
+                  transform: dropdownControl ? 'rotate(180deg)' : 'none',
+                  transition: 'all 0.3s ease'
+                }} />
+              </div>
+            </D.Trigger>
+            <D.Portal>
+              <D.Content>
+                {accounts.map((account, index) => {
+                  return (
+                    <D.Item
+                      onClick={() => {
+                        setSelectedAccount(account)
+                        setDropdownControl(false)
+                      }}
+                      key={index}
+                    >
+                      {getShortenedHash(account.address, 20, 4)}
+                    </D.Item>
+                  )
+                })}
+              </D.Content>
+            </D.Portal>
+          </D.Root>
+          <button className={'add-account-button-plus ml-2'} onClick={addAccount}>
+            { !isClicked ? <CiSquarePlus /> : <CiSquareCheck /> }
+          </button>
+          <button
+            className='btn'
+            onClick={copyAddress}
+          >
+            {copied ? <FaCheck /> : <MdCopyAll />}
+          </button>
+        </div>
+        <div className={'flex flex-row w-100 mb-0 mt-1'}>
+          <label>Account Balance: {formatEther(selectedAccount?.balance ?? '0').toString()} ETH</label>
+        </div>
+        <div className={'flex flex-row w-100 mb-0 mt-2'}>
+          <button className='btn btn-primary btn-sm btn-block w-100 mb-0 btn-warning' onClick={() => {
+            copyAddress()
+            window.open('https://faucet.triangleplatform.com/zksync/testnet')
+          }}>
+            Get Testnet Funds
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
 
-export default ManualAccount
+export default ManualAccountComp

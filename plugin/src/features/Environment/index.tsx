@@ -4,7 +4,7 @@ import DevnetAccountSelector from '../../components/DevnetAccountSelector'
 import './styles.css'
 import EnvironmentSelector from '../../components/EnvironmentSelector'
 import Wallet from '../../components/Wallet'
-import ManualAccount from '../../components/ManualAccount'
+import ManualAccountComp from '../../components/ManualAccount'
 import { RxDotFilled } from 'react-icons/rx'
 import Accordian, { AccordianItem, AccordionContent, AccordionTrigger } from '../../ui_components/Accordian'
 import { useAtom, useAtomValue } from 'jotai'
@@ -90,7 +90,7 @@ const Environment: React.FC<EnvironmentProps> = () => {
                     </div>
                   </>
                 ) : (
-                  <ManualAccount prevEnv={prevEnv} />
+                  <ManualAccountComp prevEnv={prevEnv} />
                 )}
               </div>
             </>

@@ -152,7 +152,7 @@ devDependencies:
     specifier: ^7.32.2
     version: 7.33.2(eslint@8.53.0)
   typescript:
-    specifier: ^5.2.2
+    specifier: ^5.1.6
     version: 5.2.2
   vite:
     specifier: ^4.4.9
