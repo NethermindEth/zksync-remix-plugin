@@ -5,6 +5,7 @@ on:
       - develop
     paths:
       - 'api/**'
+      - '.github/workflows/api-deploy.yml'
 
 permissions:
       id-token: write
