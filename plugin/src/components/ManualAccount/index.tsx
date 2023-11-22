@@ -15,6 +15,7 @@ import copy from 'copy-to-clipboard'
 import { FaCheck } from 'react-icons/fa'
 import { MdCopyAll } from 'react-icons/md'
 import { formatEther } from 'ethers/lib/utils'
+import { accountAtom } from '../../atoms/connection'
 
 // TODOS: move state parts to contexts
 // Account address selection
@@ -25,6 +26,8 @@ const ManualAccountComp: React.FC<{
   const setEnv = useSetAtom(envAtom)
 
   const [dropdownControl, setDropdownControl] = useState(false)
+
+  const [account, setAccount] = useAtom(accountAtom)
 
   const [selectedAccount, setSelectedAccount] = useAtom(selectedAccountAtom)
   const [isClicked, setIsClicked] = useState(false)
@@ -84,6 +87,15 @@ const ManualAccountComp: React.FC<{
       if (balanceUpdateIntervalRef.current !== null) {
         clearInterval(balanceUpdateIntervalRef.current)
       }
+    }
+  }, [selectedAccount])
+
+  useEffect(() => {
+    if (selectedAccount !== null) {
+      const provider = new Provider('https://testnet.era.zksync.dev')
+      const wallet = new Wallet(selectedAccount.private_key, provider)
+
+      setAccount(wallet)
     }
   }, [selectedAccount])
 

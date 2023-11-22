@@ -21,10 +21,12 @@ const EnvironmentSelector: React.FC = () => {
     const value = parseInt(ipValue)
     if (!isNaN(value) && value > 0) {
       setDevnet(devnets[value - 1])
-      if (value === 2) {
+      if (value === 3) {
         setEnv('remoteDevnet')
-      } else {
+      } else if (value === 2) {
         setEnv('localDevnet')
+      } else {
+        setEnv('manual')
       }
       setProvider(null)
       return
@@ -69,12 +71,20 @@ const EnvironmentSelector: React.FC = () => {
             >
               Wallet
             </D.Item>
+            <D.Item
+              key={'1manual'}
+              onClick={() => {
+                handleEnvironmentChange('1')
+              }}
+            >
+              Manual
+            </D.Item>
             {devnets.map((devnet, i) => {
               return (
                 <D.Item
                   key={i.toString() + devnet?.name}
                   onClick={() => {
-                    handleEnvironmentChange((i + 1).toString())
+                    handleEnvironmentChange((i + 2).toString())
                   }}
                 >
                   {devnet?.name}
