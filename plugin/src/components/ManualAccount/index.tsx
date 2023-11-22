@@ -27,7 +27,7 @@ const ManualAccountComp: React.FC<{
 
   const [dropdownControl, setDropdownControl] = useState(false)
 
-  const [account, setAccount] = useAtom(accountAtom)
+  const setAccount = useSetAtom(accountAtom)
 
   const [selectedAccount, setSelectedAccount] = useAtom(selectedAccountAtom)
   const [isClicked, setIsClicked] = useState(false)
