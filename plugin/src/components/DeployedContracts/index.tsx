@@ -4,7 +4,7 @@ import React, { useEffect } from 'react'
 import { getContractNameFromFullName, getShortenedHash } from '../../utils/utils'
 import FunctionalInput from '../FunctionalInput'
 import './deployedContracts.css'
-import { useAtom, useAtomValue } from 'jotai'
+import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import { deployedContractsAtom, deployedSelectedContractAtom } from '../../atoms/deployedContracts'
 import * as D from '../../ui_components/Dropdown'
 import { BsChevronDown } from 'react-icons/bs'
@@ -12,6 +12,7 @@ import copy from 'copy-to-clipboard'
 import { MdCopyAll } from 'react-icons/md'
 import { FaCheck } from 'react-icons/fa'
 import useRemixClient from '../../hooks/useRemixClient'
+import { envAtom } from '../../atoms/environment'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 
@@ -26,6 +27,8 @@ const DeployedContracts: React.FC = () => {
   const { remixClient } = useRemixClient()
 
   const [dropdownControl, setDropdownControl] = React.useState(false)
+
+  const setEnv = useSetAtom(envAtom)
 
   const [copied, setCopied] = React.useState(false)
 
@@ -77,10 +80,11 @@ const DeployedContracts: React.FC = () => {
                   key={index}
                   onSelect={() => {
                     setSelectedContract(contract)
+                    setEnv(contract.env)
                     setDropdownControl(false)
                   }}
                 >
-                  {`${getContractNameFromFullName(contract.contractName)}, ${getShortenedHash(contract.address, 8, 8)}`}
+                  {`[${contract.env}] ${getContractNameFromFullName(contract.contractName)}, ${getShortenedHash(contract.address, 8, 8)}`}
                 </D.Item>
               )
             })}
