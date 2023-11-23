@@ -1,5 +1,5 @@
 import { type Provider, type Signer, type Wallet } from 'zksync-web3'
-import { type Chain, ChainFormatters } from 'viem'
+import { type Chain, type ChainFormatters } from 'viem'
 
 export type EnvType = 'localDevnet' | 'remoteDevnet' | 'wallet' | 'manual'
 
@@ -21,9 +21,9 @@ export const mockManualChain: Chain<ChainFormatters> = {
   },
   rpcUrls: {
     default:
-      {http: [''], webSocket: ['']},
+      { http: [''], webSocket: [''] },
     public:
-      {http: [''], webSocket: ['']},
+      { http: [''], webSocket: [''] }
   },
   network: 'testnet',
   name: 'testnet',

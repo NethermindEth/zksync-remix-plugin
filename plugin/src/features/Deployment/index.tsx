@@ -18,7 +18,6 @@ import { contractsAtom, selectedContractAtom } from '../../atoms/compiledContrac
 import { accountAtom, providerAtom } from '../../atoms/connection'
 import { deployedContractsAtom, deployedSelectedContractAtom } from '../../atoms/deployedContracts'
 import { envAtom } from '../../atoms/environment'
-import { Chain, ChainFormatters } from 'viem'
 
 interface DeploymentProps {
   setActiveTab: (tab: AccordianTabs) => void
