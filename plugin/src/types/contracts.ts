@@ -1,3 +1,5 @@
+import type { EnvType } from './transaction'
+
 interface Contract {
   contractName: string
   sourceName: string
@@ -12,22 +14,9 @@ interface Contract {
 interface DeployedContract extends Contract {
   address: string
   transactionHash: string
+  env: EnvType
 }
 
-// #[derive(Debug, Deserialize, Serialize)]
-// #[serde(crate = "rocket::serde")]
-// pub struct CompileResponse {
-//   pub status: String,
-//     pub message: String,
-//     pub file_content: Vec<SolFile>,
-// }
-//
-// #[derive(Debug, Deserialize, Serialize)]
-// #[serde(crate = "rocket::serde")]
-// pub struct SolFile {
-//   pub file_name: String,
-//     pub file_content: String,
-// }
 interface CompilationResult {
   status: string
   message: string

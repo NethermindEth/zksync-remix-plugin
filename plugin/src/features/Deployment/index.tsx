@@ -8,7 +8,7 @@ import { type AccordianTabs } from '../Plugin'
 import * as zksync from 'zksync-web3'
 import ConstructorInput from '../../components/ConstructorInput'
 import { type DeployedContract } from '../../types/contracts'
-import { type Transaction } from '../../types/transaction'
+import { mockManualChain, type Transaction } from '../../types/transaction'
 import { type Contract } from 'ethers'
 import { useWalletClient } from 'wagmi'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
@@ -123,7 +123,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         ...selectedContract,
         bytecode: selectedContract.bytecode,
         transactionHash: txHash,
-        address
+        address,
+        env
       }
 
       deployedSetContracts([deployedContract, ...deployedContracts])
@@ -136,7 +137,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         type: 'deploy',
         txId: txHash,
         env,
-        chain: walletClient?.chain,
+        chain: (env !== 'manual' ? walletClient?.chain : mockManualChain),
         provider
       }
 

@@ -5,7 +5,7 @@ import { generateInputName } from '../../utils/utils'
 import { type AbiElement, type Input } from '../../types/contracts'
 import InputField from '../InputField'
 import { Contract } from 'ethers'
-import { type Transaction } from '../../types/transaction'
+import { mockManualChain, type Transaction } from '../../types/transaction'
 import useRemixClient from '../../hooks/useRemixClient'
 import { useAtom, useAtomValue } from 'jotai'
 import { deployedSelectedContractAtom } from '../../atoms/deployedContracts'
@@ -70,7 +70,7 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
           type: 'invoke',
           txId: result.hash,
           env,
-          chain: walletClient?.chain,
+          chain: (env !== 'manual' ? walletClient?.chain : mockManualChain),
           provider
         }
 
