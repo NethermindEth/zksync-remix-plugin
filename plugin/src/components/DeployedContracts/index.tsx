@@ -97,7 +97,7 @@ const DeployedContracts: React.FC = () => {
           <div>
             {selectedContract.abi.map(
               (abiElement, index) => {
-                return abiElement.type !== 'constructor' && (
+                return abiElement.type !== 'constructor' && abiElement.type !== 'event' && (
                   <div key={index} className={'methodBox'}>
                     <FunctionalInput element={abiElement}></FunctionalInput>
                   </div>
