@@ -100,7 +100,7 @@ jobs:
           service: ${{ env.DEV_SERVICE_NAME }}
           cluster: ${{ env.DEV_CLUSTER }}
           wait-for-service-stability: true
-  Deploy_Dev:
+  Deploy_Prod:
     runs-on: ubuntu-latest
     needs: Build
     steps:
