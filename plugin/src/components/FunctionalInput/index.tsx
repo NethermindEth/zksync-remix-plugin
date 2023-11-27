@@ -48,8 +48,6 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
       const contract = new Contract(contractAddress, selectedContract.abi, account)
         .connect(account)
 
-      remixClient.terminal.log(`Executed "${JSON.stringify(element)}" method!` as any)
-
       const method = contract[element.name]
 
       remixClient.emit('statusChanged', {
