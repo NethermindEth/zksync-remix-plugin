@@ -19,19 +19,19 @@ const EnvironmentSelector: React.FC = () => {
 
   const handleEnvironmentChange = (ipValue: string): void => {
     const value = parseInt(ipValue)
-    if (!isNaN(value) && value > 0) {
-      setDevnet(devnets[value - 1])
+    if (!isNaN(value) && value > 1) {
+      setDevnet(devnets[value - 2])
       if (value === 3) {
         setEnv('remoteDevnet')
       } else if (value === 2) {
         setEnv('localDevnet')
-      } else {
-        setEnv('manual')
       }
       setProvider(null)
-      return
+    } else if (value === 0) {
+      setEnv('wallet')
+    } else {
+      setEnv('manual')
     }
-    setEnv('wallet')
   }
 
   const getActiveEnv = (lEnv: typeof env): string => {

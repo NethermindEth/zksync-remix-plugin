@@ -60,6 +60,10 @@ h3 {
     color: var(--light);
 }
 
+.AccordionTrigger:focus {
+    outline: none;
+}
+
 .AccordionContent {
     overflow: hidden;
     font-size: 1rem;
