@@ -58,6 +58,16 @@ const SolidityVersion: React.FC = () => {
     }
   }, [remixClient])
 
+  useEffect(() => {
+    if (versions.length === 0) {
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      const id = setTimeout(fetchVersions, 100)
+      return () => {
+        clearInterval(id)
+      }
+    }
+  }, [versions])
+
   return (
     <div className='version-wrapper'>
       <div>
