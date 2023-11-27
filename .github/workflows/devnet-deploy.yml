@@ -70,7 +70,7 @@ jobs:
           docker push $REGISTRY/$REPOSITORY:devnet-$IMAGE_TAG
     outputs:
       image-version: ${{ steps.determine-version.outputs.version }}
-  Deploy_Prod:
+  Deploy_Dev:
     runs-on: ubuntu-latest
     needs: Build
     steps:
@@ -84,7 +84,7 @@ jobs:
 
       - name: Download task definition
         run: |
-          aws ecs describe-task-definition --task-definition zksync-remix-production-devnet --query taskDefinition > task-definition.json
+          aws ecs describe-task-definition --task-definition zksync-remix-development-devnet --query taskDefinition > task-definition.json
 
       - name: Update the task definition to use the image from Docker Hub
         id: task-def
@@ -114,7 +114,7 @@ jobs:
 
       - name: Download task definition
         run: |
-          aws ecs describe-task-definition --task-definition zksync-remix-development-devnet --query taskDefinition > task-definition.json
+          aws ecs describe-task-definition --task-definition zksync-remix-production-devnet --query taskDefinition > task-definition.json
 
       - name: Update the task definition to use the image from Docker Hub
         id: task-def
