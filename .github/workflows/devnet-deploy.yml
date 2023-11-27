@@ -70,7 +70,7 @@ jobs:
           docker push $REGISTRY/$REPOSITORY:devnet-$IMAGE_TAG
     outputs:
       image-version: ${{ steps.determine-version.outputs.version }}
-  Deploy_Dev:
+  Deploy_Prod:
     runs-on: ubuntu-latest
     needs: Build
     steps:
@@ -80,6 +80,36 @@ jobs:
         with:
           aws-region: us-east-2
           role-to-assume: arn:aws:iam::599564732950:role/Aws-GH-Action-Assume-Role-ZKSync
+          role-session-name: GHZKSync
+
+      - name: Download task definition
+        run: |
+          aws ecs describe-task-definition --task-definition zksync-remix-production-devnet --query taskDefinition > task-definition.json
+
+      - name: Update the task definition to use the image from Docker Hub
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: "devnet"
+          image: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:devnet-${{ needs.Build.outputs.image-version }}
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.DEV_SERVICE_NAME }}
+          cluster: ${{ env.DEV_CLUSTER }}
+          wait-for-service-stability: true
+  Deploy_Dev:
+    runs-on: ubuntu-latest
+    needs: Build
+    steps:
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: us-east-2
+          role-to-assume: arn:aws:iam::228016254426:role/Aws-GH-Action-Assume-Role-ZKSync-Production
           role-session-name: GHZKSync
 
       - name: Download task definition
@@ -97,6 +127,6 @@ jobs:
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: ${{ env.DEV_SERVICE_NAME }}
-          cluster: ${{ env.DEV_CLUSTER }}
+          service: ${{ env.PROD_SERVICE_NAME }}
+          cluster: ${{ env.PROD_CLUSTER }}
           wait-for-service-stability: true
