@@ -30,6 +30,18 @@ pub async fn do_save_code(
 
     let file_path = get_file_path(&version, &remix_file_path);
 
+    let file_name = file_path.file_name().unwrap().to_str().unwrap();
+
+    // Trim .sol extension
+    let file_name_without_ext = file_name.trim_end_matches(".sol");
+
+    // make /<file_name_without_ext>/<file_name>.sol
+    let file_path = file_path
+        .parent()
+        .unwrap()
+        .join(file_name_without_ext)
+        .join(file_name);
+
     // create file directory from file path
     init_parent_directories(file_path.clone()).await;
 

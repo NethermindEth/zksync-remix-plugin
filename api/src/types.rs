@@ -40,4 +40,6 @@ pub enum ApiError {
     FailedToWriteFile(IoError),
     #[error("Unsupported version: {0}")]
     VersionNotSupported(String),
+    #[error("Failed to get parent directory")]
+    FailedToGetParentDir,
 }
