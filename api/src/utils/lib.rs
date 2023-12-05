@@ -9,6 +9,8 @@ pub const HARDHAT_ENV_ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/", "har
 pub const ARTIFACTS_ROOT: &str =
     concat!(env!("CARGO_MANIFEST_DIR"), "/", "hardhat_env/artifacts-zk");
 
+pub const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
+
 pub const DURATION_TO_PURGE: u64 = 60 * 5; // 5 minutes
 
 pub const ALLOWED_VERSIONS: [&str; 2] = ["latest", "1.3.13"];
@@ -70,7 +72,20 @@ pub fn status_code_to_message(status: Option<i32>) -> String {
 pub fn get_file_path(version: &str, file_path: &str) -> PathBuf {
     match get_file_ext(file_path).to_string() {
         // Leaving this here for potential use with vyper
-        ext if ext == "sol" => Path::new(SOL_ROOT).join(version).join(file_path),
+        ext if ext == "sol" => {
+            let file_path = Path::new(SOL_ROOT).join(version).join(file_path);
+            let file_name = file_path.file_name().unwrap().to_str().unwrap();
+
+            // Trim .sol extension
+            let file_name_without_ext = file_name.trim_end_matches(".sol");
+
+            // make /<file_name_without_ext>/<file_name>.sol
+            file_path
+                .parent()
+                .unwrap()
+                .join(file_name_without_ext)
+                .join(file_name)
+        }
         _ => Path::new(SOL_ROOT).join(version).join(file_path),
     }
 }

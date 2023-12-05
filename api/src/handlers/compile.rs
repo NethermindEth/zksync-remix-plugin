@@ -5,7 +5,7 @@ use crate::types::{ApiError, Result};
 use crate::utils::hardhat_config::HardhatConfigBuilder;
 use crate::utils::lib::{
     check_file_ext, get_file_path, path_buf_to_string, status_code_to_message,
-    to_human_error_batch, ALLOWED_VERSIONS, ARTIFACTS_ROOT, SOL_ROOT,
+    to_human_error_batch, ALLOWED_VERSIONS, ARTIFACTS_ROOT, CARGO_MANIFEST_DIR, SOL_ROOT,
 };
 use crate::worker::WorkerEngine;
 use rocket::serde::json;
@@ -79,14 +79,44 @@ pub async fn do_compile(
 
     check_file_ext(&remix_file_path, "sol")?;
 
-    let file_path = get_file_path(&version, &remix_file_path);
+    let file_path = get_file_path(&version, &remix_file_path)
+        .to_str()
+        .ok_or(ApiError::FailedToParseString)?
+        .to_string();
 
-    let sources_path = path_buf_to_string(Path::new(SOL_ROOT).join(&version))?;
+    let file_path_dir = Path::new(&file_path)
+        .parent()
+        .ok_or(ApiError::FailedToGetParentDir)?
+        .to_str()
+        .ok_or(ApiError::FailedToParseString)?
+        .to_string();
+
+    println!("file_path: {:?}", file_path);
+
     let artifacts_path = ARTIFACTS_ROOT.to_string();
+
+    let result_path_prefix = Path::new(&artifacts_path)
+        .join(&version)
+        .join(remix_file_path.clone());
+    let result_path_filename = result_path_prefix
+        .file_name()
+        .ok_or(ApiError::FailedToParseString)?
+        .to_str()
+        .ok_or(ApiError::FailedToParseString)?;
+    let result_path_filename_without_ext = result_path_filename.trim_end_matches(".sol");
+
+    let result_path_prefix = result_path_prefix
+        .parent()
+        .ok_or(ApiError::FailedToGetParentDir)?
+        .join(result_path_filename_without_ext)
+        .join(result_path_filename)
+        .to_str()
+        .ok_or(ApiError::FailedToParseString)?
+        .to_string();
 
     let hardhat_config = HardhatConfigBuilder::new()
         .zksolc_version(&version)
-        .sources_path(&sources_path)
+        .sources_path(&file_path_dir)
         .artifacts_path(&artifacts_path)
         .build();
 
@@ -115,27 +145,29 @@ pub async fn do_compile(
         .wait_with_output()
         .map_err(ApiError::FailedToReadOutput)?;
 
-    println!("output: {:?}", output);
-
-    let result_path_prefix = Path::new(&artifacts_path)
-        .join(&version)
-        .join(remix_file_path.clone())
-        .to_str()
-        .ok_or(ApiError::FailedToParseString)?
-        .to_string();
-
-    println!("result_path_prefix: {}", result_path_prefix);
-    println!("sources_path: {}", sources_path);
-    println!("file_path: {}", path_buf_to_string(file_path.clone())?);
-
-    let sol_file_content = fs::read_to_string(&file_path)
-        .await
-        .map_err(ApiError::FailedToReadFile)?;
-
     // delete the hardhat config file
     fs::remove_file(hardhat_config_path)
         .await
         .map_err(ApiError::FailedToWriteFile)?;
+
+    let message = String::from_utf8(output.stderr)
+        .map_err(ApiError::UTF8Error)?
+        .replace(&file_path, &remix_file_path)
+        .replace(&result_path_prefix, &remix_file_path)
+        .replace(CARGO_MANIFEST_DIR, "");
+
+    let status = status_code_to_message(output.status.code());
+    if status != "Success" {
+        return Ok(Json(CompileResponse {
+            message,
+            status,
+            file_content: vec![],
+        }));
+    }
+
+    let sol_file_content = fs::read_to_string(&file_path)
+        .await
+        .map_err(ApiError::FailedToReadFile)?;
 
     let (ast, _) = solang_parser::parse(&sol_file_content, 0)
         .map_err(|e| ApiError::FailedToParseSol(to_human_error_batch(e)))?;
@@ -157,26 +189,6 @@ pub async fn do_compile(
                 });
             }
         }
-    }
-
-    let status = status_code_to_message(output.status.code());
-    let message = String::from_utf8(output.stderr)
-        .map_err(ApiError::UTF8Error)?
-        .replace(
-            &file_path
-                .to_str()
-                .ok_or(ApiError::FailedToParseString)?
-                .to_string(),
-            &remix_file_path,
-        )
-        .replace(&result_path_prefix, &remix_file_path);
-
-    if status != "Success" {
-        return Ok(Json(CompileResponse {
-            message,
-            status,
-            file_content: vec![],
-        }));
     }
 
     Ok(Json(CompileResponse {
