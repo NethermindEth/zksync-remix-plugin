@@ -33,7 +33,7 @@ If you're looking to utilize the capabilities of zkSync contracts within the Rem
 
 2. **Usage**: Once the plugin is activated, you'll find a user-friendly interface that allows you to deploy and interact with zkSync contracts. Follow the on-screen prompts and tooltips for an effortlessly smooth experience!
 
-3. **Feedback**: Your feedback is invaluable to us 🌟! If you encounter any issues or have game-changing suggestions, don't hesitate to reach out through our [Discord](https://discord.com/invite/PaCMRFdvWT) or our [Community Forum](https://community.nethermind.io/). Let's make something awesome together! 🤝
+3. **Feedback**: Your feedback is invaluable to us 🌟! If you encounter any issues or have game-changing suggestions, don't hesitate to reach out through our [Community Forum](https://github.com/zkSync-Community-Hub/zkync-developers/discussions/new?category=remix-plugin). Let's make something awesome together! 🤝
 
 ## For Developers
 
