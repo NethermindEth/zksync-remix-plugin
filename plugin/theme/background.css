@@ -4,27 +4,27 @@
     /* Backgrounds */
 
     .bg-primary {
-        background: var(--primary-color-900) !important;
+        background: var(--body-bg) !important;
     }
 
     .bg-secondary {
-        background: var(--secondary-color-900) !important;
+        background: var(--secondary) !important;
     }
 
     .bg-success {
-        background: var(--success-color);
+        background: var(--success);
     }
 
     .bg-information {
-        background: var(--information-color);
+        background: var(--info);
     }
 
     .bg-warning {
-        background: var(--warning-color);
+        background: var(--warning);
     }
 
     .bg-error {
-        background: var(--error-color);
+        background: var(--error);
     }
 
     .bg-dark {

@@ -16,7 +16,7 @@ export const AccordionTrigger = React.forwardRef<any, any>(
   }, forwardedRef) => (
     <AccordionPrimitive.Header className='AccordionHeader'>
       <AccordionPrimitive.Trigger
-        className={'AccordionTrigger bg-primary'}
+        className={'AccordionTrigger'}
         {...props}
         ref={forwardedRef}
       >

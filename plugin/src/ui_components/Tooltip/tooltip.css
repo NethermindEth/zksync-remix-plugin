@@ -8,9 +8,9 @@ button {
     padding: 10px 15px;
     font-size: var(--font-sm);
     line-height: 1;
-    color: var(--light);
-    background-color: var(--primary-color);
-    border: 1px solid var(--primary-color-900);
+    color: var(--text);
+    background-color: var(--primary);
+    border: 1px solid var(--primary);
     box-shadow: hsl(206 22% 7% / 35%) 0 10px 38px -10px,
     hsl(206 22% 7% / 20%) 0 10px 20px -15px;
     user-select: none;
@@ -52,11 +52,11 @@ button {
 }
 
 .TooltipIconButton:hover {
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: var(--primary);
 }
 
 .TooltipIconButton:focus {
-    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 0 2px var(--primary);
 }
 
 @keyframes slideUpAndFade {

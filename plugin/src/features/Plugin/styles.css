@@ -3,6 +3,7 @@
     display: grid;
     grid-template-rows: 1fr auto;
     max-height: 100vh;
+    background-color: var(--body-bg);
 }
 
 
