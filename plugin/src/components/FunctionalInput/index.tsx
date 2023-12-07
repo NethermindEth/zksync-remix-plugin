@@ -108,7 +108,7 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
   }, [element])
 
   return (
-    <>
+    <div>
       <button onClick={() => {
         callContract().catch(console.error)
       }} className={`btn btn-primary w-100 text-break mb-1 mt-1 px-0 ${
@@ -126,7 +126,7 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
           )
         })
       }
-    </>
+    </div>
   )
 }
 

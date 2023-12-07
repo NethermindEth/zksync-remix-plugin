@@ -22,7 +22,7 @@
 
 .devnet-account-selector-trigger {
     width: 100%;
-    border: 1px solid var(--primary-color-500);
+    border: 1px solid var(--secondary);
 }
 
 .refresh[data-loading='loading'] svg {

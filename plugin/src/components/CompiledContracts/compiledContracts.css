@@ -1,10 +1,10 @@
 .compiled-contracts-wrapper {
     width: 100%;
-    border: 1px solid var(--primary-color-500);
+    border: 1px solid var(--secondary);
 }
 
 .compiled-contracts-wrapper label {
-    color: white;
+    color: var(--text);
 
     margin-bottom: 3px;
 
