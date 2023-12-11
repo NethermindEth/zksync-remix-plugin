@@ -42,7 +42,7 @@ impl Default for HardhatConfig {
                 settings: serde_json::json!({}),
             },
             solidity: SolidityConfig {
-                version: "0.8.17".to_string(),
+                version: "0.8.20".to_string(),
             },
             paths: PathsConfig {
                 sources: "./contracts".to_string(),
@@ -96,7 +96,7 @@ const config: HardhatUserConfig = {{
     zkSyncTestnet,
   }},
   solidity: {{
-    version: "0.8.17",
+    version: "0.8.20",
   }},
   // path to the directory with contracts
   paths: {{
