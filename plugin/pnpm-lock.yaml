@@ -54,7 +54,7 @@ dependencies:
     specifier: ^3.3.3
     version: 3.3.3
   ethers:
-    specifier: ^5.7.2
+    specifier: ^5.7.0
     version: 5.7.2
   form-data:
     specifier: ^4.0.0
@@ -99,8 +99,8 @@ dependencies:
     specifier: ^0.13.1
     version: 0.13.1(@ethersproject/logger@5.7.0)(ethers@5.7.2)
   zksync-web3:
-    specifier: ^0.14.3
-    version: 0.14.4(ethers@5.7.2)
+    specifier: ^0.17.1
+    version: 0.17.1(ethers@5.7.2)
 
 devDependencies:
   '@babel/eslint-parser':
@@ -7131,10 +7131,11 @@ packages:
     resolution: {integrity: sha512-Ry8c9kixDu3rlGCZDOg1UhzKDYe93iOZ7/Z6N1bkkrVKhmZJTIc7h+1kOjOyyhaSaHwBt8quMeBAaZKjtUeB2Q==}
     dev: false
 
-  /zksync-web3@0.14.4(ethers@5.7.2):
-    resolution: {integrity: sha512-kYehMD/S6Uhe1g434UnaMN+sBr9nQm23Ywn0EUP5BfQCsbjcr3ORuS68PosZw8xUTu3pac7G6YMSnNHk+fwzvg==}
+  /zksync-web3@0.17.1(ethers@5.7.2):
+    resolution: {integrity: sha512-jMV4gfAQyehkIbNs81i4uvccHLe+XBu/tNPFb0Rm38pXccWY5VXzVE6XWS0dBiHlMfjdfUGn/sxwzJbWZDGYGQ==}
+    deprecated: This package has been deprecated in favor of zksync-ethers@5.0.0
     peerDependencies:
-      ethers: ^5.7.0
+      ethers: ~5.7.0
     dependencies:
       ethers: 5.7.2
     dev: false

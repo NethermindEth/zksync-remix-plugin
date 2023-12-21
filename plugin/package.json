@@ -19,7 +19,7 @@
     "axios": "^1.4.0",
     "bn.js": "^5.2.1",
     "copy-to-clipboard": "^3.3.3",
-    "ethers": "^5.7.2",
+    "ethers": "^5.7.0",
     "form-data": "^4.0.0",
     "formik": "^2.4.2",
     "jotai": "^2.2.2",
@@ -34,7 +34,7 @@
     "web-vitals": "^2.1.4",
     "yup": "^1.2.0",
     "zksync": "^0.13.1",
-    "zksync-web3": "^0.14.3"
+    "zksync-web3": "^0.17.1"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.22.9",
