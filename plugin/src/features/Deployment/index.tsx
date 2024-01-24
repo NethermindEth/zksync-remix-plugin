@@ -76,6 +76,15 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       return
     }
 
+    if (env === 'wallet' && walletClient == null) {
+      await remixClient.terminal.log({
+        value: 'Wallet is not connected!',
+        type: 'error'
+      })
+
+      return
+    }
+
     await remixClient.terminal.log({
       value: `Deploying contract ${selectedContract.contractName}`,
       type: 'info'

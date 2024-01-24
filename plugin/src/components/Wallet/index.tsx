@@ -3,7 +3,7 @@
 import React, { useEffect } from 'react'
 import './wallet.css'
 import * as zksync from 'zksync-web3'
-import { useWalletClient } from 'wagmi'
+import { useAccount, useWalletClient } from 'wagmi'
 import { accountAtom, providerAtom } from '../../atoms/connection'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { envAtom } from '../../atoms/environment'
@@ -15,7 +15,7 @@ const Wallet: React.FC = () => {
   const env = useAtomValue(envAtom)
 
   useEffect((): void => {
-    if (walletClient != null) {
+    if (walletClient != null && !isDisconnected) {
       const network = {
         chainId: walletClient.chain.id,
         name: walletClient.chain.name
@@ -27,6 +27,15 @@ const Wallet: React.FC = () => {
       setProvider(newProvider)
     }
   }, [walletClient?.account.address, walletClient?.chain.id, env])
+
+  const { isDisconnected } = useAccount()
+
+  useEffect(() => {
+    if (isDisconnected) {
+      setAccount(null)
+      setProvider(null)
+    }
+  }, [isDisconnected])
 
   return (
     <div
