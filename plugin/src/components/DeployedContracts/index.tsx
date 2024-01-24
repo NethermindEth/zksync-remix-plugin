@@ -92,12 +92,12 @@ const DeployedContracts: React.FC = () => {
         </D.Portal>
       </D.Root>
 
-      {selectedContract != null
+      {selectedContract?.abi != null
         ? (
           <div>
             {selectedContract.abi.map(
               (abiElement, index) => {
-                return abiElement.type !== 'constructor' && abiElement.type !== 'event' && (
+                return abiElement.type === 'function' && (
                   <div key={index} className={'methodBox'}>
                     <FunctionalInput element={abiElement}></FunctionalInput>
                   </div>
