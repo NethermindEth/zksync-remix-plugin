@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import React, { useEffect } from 'react'
 import './wallet.css'
-import * as zksync from 'zksync-web3'
+import * as zksync from 'zksync-ethers'
 import { useAccount, useWalletClient } from 'wagmi'
 import { accountAtom, providerAtom } from '../../atoms/connection'
 import { useAtomValue, useSetAtom } from 'jotai'

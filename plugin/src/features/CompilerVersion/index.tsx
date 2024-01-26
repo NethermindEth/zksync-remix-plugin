@@ -10,7 +10,9 @@ import useRemixClient from '../../hooks/useRemixClient'
 
 const SolidityVersion: React.FC = () => {
   const { remixClient } = useRemixClient()
-  const pluginVersion = process.env.REACT_APP_VERSION !== undefined ? `v${process.env.REACT_APP_VERSION}` : 'v0.2.0'
+
+  const envViteVersion: string | undefined = import.meta.env.VITE_VERSION
+  const pluginVersion = envViteVersion !== undefined ? `v${envViteVersion}` : 'v0.2.5'
 
   const [solidityVersion, setSolidityVersion] = useAtom(solidityVersionAtom)
   const [versions, setVersions] = useAtom(versionsAtom)

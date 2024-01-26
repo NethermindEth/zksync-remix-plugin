@@ -5,7 +5,7 @@ import './styles.css'
 import Container from '../../ui_components/Container'
 
 import { type AccordianTabs } from '../Plugin'
-import * as zksync from 'zksync-web3'
+import * as zksync from 'zksync-ethers'
 import ConstructorInput from '../../components/ConstructorInput'
 import { type DeployedContract } from '../../types/contracts'
 import { mockManualChain, type Transaction } from '../../types/transaction'

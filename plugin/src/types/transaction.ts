@@ -1,4 +1,4 @@
-import { type Provider, type Signer, type Wallet } from 'zksync-web3'
+import { type Provider, type Signer, type Wallet } from 'zksync-ethers'
 import { type Chain, type ChainFormatters } from 'viem'
 
 export type EnvType = 'localDevnet' | 'remoteDevnet' | 'wallet' | 'manual'
@@ -30,7 +30,7 @@ export const mockManualChain: Chain<ChainFormatters> = {
   blockExplorers: {
     default: {
       name: 'testnet',
-      url: 'https://goerli.explorer.zksync.io/'
+      url: 'https://sepolia.explorer.zksync.io/'
     }
   }
 }

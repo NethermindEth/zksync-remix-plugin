@@ -8,7 +8,7 @@ import { configureChains, createConfig, WagmiConfig } from 'wagmi'
 import { publicProvider } from 'wagmi/providers/public'
 import { CoinbaseWalletConnector } from 'wagmi/connectors/coinbaseWallet'
 
-import { zkSync, zkSyncTestnet } from 'viem/chains'
+import { zkSync, zkSyncSepoliaTestnet } from 'viem/chains'
 import { WalletConnectConnector } from 'wagmi/connectors/walletConnect'
 import { InjectedConnector } from 'wagmi/connectors/injected'
 import { EIP6963Connector, walletConnectProvider } from '@web3modal/wagmi'
@@ -18,7 +18,7 @@ const projectId: string = import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID // TODO
 const {
   chains,
   publicClient
-} = configureChains([zkSyncTestnet, zkSync], [walletConnectProvider({ projectId }), publicProvider()])
+} = configureChains([zkSyncSepoliaTestnet, zkSync], [walletConnectProvider({ projectId }), publicProvider()])
 
 const metadata = {
   name: 'zkSync remix plugin',

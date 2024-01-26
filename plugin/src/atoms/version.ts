@@ -1,6 +1,6 @@
 import { atom } from 'jotai'
 
-const solidityVersionAtom = atom<string>('')
+const solidityVersionAtom = atom<string>('latest')
 
 const versionsAtom = atom<string[]>([])
 
