@@ -1,5 +1,5 @@
 import { type DevnetAccount } from '../types/accounts'
-import { Wallet } from 'zksync-web3'
+import { Wallet } from 'zksync-ethers'
 
 const apiUrl: string = import.meta.env.VITE_API_URL ?? 'solidity-compile-remix-test.nethermind.io'
 const devnetUrl = import.meta.env.VITE_DEVNET_URL ?? 'http://localhost:8011'

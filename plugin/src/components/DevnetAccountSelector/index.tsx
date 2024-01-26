@@ -1,7 +1,7 @@
 import { getRoundedNumber, getShortenedHash, weiToEth } from '../../utils/utils'
 import { getAccounts, updateBalances } from '../../utils/network'
 import React, { useEffect, useState } from 'react'
-import { Provider, Wallet } from 'zksync-web3'
+import { Provider, Wallet } from 'zksync-ethers'
 import { MdCopyAll, MdRefresh } from 'react-icons/md'
 import './devnetAccountSelector.css'
 import copy from 'copy-to-clipboard'
