@@ -17,6 +17,64 @@ const SolidityVersion: React.FC = () => {
   const [solidityVersion, setSolidityVersion] = useAtom(solidityVersionAtom)
   const [versions, setVersions] = useAtom(versionsAtom)
 
+  useEffect(() => {
+    const fetchServiceVersion = async (): Promise<void> => {
+      try {
+        if (apiUrl !== undefined) {
+          const response = await fetch(`${apiUrl}/service_version`, {
+            method: 'GET',
+            redirect: 'follow',
+            headers: {
+              'Content-Type': 'application/octet-stream'
+            }
+          })
+
+          const serviceVersion = await response.text()
+
+          if (serviceVersion !== pluginVersion) {
+            await remixClient.call(
+              'notification' as any,
+              'toast',
+              `🔴 You are using an outdated version of the plugin: ${pluginVersion}, please update to ${serviceVersion} by force-refreshing the page and clearing your browser cache.`
+            )
+
+            await remixClient.terminal.log(
+              {
+                value: `🔴 You are using an outdated version of the plugin: ${pluginVersion}, please update to ${serviceVersion} by force-refreshing the page and clearing your browser cache.`,
+                type: 'error'
+              })
+          } else {
+            await remixClient.call(
+              'notification' as any,
+              'toast',
+              `🟢 You are using the latest version of the plugin: ${serviceVersion}`
+            )
+
+            await remixClient.terminal.log(
+              {
+                value: `🟢 You are using the latest version of the plugin: ${serviceVersion}`,
+                type: 'info'
+              })
+          }
+        }
+      } catch (e) {
+        await remixClient.call(
+          'notification' as any,
+          'toast',
+          '🔴 Failed to connect to the compilation server'
+        )
+        console.error(e)
+      }
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    const id = setTimeout(fetchServiceVersion, 100)
+
+    return () => {
+      clearInterval(id)
+    }
+  }, [pluginVersion, remixClient])
+
   const fetchVersions = async (): Promise<void> => {
     try {
       if (apiUrl !== undefined) {

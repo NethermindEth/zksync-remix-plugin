@@ -131,6 +131,7 @@ jobs:
           # inject the expected React package URL for CORS logic
           environment-variables: |
             RUST_LOG=INFO
+            SERVICE_VERSION=${{ needs.Build.outputs.image-version }}
             VITE_URL=https://zksync-plugin.nethermind.dev
             PROMTAIL_USERNAME=${{secrets.PROMTAIL_USERNAME}}
             PROMTAIL_PASSWORD=${{secrets.PROMTAIL_PASSWORD}}

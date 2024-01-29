@@ -2,6 +2,7 @@ pub mod compile;
 pub mod compiler_version;
 pub mod process;
 pub mod save_code;
+pub mod service_version;
 pub mod types;
 
 use crate::handlers::compile::do_compile;
