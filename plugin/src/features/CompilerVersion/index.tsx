@@ -32,7 +32,13 @@ const SolidityVersion: React.FC = () => {
 
           const serviceVersion = await response.text()
 
-          if (semver.gt(serviceVersion, pluginVersion)) {
+          if (serviceVersion === 'unknown') {
+            await remixClient.call(
+              'notification' as any,
+              'toast',
+              '🔴 Failed to check for updates to the zkSync plugin'
+            )
+          } else if (semver.gt(serviceVersion, pluginVersion)) {
             await remixClient.call(
               'notification' as any,
               'toast',
