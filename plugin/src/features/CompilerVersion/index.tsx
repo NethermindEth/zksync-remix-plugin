@@ -59,7 +59,7 @@ const SolidityVersion: React.FC = () => {
 
             await remixClient.terminal.log(
               {
-                value: `🟢 You are using the latest version of the zkSync plugin: ${serviceVersion}`,
+                value: `🟢 You are using the latest version of the zkSync plugin: ${pluginVersion}`,
                 type: 'info'
               })
           }
