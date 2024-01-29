@@ -38,6 +38,9 @@ dependencies:
   '@testing-library/user-event':
     specifier: ^13.5.0
     version: 13.5.0(@testing-library/dom@9.3.3)
+  '@types/semver':
+    specifier: ^7.5.6
+    version: 7.5.6
   '@wagmi/core':
     specifier: ^1.4.13
     version: 1.4.13(@types/react@18.2.37)(react@18.2.0)(typescript@5.2.2)(viem@1.21.4)
@@ -77,6 +80,9 @@ dependencies:
   react-icons:
     specifier: ^4.10.1
     version: 4.11.0(react@18.2.0)
+  semver:
+    specifier: ^7.5.4
+    version: 7.5.4
   viem:
     specifier: ^1.20.2
     version: 1.21.4(typescript@5.2.2)
@@ -2683,9 +2689,8 @@ packages:
   /@types/scheduler@0.16.6:
     resolution: {integrity: sha512-Vlktnchmkylvc9SnwwwozTv04L/e1NykF5vgoQ0XTmI8DD+wxfjQuHuvHS3p0r2jz2x2ghPs2h1FVeDirIteWA==}
 
-  /@types/semver@7.5.5:
-    resolution: {integrity: sha512-+d+WYC1BxJ6yVOgUgzK8gWvp5qF8ssV5r4nsDcZWKRWcDQLQ619tvWAxJQYGgBrO1MnLJC7a5GtiYsAoQ47dJg==}
-    dev: true
+  /@types/semver@7.5.6:
+    resolution: {integrity: sha512-dn1l8LaMea/IjDoHNd9J52uBbInB796CDffS6VdIxvqYCPSG0V0DzHp76GpaWnlhg88uYyPbXCDIowa86ybd5A==}
 
   /@types/testing-library__jest-dom@5.14.9:
     resolution: {integrity: sha512-FSYhIjFlfOpGSRyVoMBMuS3ws5ehFQODymf3vlI7U1K8c7PHwWwFY7VREfmsuzHSOnoKs/9/Y983ayOs7eRzqw==}
@@ -2807,7 +2812,7 @@ packages:
     dependencies:
       '@eslint-community/eslint-utils': 4.4.0(eslint@8.53.0)
       '@types/json-schema': 7.0.15
-      '@types/semver': 7.5.5
+      '@types/semver': 7.5.6
       '@typescript-eslint/scope-manager': 5.62.0
       '@typescript-eslint/types': 5.62.0
       '@typescript-eslint/typescript-estree': 5.62.0(typescript@5.2.2)

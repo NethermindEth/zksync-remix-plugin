@@ -3,9 +3,6 @@ on:
   push:
     branches:
       - develop
-    paths:
-      - 'plugin/**'
-      - '.github/workflows/remix-deploy.yml'
 
 env:
   NODE_VERSION: '20.x'
