@@ -48,7 +48,7 @@ const SolidityVersion: React.FC = () => {
             await remixClient.call(
               'notification' as any,
               'toast',
-              `🟢 You are using the latest version of the plugin: ${serviceVersion}`
+              `🟢 You are using the latest version of the plugin: ${pluginVersion}`
             )
 
             await remixClient.terminal.log(
