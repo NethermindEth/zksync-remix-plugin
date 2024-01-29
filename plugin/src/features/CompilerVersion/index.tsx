@@ -36,24 +36,24 @@ const SolidityVersion: React.FC = () => {
             await remixClient.call(
               'notification' as any,
               'toast',
-              `🔴 You are using an outdated version of the plugin: ${pluginVersion}, please update to ${serviceVersion} by force-refreshing the page and clearing your browser cache.`
+              `🔴 You are using an outdated version of the zkSync plugin: ${pluginVersion}, please update to ${serviceVersion} by force-refreshing the page and clearing your browser cache.`
             )
 
             await remixClient.terminal.log(
               {
-                value: `🔴 You are using an outdated version of the plugin: ${pluginVersion}, please update to ${serviceVersion} by force-refreshing the page and clearing your browser cache.`,
+                value: `🔴 You are using an outdated version of the zkSync plugin: ${pluginVersion}, please update to ${serviceVersion} by force-refreshing the page and clearing your browser cache.`,
                 type: 'error'
               })
           } else {
             await remixClient.call(
               'notification' as any,
               'toast',
-              `🟢 You are using the latest version of the plugin: ${serviceVersion}`
+              `🟢 You are using the latest version of the zkSync plugin: ${pluginVersion}`
             )
 
             await remixClient.terminal.log(
               {
-                value: `🟢 You are using the latest version of the plugin: ${serviceVersion}`,
+                value: `🟢 You are using the latest version of the zkSync plugin: ${serviceVersion}`,
                 type: 'info'
               })
           }
