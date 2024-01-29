@@ -7,6 +7,7 @@ import { BsChevronDown } from 'react-icons/bs'
 import { useAtom } from 'jotai'
 import { solidityVersionAtom, versionsAtom } from '../../atoms/version'
 import useRemixClient from '../../hooks/useRemixClient'
+import semver from 'semver'
 
 const SolidityVersion: React.FC = () => {
   const { remixClient } = useRemixClient()
@@ -31,7 +32,7 @@ const SolidityVersion: React.FC = () => {
 
           const serviceVersion = await response.text()
 
-          if (serviceVersion !== pluginVersion) {
+          if (semver.gt(serviceVersion, pluginVersion)) {
             await remixClient.call(
               'notification' as any,
               'toast',
