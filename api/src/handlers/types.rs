@@ -1,3 +1,6 @@
+use rocket::http::Status;
+use rocket::response::Responder;
+use rocket::Request;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
@@ -46,4 +49,32 @@ pub enum ApiCommandResult {
     Compile(CompileResponse),
     #[allow(dead_code)]
     Shutdown,
+}
+
+pub struct HealthCheckResponse(pub Result<(), &'static str>);
+
+impl<'r, 'o: 'r> Responder<'r, 'o> for HealthCheckResponse {
+    fn respond_to(self, request: &'r Request<'_>) -> rocket::response::Result<'o> {
+        match self.0 {
+            Ok(_) => {
+                Ok(rocket::response::status::Custom(Status { code: 200 }, "OK")
+                    .respond_to(request)?)
+            }
+            Err(_) => Ok(rocket::response::status::Custom(
+                Status { code: 500 },
+                "Internal Server Error",
+            )
+            .respond_to(request)?),
+        }
+    }
+}
+
+impl HealthCheckResponse {
+    pub fn ok() -> Self {
+        HealthCheckResponse(Ok(()))
+    }
+
+    pub fn error(value: &'static str) -> Self {
+        HealthCheckResponse(Err(value))
+    }
 }
