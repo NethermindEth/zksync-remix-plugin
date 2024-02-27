@@ -83,7 +83,7 @@ pub fn generate_mock_solidity_file_content() -> String {
 }
 
 pub fn generate_remix_file_path() -> String {
-    format!("{}/{}", Uuid::new_v4().to_string(), "SimpleStorage.sol")
+    format!("{}/{}", Uuid::new_v4(), "SimpleStorage.sol")
 }
 
 #[instrument]
