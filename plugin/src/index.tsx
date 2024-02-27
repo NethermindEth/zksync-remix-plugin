@@ -7,7 +7,6 @@ import { createWeb3Modal } from '@web3modal/wagmi/react'
 import { configureChains, createConfig, WagmiConfig } from 'wagmi'
 import { publicProvider } from 'wagmi/providers/public'
 import { CoinbaseWalletConnector } from 'wagmi/connectors/coinbaseWallet'
-
 import { zkSync, zkSyncSepoliaTestnet } from 'viem/chains'
 import { WalletConnectConnector } from 'wagmi/connectors/walletConnect'
 import { InjectedConnector } from 'wagmi/connectors/injected'
@@ -16,14 +15,15 @@ import { EIP6963Connector, walletConnectProvider } from '@web3modal/wagmi'
 const projectId: string = import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID // TODO who owns this? make sure nethermind owns this
 
 const {
-  chains,
   publicClient
-} = configureChains([zkSyncSepoliaTestnet, zkSync], [walletConnectProvider({ projectId }), publicProvider()])
+} = configureChains([zkSync, zkSyncSepoliaTestnet], [walletConnectProvider({ projectId }), publicProvider()])
+
+const chains = [zkSyncSepoliaTestnet, zkSync]
 
 const metadata = {
   name: 'zkSync remix plugin',
   description: 'zkSync remix plugin',
-  url: '',
+  url: 'https://remix.ethereum.org',
   icons: ['https://avatars.githubusercontent.com/u/37784886']
 }
 
