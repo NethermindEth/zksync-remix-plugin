@@ -1,0 +1,42 @@
+package com.algorithmhelper.algorithms.mathematics;
+
+import java.math.BigInteger;
+
+public class KaratsubaAlgorithm {
+
+    private final static BigInteger ZERO = new BigInteger("0");
+
+    /**
+     * Multiplies the two BigInteger numbers x and y, and returns the result.
+     *
+     * @param x, the first BigInteger
+     * @param y, the second BigInteger
+     * @return the result of the multiplication between x and y
+     * @throws IllegalArgumentException if x is null
+     * @throws IllegalArgumentException if y is null
+     */
+    public static BigInteger multiply(BigInteger x, BigInteger y) {
+        if (x == null)
+            throw new IllegalArgumentException("multiply with null x");
+        if (y == null)
+            throw new IllegalArgumentException("multiply with null y");
+
+        int N = Math.max(x.bitLength(), y.bitLength());
+
+        if (N <= 1000)
+            return x.multiply(y);
+
+        N = (N/2) + (N%2);
+
+        BigInteger x1 = x.shiftRight(N);
+        BigInteger x0 = x.subtract(x1.shiftLeft(N));
+        BigInteger y1 = y.shiftRight(N);
+        BigInteger y0 = y.subtract(y1.shiftLeft(N));
+
+        BigInteger z2 = multiply(x1, y1);
+        BigInteger z0 = multiply(x0, y0);
+        BigInteger z1 = multiply(x1.add(x0), y1.add(y0)).subtract(z2).subtract(z0);
+
+        return z0.add(z1.shiftLeft(N)).add(z2.shiftLeft(2*N));
+    }
+}
