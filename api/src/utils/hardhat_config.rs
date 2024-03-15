@@ -95,7 +95,7 @@ const config: HardhatUserConfig = {{
     zkSyncTestnet,
   }},
   solidity: {{
-    version: "0.8.25",
+    version: "0.8.24",
   }},
   // path to the directory with contracts
   paths: {{
