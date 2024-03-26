@@ -21,6 +21,7 @@
     "compile": "yarn hardhat compile"
   },
   "dependencies": {
+    "@chainlink/contracts": "^1.0.0",
     "@openzeppelin/contracts": "^5.0.2",
     "@thirdweb-dev/contracts": "^3.11.2"
   }
