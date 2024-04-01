@@ -11,7 +11,6 @@ pub mod worker;
 
 use crate::cors::CORS;
 use crate::rate_limiter::RateLimiter;
-use crate::tracing_log::init_logger;
 use crate::worker::WorkerEngine;
 use handlers::compile::{compile, compile_async, get_compile_result};
 use handlers::compiler_version::{allowed_versions, compiler_version};
@@ -23,9 +22,9 @@ use tracing::info;
 
 #[launch]
 async fn rocket() -> _ {
-    if let Err(err) = init_logger() {
-        eprintln!("Error initializing logger: {}", err);
-    }
+    // if let Err(err) = init_logger() {
+    //     eprintln!("Error initializing logger: {}", err);
+    // }
 
     let number_of_workers = match std::env::var("WORKER_THREADS") {
         Ok(v) => v.parse::<u32>().unwrap_or(2u32),
