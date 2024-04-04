@@ -42,4 +42,8 @@ pub enum ApiError {
     VersionNotSupported(String),
     #[error("Failed to get parent directory")]
     FailedToGetParentDir,
+    #[error("Failed to remove directory")]
+    FailedToRemoveDir,
+    #[error("Failed to remove file")]
+    FailedToRemoveFile(IoError),
 }

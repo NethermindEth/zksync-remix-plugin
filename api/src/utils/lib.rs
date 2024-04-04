@@ -5,6 +5,11 @@ use solang_parser::pt::Loc;
 use std::path::{Path, PathBuf};
 
 pub const SOL_ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/", "hardhat_env/contracts/");
+pub const ZK_CACHE_ROOT: &str = concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/",
+    "hardhat_env/contracts/cache-zk/"
+);
 pub const HARDHAT_ENV_ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/", "hardhat_env/");
 pub const ARTIFACTS_ROOT: &str =
     concat!(env!("CARGO_MANIFEST_DIR"), "/", "hardhat_env/artifacts-zk");
@@ -13,7 +18,7 @@ pub const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
 
 pub const DURATION_TO_PURGE: u64 = 60 * 5; // 5 minutes
 
-pub const ALLOWED_VERSIONS: [&str; 2] = ["latest", "1.3.13"];
+pub const ALLOWED_VERSIONS: [&str; 1] = ["latest"];
 
 #[allow(dead_code)]
 pub const TEMP_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/", "temp/");

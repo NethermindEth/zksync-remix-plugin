@@ -6,6 +6,7 @@ use crate::utils::hardhat_config::HardhatConfigBuilder;
 use crate::utils::lib::{
     check_file_ext, get_file_path, path_buf_to_string, status_code_to_message,
     to_human_error_batch, ALLOWED_VERSIONS, ARTIFACTS_ROOT, CARGO_MANIFEST_DIR, SOL_ROOT,
+    ZK_CACHE_ROOT,
 };
 use crate::worker::WorkerEngine;
 use rocket::serde::json;
@@ -67,12 +68,25 @@ pub async fn get_compile_result(process_id: String, engine: &State<WorkerEngine>
     })
 }
 
+async fn clean_up(paths: Vec<String>) {
+    for path in paths {
+        let _ = fs::remove_dir_all(path).await;
+    }
+
+    let _ = fs::remove_dir_all(ZK_CACHE_ROOT).await;
+}
+
+async fn wrap_error(paths: Vec<String>, error: ApiError) -> ApiError {
+    clean_up(paths).await;
+    error
+}
+
 pub async fn do_compile(
     version: String,
     remix_file_path: PathBuf,
 ) -> Result<Json<CompileResponse>> {
     if !ALLOWED_VERSIONS.contains(&version.as_str()) {
-        return Err(ApiError::VersionNotSupported(version));
+        return Err(wrap_error(vec![], ApiError::VersionNotSupported(version)).await);
     }
 
     let remix_file_path = path_buf_to_string(remix_file_path.clone())?;
@@ -81,12 +95,12 @@ pub async fn do_compile(
 
     let file_path = get_file_path(&version, &remix_file_path)
         .to_str()
-        .ok_or(ApiError::FailedToParseString)?
+        .ok_or(wrap_error(vec![], ApiError::FailedToParseString).await)?
         .to_string();
 
     let file_path_dir = Path::new(&file_path)
         .parent()
-        .ok_or(ApiError::FailedToGetParentDir)?
+        .ok_or(wrap_error(vec![], ApiError::FailedToGetParentDir).await)?
         .to_str()
         .ok_or(ApiError::FailedToParseString)?
         .to_string();
@@ -100,18 +114,19 @@ pub async fn do_compile(
         .join(remix_file_path.clone());
     let result_path_filename = result_path_prefix
         .file_name()
-        .ok_or(ApiError::FailedToParseString)?
+        .ok_or(wrap_error(vec![], ApiError::FailedToParseString).await)?
         .to_str()
-        .ok_or(ApiError::FailedToParseString)?;
+        .ok_or(wrap_error(vec![], ApiError::FailedToParseString).await)?;
+
     let result_path_filename_without_ext = result_path_filename.trim_end_matches(".sol");
 
     let result_path_prefix = result_path_prefix
         .parent()
-        .ok_or(ApiError::FailedToGetParentDir)?
+        .ok_or(wrap_error(vec![], ApiError::FailedToGetParentDir).await)?
         .join(result_path_filename_without_ext)
         .join(result_path_filename)
         .to_str()
-        .ok_or(ApiError::FailedToParseString)?
+        .ok_or(wrap_error(vec![], ApiError::FailedToParseString).await)?
         .to_string();
 
     let hardhat_config = HardhatConfigBuilder::new()
@@ -123,41 +138,90 @@ pub async fn do_compile(
     // save temporary hardhat config to file
     let hardhat_config_path = Path::new(SOL_ROOT).join(hardhat_config.name.clone());
 
-    fs::write(
+    let result = fs::write(
         hardhat_config_path.clone(),
         hardhat_config.to_string_config(),
     )
-    .await
-    .map_err(ApiError::FailedToWriteFile)?;
+    .await;
+
+    if let Err(err) = result {
+        return Err(wrap_error(vec![file_path_dir], ApiError::FailedToWriteFile(err)).await);
+    }
 
     let compile_result = Command::new("npx")
         .arg("hardhat")
         .arg("compile")
         .arg("--config")
         .arg(hardhat_config_path.clone())
+        .arg("--force")
         .current_dir(SOL_ROOT)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
-        .spawn()
-        .map_err(ApiError::FailedToExecuteCommand)?;
+        .spawn();
 
-    let output = compile_result
-        .wait_with_output()
-        .map_err(ApiError::FailedToReadOutput)?;
+    if let Err(err) = compile_result {
+        return Err(wrap_error(vec![file_path_dir], ApiError::FailedToExecuteCommand(err)).await);
+    }
+
+    // safe to unwrap because we checked for error above
+    let compile_result = compile_result.unwrap();
+
+    let output = compile_result.wait_with_output();
+    if let Err(err) = output {
+        return Err(wrap_error(
+            vec![file_path_dir, result_path_prefix],
+            ApiError::FailedToReadOutput(err),
+        )
+        .await);
+    }
+    let output = output.unwrap();
+
+    let clean_cache = Command::new("npx")
+        .arg("hardhat")
+        .arg("clean")
+        .current_dir(SOL_ROOT)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn();
+    if let Err(err) = clean_cache {
+        return Err(wrap_error(
+            vec![file_path_dir, result_path_prefix],
+            ApiError::FailedToExecuteCommand(err),
+        )
+        .await);
+    }
+
+    let clean_cache = clean_cache.unwrap();
+    let _ = clean_cache.wait_with_output();
 
     // delete the hardhat config file
-    fs::remove_file(hardhat_config_path)
-        .await
-        .map_err(ApiError::FailedToWriteFile)?;
+    let remove_file = fs::remove_file(hardhat_config_path).await;
+    if let Err(err) = remove_file {
+        return Err(wrap_error(
+            vec![file_path_dir, result_path_prefix],
+            ApiError::FailedToRemoveFile(err),
+        )
+        .await);
+    }
 
-    let message = String::from_utf8(output.stderr)
-        .map_err(ApiError::UTF8Error)?
-        .replace(&file_path, &remix_file_path)
-        .replace(&result_path_prefix, &remix_file_path)
-        .replace(CARGO_MANIFEST_DIR, "");
+    let message = match String::from_utf8(output.stderr) {
+        Ok(msg) => msg,
+        Err(err) => {
+            return Err(wrap_error(
+                vec![file_path_dir, result_path_prefix],
+                ApiError::UTF8Error(err),
+            )
+            .await);
+        }
+    }
+    .replace(&file_path, &remix_file_path)
+    .replace(&result_path_prefix, &remix_file_path)
+    .replace(CARGO_MANIFEST_DIR, "");
 
     let status = status_code_to_message(output.status.code());
     if status != "Success" {
+        clean_up(vec![file_path_dir, result_path_prefix]).await;
+
         return Ok(Json(CompileResponse {
             message,
             status,
@@ -165,12 +229,27 @@ pub async fn do_compile(
         }));
     }
 
-    let sol_file_content = fs::read_to_string(&file_path)
-        .await
-        .map_err(ApiError::FailedToReadFile)?;
+    let sol_file_content = match fs::read_to_string(&file_path).await {
+        Ok(content) => content,
+        Err(err) => {
+            return Err(wrap_error(
+                vec![file_path_dir, result_path_prefix],
+                ApiError::FailedToReadFile(err),
+            )
+            .await);
+        }
+    };
 
-    let (ast, _) = solang_parser::parse(&sol_file_content, 0)
-        .map_err(|e| ApiError::FailedToParseSol(to_human_error_batch(e)))?;
+    let (ast, _) = match solang_parser::parse(&sol_file_content, 0) {
+        Ok(result) => result,
+        Err(err) => {
+            return Err(wrap_error(
+                vec![file_path_dir, result_path_prefix],
+                ApiError::FailedToParseSol(to_human_error_batch(err)),
+            )
+            .await);
+        }
+    };
 
     // retrieve the contract names from the AST
     let mut compiled_contracts: Vec<SolFile> = Vec::new();
@@ -178,9 +257,16 @@ pub async fn do_compile(
         if let SourceUnitPart::ContractDefinition(def) = part {
             if let Some(ident) = &def.name {
                 let result_file_path = format!("{}/{}.json", result_path_prefix, ident);
-                let file_content = fs::read_to_string(result_file_path)
-                    .await
-                    .map_err(ApiError::FailedToReadFile)?;
+                let file_content = match fs::read_to_string(result_file_path).await {
+                    Ok(content) => content,
+                    Err(err) => {
+                        return Err(wrap_error(
+                            vec![file_path_dir, result_path_prefix],
+                            ApiError::FailedToReadFile(err),
+                        )
+                        .await);
+                    }
+                };
                 let file_name = format!("{}.json", ident);
 
                 compiled_contracts.push(SolFile {
@@ -190,6 +276,12 @@ pub async fn do_compile(
             }
         }
     }
+
+    clean_up(vec![
+        file_path_dir.to_string(),
+        result_path_prefix.to_string(),
+    ])
+    .await;
 
     Ok(Json(CompileResponse {
         message,
