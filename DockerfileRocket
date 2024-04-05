@@ -4,7 +4,6 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV DEBCONF_NONINTERACTIVE_SEEN=true
 
 RUN apt-get clean
-
 RUN apt-get update
 RUN apt-get install -y curl \
     git \
@@ -22,16 +21,12 @@ RUN echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com 
 
 RUN apt-get update
 
-RUN apt-get install grafana-agent
+RUN apt-get install grafana-agent-flow
 
 RUN npm install -g yarn && npm install -g n
 RUN n lts
 
 WORKDIR /opt/app
-
-#SHELL ["/bin/bash", "-lc"]
-
-# copy Remix plugin source and install Rust
 COPY . /opt/app
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain stable -y
@@ -40,20 +35,14 @@ RUN whoami
 
 ENV PATH="/root/.cargo/bin:${PATH}"
 
-# Build the API service
 WORKDIR /opt/app/api/hardhat_env
-
-RUN ls -la
-
 RUN yarn install
 
 WORKDIR /opt/app/api
-
 RUN cargo build --release
-
 RUN chmod +x ./docker_run.sh
 
 EXPOSE 8000
-
 WORKDIR /opt/app/api
+
 ENTRYPOINT [ "./docker_run.sh" ]
