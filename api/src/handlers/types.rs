@@ -14,6 +14,13 @@ pub struct CompileResponse {
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(crate = "rocket::serde")]
+pub struct VerifyResponse {
+    pub status: String,
+    pub message: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(crate = "rocket::serde")]
 pub struct SolFile {
     pub file_name: String,
     pub file_content: String,

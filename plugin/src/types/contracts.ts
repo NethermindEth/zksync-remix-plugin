@@ -23,6 +23,11 @@ interface CompilationResult {
   file_content: SolFile[]
 }
 
+interface VerificationResult {
+  status: string
+  message: string
+}
+
 interface SolFile {
   file_name: string
   file_content: string
@@ -55,5 +60,6 @@ export type {
   Output,
   DeployedContract,
   CompilationResult,
+  VerificationResult,
   SolFile
 }
