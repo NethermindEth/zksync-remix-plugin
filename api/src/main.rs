@@ -21,6 +21,7 @@ use handlers::process::get_process_status;
 use handlers::save_code::save_code;
 use handlers::service_version::service_version;
 use handlers::{health, who_is_this};
+use handlers::verify::verify;
 use rocket::tokio;
 use rocket::tokio::time::sleep;
 use tracing::info;
@@ -86,6 +87,7 @@ async fn rocket() -> _ {
                 compile,
                 compile_async,
                 get_compile_result,
+                verify,
                 save_code,
                 compiler_version,
                 get_process_status,

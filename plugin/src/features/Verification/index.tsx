@@ -1,12 +1,14 @@
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
+/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import React, { useEffect } from 'react'
 import { apiUrl } from '../../utils/network'
-import { artifactFolder, getFileExtension, getFileNameFromPath } from '../../utils/utils'
+import { getFileExtension, getFileNameFromPath } from '../../utils/utils'
 import './styles.css'
 import Container from '../../ui_components/Container'
 import storage from '../../utils/storage'
 import { ethers } from 'ethers'
 import { type AccordianTabs } from '../Plugin'
-import { type VerificationResult, type Contract } from '../../types/contracts'
+import { type VerificationResult } from '../../types/contracts'
 import { asyncFetch } from '../../utils/async_fetch'
 import {
   activeTomlPathAtom,
@@ -19,9 +21,8 @@ import {
   statusAtom,
   tomlPathsAtom
 } from '../../atoms/verification'
-import { useAtom, useAtomValue, useSetAtom } from 'jotai'
+import { useAtomValue, useSetAtom } from 'jotai'
 import { solidityVersionAtom } from '../../atoms/version'
-import { contractsAtom, selectedContractAtom } from '../../atoms/compiledContracts'
 import useRemixClient from '../../hooks/useRemixClient'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -31,9 +32,6 @@ interface VerificationProps {
 
 const Verification: React.FC<VerificationProps> = ({ setAccordian }) => {
   const { remixClient } = useRemixClient()
-
-  const [contracts, setContracts] = useAtom(contractsAtom)
-  const setSelectedContract = useSetAtom(selectedContractAtom)
 
   const {
     status,
@@ -58,6 +56,7 @@ const Verification: React.FC<VerificationProps> = ({ setAccordian }) => {
   const solidityVersion = useAtomValue(solidityVersionAtom)
 
   const [currWorkspacePath, setCurrWorkspacePath] = React.useState<string>('')
+  const [contractAddress, setContractAddress] = React.useState<string>('')
 
   useEffect(() => {
     // read hashDir from localStorage
@@ -109,7 +108,7 @@ const Verification: React.FC<VerificationProps> = ({ setAccordian }) => {
         remixClient.emit('statusChanged', {
           key: 'failed',
           type: 'info',
-          title: 'Please open a solidity file to compile'
+          title: 'Please open a solidity file to verify'
         })
         console.log('error: ', e)
       }
@@ -169,7 +168,7 @@ const Verification: React.FC<VerificationProps> = ({ setAccordian }) => {
         remixClient.emit('statusChanged', {
           key: 'failed',
           type: 'info',
-          title: 'Please open a solidity file to compile'
+          title: 'Please open a solidity file to verify'
         })
         console.log('error: ', e)
       }
@@ -366,11 +365,11 @@ const Verification: React.FC<VerificationProps> = ({ setAccordian }) => {
         throw new Error('Solidity Verification Request Failed')
       }
 
-      setStatus('Compiling...')
+      setStatus('Verifying...')
 
       response = await asyncFetch(
-        `verify-async/${solidityVersion}/${contractAddress}/${hashDir}/${currentFilePath}`,
-        'verification-result',
+        `verify/${solidityVersion}/${contractAddress}/${hashDir}/${currentFilePath}`,
+        'verification-result'
       )
 
       if (!response.ok) {
@@ -471,11 +470,22 @@ const Verification: React.FC<VerificationProps> = ({ setAccordian }) => {
   ): React.ReactElement => {
     return (
       <Container>
-        {activeTomlPath && tomlPaths?.length > 0 && (
+        {activeTomlPath !== '' && activeTomlPath !== undefined && tomlPaths?.length > 0 && (
           <div className='project-dropdown-wrapper d-flex flex-column mb-3'>
             <div className='mx-auto'>Verify a single Solidity contract:</div>
           </div>
         )}
+        <div className='input-field'>
+          <label htmlFor='input-contract-address' className='input-label'>Contract Address</label>
+          <input
+            type='text'
+            id='input-contract-address'
+            value={contractAddress}
+            onChange={(e) => { setContractAddress(e.target.value) }}
+            className='input-text'
+            placeholder={'Contract Address'}
+          />
+        </div>
         <button
           className='btn btn-primary w-100 text-break remixui_disabled mb-1 mt-1 px-0'
           style={{

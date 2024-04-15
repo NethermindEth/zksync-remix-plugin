@@ -67,7 +67,7 @@ const DevnetAccountSelector: React.FC = () => {
           }
         }
       })().catch(console.error)
-    }, 1000)
+    }, 10000)
 
     return () => {
       clearInterval(interval)

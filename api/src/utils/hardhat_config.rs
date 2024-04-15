@@ -76,7 +76,7 @@ export const zkSyncTestnet = process.env.NODE_ENV == "test"
     ethNetwork: "sepolia", // The Ethereum Web3 RPC URL, or the identifier of the network (e.g. `mainnet` or `sepolia`)
     zksync: true,
     // Verification endpoint for Sepolia
-    verifyURL: 'https://explorer.sepolia.era.zksync.dev/contract_verification'
+    verifyURL: "https://explorer.sepolia.era.zksync.dev/contract_verification"
   };
 "#;
 

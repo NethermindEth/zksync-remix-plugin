@@ -39,11 +39,11 @@ pub async fn verify(
 }
 
 async fn clean_up(paths: Vec<String>) {
-    for path in paths {
-        let _ = fs::remove_dir_all(path).await;
-    }
+    // for path in paths {
+    //     let _ = fs::remove_dir_all(path).await;
+    // }
 
-    let _ = fs::remove_dir_all(ZK_CACHE_ROOT).await;
+    // let _ = fs::remove_dir_all(ZK_CACHE_ROOT).await;
 }
 
 async fn wrap_error(paths: Vec<String>, error: ApiError) -> ApiError {
@@ -104,7 +104,8 @@ pub async fn do_verify(
         .arg("verify")
         .arg("--config")
         .arg(hardhat_config_path.clone())
-        .arg("--network zkSyncTestnet")
+        .arg("--network")
+        .arg("zkSyncTestnet")
         .arg(contract_address)
         .current_dir(SOL_ROOT)
         .stdout(Stdio::piped())
@@ -171,7 +172,7 @@ pub async fn do_verify(
 
     let status = status_code_to_message(output.status.code());
     if status != "Success" {
-        clean_up(vec![file_path_dir, result_path_prefix]).await;
+        clean_up(vec![file_path_dir]).await;
 
         return Ok(Json(VerifyResponse {
             message,
