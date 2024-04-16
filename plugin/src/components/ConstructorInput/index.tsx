@@ -19,31 +19,41 @@ const ConstructorInput: React.FC<ConstructorContractsProps> = ({
 }: ConstructorContractsProps) => {
   const selectedContract = useAtomValue(selectedContractAtom)
 
-  const [constructor, setConstructor] = useState<AbiElement | undefined>(undefined)
+  const [constructor, setConstructor] = useState<AbiElement | undefined>(
+    undefined
+  )
 
   useEffect(() => {
-    const foundConstructor = selectedContract?.abi.find((abiElement: AbiElement) => {
-      return abiElement.type === 'constructor'
-    })
+    const foundConstructor = selectedContract?.abi.find(
+      (abiElement: AbiElement) => {
+        return abiElement.type === 'constructor'
+      }
+    )
 
     setConstructor(foundConstructor)
+
+    console.log('found constrcuotr', foundConstructor)
   }, [selectedContract])
 
   return (
     <>
-      {
-        constructor?.inputs.map((input: Input, index: number) => {
-          return (
-              <InputField name={generateInputName(input)} index={index} value={inputs[index]}
-                          onChange={(index, newValue) => {
-                            const newInputs = [...inputs]
-                            newInputs[index] = newValue
-                            setInputs(newInputs)
-                          }} key={index} />
-          )
-        }
+      {constructor?.inputs.map((input: Input, index: number) => {
+        return (
+          <InputField
+            name={generateInputName(input)}
+            index={index}
+            value={inputs[index]}
+            type={input.type}
+            onChange={(index, newValue) => {
+              const newInputs = [...inputs]
+
+              newInputs[index] = newValue as any
+              setInputs(newInputs)
+            }}
+            key={index}
+          />
         )
-      }
+      })}
     </>
   )
 }

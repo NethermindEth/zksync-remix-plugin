@@ -358,6 +358,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           }
         }
       )
+      console.log(response)
 
       if (!response.ok) {
         await remixClient.call(

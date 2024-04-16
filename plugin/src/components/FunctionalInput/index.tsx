@@ -19,7 +19,9 @@ interface CompiledContractsProps {
   element: AbiElement
 }
 
-const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledContractsProps) => {
+const MethodInput: React.FC<CompiledContractsProps> = ({
+  element
+}: CompiledContractsProps) => {
   const { remixClient } = useRemixClient()
   const { data: walletClient } = useWalletClient()
 
@@ -45,8 +47,11 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
       }
 
       const contractAddress = selectedContract.address
-      const contract = new Contract(contractAddress, selectedContract.abi, account)
-        .connect(account)
+      const contract = new Contract(
+        contractAddress,
+        selectedContract.abi,
+        account
+      ).connect(account)
 
       const method = contract[element.name]
 
@@ -70,7 +75,7 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
           type: 'invoke',
           txId: result.hash,
           env,
-          chain: (env !== 'manual' ? walletClient?.chain : mockManualChain),
+          chain: env !== 'manual' ? walletClient?.chain : mockManualChain,
           provider
         }
 
@@ -109,23 +114,32 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
 
   return (
     <div>
-      <button onClick={() => {
-        callContract().catch(console.error)
-      }} className={`btn btn-primary w-100 text-break mb-1 mt-1 px-0 ${
-        element.stateMutability === 'view' ? '' : 'btn-warning'
-      }`}>{element.name}</button>
-      {
-        element.inputs.map((input: Input, index: number) => {
-          return (
-            <InputField key={index} placeholder={generateInputName(input)} index={index} value={inputs[index]}
-                        onChange={(index, newValue) => {
-                          const newInputs = [...inputs]
-                          newInputs[index] = newValue
-                          setInputs(newInputs)
-                        }} />
-          )
-        })
-      }
+      <button
+        onClick={() => {
+          callContract().catch(console.error)
+        }}
+        className={`btn btn-primary w-100 text-break mb-1 mt-1 px-0 ${
+          element.stateMutability === 'view' ? '' : 'btn-warning'
+        }`}
+      >
+        {element.name}
+      </button>
+      {element.inputs.map((input: Input, index: number) => {
+        return (
+          <InputField
+            key={index}
+            type={input.type}
+            placeholder={generateInputName(input)}
+            index={index}
+            value={inputs[index]}
+            onChange={(index, newValue) => {
+              const newInputs = [...inputs]
+              newInputs[index] = newValue as any
+              setInputs(newInputs)
+            }}
+          />
+        )
+      })}
     </div>
   )
 }
