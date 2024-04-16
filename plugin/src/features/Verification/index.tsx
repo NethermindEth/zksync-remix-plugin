@@ -381,11 +381,10 @@ const Verification: React.FC<VerificationProps> = ({ setAccordian }) => {
         throw new Error('Solidity Verification Request Failed')
       }
 
-      await remixClient.call(
-        'notification' as any,
-        'toast',
-        'Solidity verification request successful'
-      )
+      await remixClient.terminal.log({
+        value: 'Solidity verification request successful',
+        type: 'info'
+      })
 
       // get Json body from response
       const verificationResult = JSON.parse(await response.text()) as VerificationResult
