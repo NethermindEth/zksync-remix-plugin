@@ -12,14 +12,26 @@ pub mod worker;
 use crate::cors::CORS;
 use crate::rate_limiter::RateLimiter;
 use crate::tracing_log::init_logger;
+use crate::utils::lib::{ARTIFACTS_ROOT, SOL_ROOT};
 use crate::worker::WorkerEngine;
+use clokwerk::{Scheduler, TimeUnits};
 use handlers::compile::{compile, compile_async, get_compile_result};
 use handlers::compiler_version::{allowed_versions, compiler_version};
 use handlers::process::get_process_status;
 use handlers::save_code::save_code;
 use handlers::service_version::service_version;
 use handlers::{health, who_is_this};
+use rocket::tokio;
+use rocket::tokio::time::sleep;
 use tracing::info;
+
+async fn clear_artifacts() {
+    let _ = tokio::fs::remove_dir_all(ARTIFACTS_ROOT).await;
+    let _ = tokio::fs::create_dir_all(ARTIFACTS_ROOT).await;
+    let _ = tokio::fs::remove_dir_all(SOL_ROOT).await;
+    let _ = tokio::fs::create_dir_all(SOL_ROOT).await;
+    info!("artifacts cleared!");
+}
 
 #[launch]
 async fn rocket() -> _ {
@@ -41,6 +53,23 @@ async fn rocket() -> _ {
     let mut engine = WorkerEngine::new(number_of_workers, queue_size);
 
     engine.start();
+
+    // Create a new scheduler
+    let mut scheduler = Scheduler::new();
+
+    scheduler.every(1.day()).run(move || {
+        tokio::spawn(async {
+            clear_artifacts().await;
+        });
+    });
+
+    // Run the scheduler in a separate thread
+    tokio::spawn(async move {
+        loop {
+            scheduler.run_pending();
+            sleep(std::time::Duration::from_millis(100)).await;
+        }
+    });
 
     info!("Number of workers: {}", number_of_workers);
     info!("Queue size: {}", queue_size);
