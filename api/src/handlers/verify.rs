@@ -4,9 +4,8 @@ use crate::rate_limiter::RateLimited;
 use crate::types::{ApiError, Result};
 use crate::utils::hardhat_config::HardhatConfigBuilder;
 use crate::utils::lib::{
-    check_file_ext, get_file_path, path_buf_to_string, status_code_to_message,
-    ALLOWED_VERSIONS, ARTIFACTS_ROOT, CARGO_MANIFEST_DIR, SOL_ROOT,
-    ZK_CACHE_ROOT,
+    check_file_ext, get_file_path, path_buf_to_string, status_code_to_message, ALLOWED_VERSIONS,
+    ARTIFACTS_ROOT, CARGO_MANIFEST_DIR, SOL_ROOT, ZK_CACHE_ROOT,
 };
 use crate::worker::WorkerEngine;
 use rocket::serde::json;
@@ -26,7 +25,10 @@ pub async fn verify(
     remix_file_path: PathBuf,
     _rate_limited: RateLimited,
 ) -> Json<VerifyResponse> {
-    info!("/verify/{:?}/{:?}/{:?}", version, contract_address, remix_file_path);
+    info!(
+        "/verify/{:?}/{:?}/{:?}",
+        version, contract_address, remix_file_path
+    );
     do_verify(version, contract_address, remix_file_path)
         .await
         .unwrap_or_else(|e| {
@@ -46,7 +48,10 @@ pub async fn verify_async(
     _rate_limited: RateLimited,
     engine: &State<WorkerEngine>,
 ) -> String {
-    info!("/verify-async/{:?}/{:?}/{:?}", version, contract_address, remix_file_path);
+    info!(
+        "/verify-async/{:?}/{:?}/{:?}",
+        version, contract_address, remix_file_path
+    );
     do_process_command(
         ApiCommand::Verify {
             path: remix_file_path,
@@ -152,11 +157,7 @@ pub async fn do_verify(
 
     let output = verify_result.wait_with_output();
     if let Err(err) = output {
-        return Err(wrap_error(
-            vec![file_path_dir],
-            ApiError::FailedToReadOutput(err),
-        )
-        .await);
+        return Err(wrap_error(vec![file_path_dir], ApiError::FailedToReadOutput(err)).await);
     }
     let output = output.unwrap();
 
@@ -168,11 +169,7 @@ pub async fn do_verify(
         .stderr(Stdio::piped())
         .spawn();
     if let Err(err) = clean_cache {
-        return Err(wrap_error(
-            vec![file_path_dir],
-            ApiError::FailedToExecuteCommand(err),
-        )
-        .await);
+        return Err(wrap_error(vec![file_path_dir], ApiError::FailedToExecuteCommand(err)).await);
     }
 
     let clean_cache = clean_cache.unwrap();
@@ -181,21 +178,13 @@ pub async fn do_verify(
     // delete the hardhat config file
     let remove_file = fs::remove_file(hardhat_config_path).await;
     if let Err(err) = remove_file {
-        return Err(wrap_error(
-            vec![file_path_dir],
-            ApiError::FailedToRemoveFile(err),
-        )
-        .await);
+        return Err(wrap_error(vec![file_path_dir], ApiError::FailedToRemoveFile(err)).await);
     }
 
     let message = match String::from_utf8(output.stderr) {
         Ok(msg) => msg,
         Err(err) => {
-            return Err(wrap_error(
-                vec![file_path_dir],
-                ApiError::UTF8Error(err),
-            )
-            .await);
+            return Err(wrap_error(vec![file_path_dir], ApiError::UTF8Error(err)).await);
         }
     }
     .replace(&file_path, &remix_file_path)
@@ -205,16 +194,10 @@ pub async fn do_verify(
     if status != "Success" {
         clean_up(vec![file_path_dir]).await;
 
-        return Ok(Json(VerifyResponse {
-            message,
-            status,
-        }));
+        return Ok(Json(VerifyResponse { message, status }));
     }
 
     clean_up(vec![file_path_dir.to_string()]).await;
 
-    Ok(Json(VerifyResponse {
-        message,
-        status,
-    }))
+    Ok(Json(VerifyResponse { message, status }))
 }

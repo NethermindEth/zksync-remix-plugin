@@ -1,15 +1,15 @@
 pub mod compile;
-pub mod verify;
 pub mod compiler_version;
 pub mod process;
 pub mod save_code;
 pub mod service_version;
 pub mod types;
+pub mod verify;
 
 use crate::handlers::compile::do_compile;
-use crate::handlers::verify::do_verify;
 use crate::handlers::compiler_version::do_compiler_version;
 use crate::handlers::types::{ApiCommand, ApiCommandResult, HealthCheckResponse};
+use crate::handlers::verify::do_verify;
 use crate::types::ApiError;
 use crate::utils::lib::{get_file_path, init_parent_directories, ARTIFACTS_ROOT};
 use rocket::tokio;
