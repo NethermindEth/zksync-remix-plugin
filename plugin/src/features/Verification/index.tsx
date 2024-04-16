@@ -368,8 +368,8 @@ const Verification: React.FC<VerificationProps> = ({ setAccordian }) => {
       setStatus('Verifying...')
 
       response = await asyncFetch(
-        `verify/${solidityVersion}/${contractAddress}/${hashDir}/${currentFilePath}`,
-        'verification-result'
+        `verify-async/${solidityVersion}/${contractAddress}/${hashDir}/${currentFilePath}`,
+        'verify-result'
       )
 
       if (!response.ok) {

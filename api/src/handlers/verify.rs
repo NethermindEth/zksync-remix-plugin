@@ -1,11 +1,11 @@
 use crate::handlers::process::{do_process_command, fetch_process_result};
-use crate::handlers::types::{ApiCommand, ApiCommandResult, VerifyResponse, SolFile};
+use crate::handlers::types::{ApiCommand, ApiCommandResult, VerifyResponse};
 use crate::rate_limiter::RateLimited;
 use crate::types::{ApiError, Result};
 use crate::utils::hardhat_config::HardhatConfigBuilder;
 use crate::utils::lib::{
     check_file_ext, get_file_path, path_buf_to_string, status_code_to_message,
-    to_human_error_batch, ALLOWED_VERSIONS, ARTIFACTS_ROOT, CARGO_MANIFEST_DIR, SOL_ROOT,
+    ALLOWED_VERSIONS, ARTIFACTS_ROOT, CARGO_MANIFEST_DIR, SOL_ROOT,
     ZK_CACHE_ROOT,
 };
 use crate::worker::WorkerEngine;
@@ -13,7 +13,6 @@ use rocket::serde::json;
 use rocket::serde::json::Json;
 use rocket::tokio::fs;
 use rocket::State;
-use solang_parser::pt::SourceUnitPart;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use tracing::info;
@@ -38,12 +37,44 @@ pub async fn verify(
         })
 }
 
-async fn clean_up(paths: Vec<String>) {
-    // for path in paths {
-    //     let _ = fs::remove_dir_all(path).await;
-    // }
+#[instrument]
+#[get("/verify-async/<version>/<contract_address>/<remix_file_path..>")]
+pub async fn verify_async(
+    version: String,
+    contract_address: String,
+    remix_file_path: PathBuf,
+    _rate_limited: RateLimited,
+    engine: &State<WorkerEngine>,
+) -> String {
+    info!("/verify-async/{:?}/{:?}/{:?}", version, contract_address, remix_file_path);
+    do_process_command(
+        ApiCommand::Verify {
+            path: remix_file_path,
+            contract_address,
+            version,
+        },
+        engine,
+    )
+}
 
-    // let _ = fs::remove_dir_all(ZK_CACHE_ROOT).await;
+#[instrument]
+#[get("/verify-result/<process_id>")]
+pub async fn get_verify_result(process_id: String, engine: &State<WorkerEngine>) -> String {
+    info!("/verify-result/{:?}", process_id);
+    fetch_process_result(process_id, engine, |result| match result {
+        ApiCommandResult::Verify(verification_result) => {
+            json::to_string(&verification_result).unwrap_or_default()
+        }
+        _ => String::from("Result not available"),
+    })
+}
+
+async fn clean_up(paths: Vec<String>) {
+    for path in paths {
+        let _ = fs::remove_dir_all(path).await;
+    }
+
+    let _ = fs::remove_dir_all(ZK_CACHE_ROOT).await;
 }
 
 async fn wrap_error(paths: Vec<String>, error: ApiError) -> ApiError {

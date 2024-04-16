@@ -7,6 +7,7 @@ pub mod service_version;
 pub mod types;
 
 use crate::handlers::compile::do_compile;
+use crate::handlers::verify::do_verify;
 use crate::handlers::compiler_version::do_compiler_version;
 use crate::handlers::types::{ApiCommand, ApiCommandResult, HealthCheckResponse};
 use crate::types::ApiError;
@@ -105,6 +106,14 @@ pub async fn dispatch_command(command: ApiCommand) -> Result<ApiCommandResult, A
             version,
         } => match do_compile(version, remix_file_path).await {
             Ok(compile_response) => Ok(ApiCommandResult::Compile(compile_response.into_inner())),
+            Err(e) => Err(e),
+        },
+        ApiCommand::Verify {
+            path: remix_file_path,
+            contract_address,
+            version,
+        } => match do_verify(version, contract_address, remix_file_path).await {
+            Ok(verify_response) => Ok(ApiCommandResult::Verify(verify_response.into_inner())),
             Err(e) => Err(e),
         },
         ApiCommand::Shutdown => Ok(ApiCommandResult::Shutdown),

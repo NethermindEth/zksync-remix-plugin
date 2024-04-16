@@ -46,6 +46,11 @@ pub enum ApiCommand {
         version: String,
         path: PathBuf,
     },
+    Verify {
+        version: String,
+        contract_address: String,
+        path: PathBuf,
+    },
     #[allow(dead_code)]
     Shutdown,
 }
@@ -54,6 +59,7 @@ pub enum ApiCommand {
 pub enum ApiCommandResult {
     CompilerVersion(String),
     Compile(CompileResponse),
+    Verify(VerifyResponse),
     #[allow(dead_code)]
     Shutdown,
 }
