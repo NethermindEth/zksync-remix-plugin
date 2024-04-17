@@ -13,12 +13,14 @@ const SolidityVersion: React.FC = () => {
   const { remixClient } = useRemixClient()
 
   const envViteVersion: string | undefined = import.meta.env.VITE_VERSION
-  const pluginVersion = envViteVersion !== undefined ? `v${envViteVersion}` : 'v0.2.5'
+  const pluginVersion =
+    envViteVersion !== undefined ? `v${envViteVersion}` : 'v0.2.5'
 
   const [solidityVersion, setSolidityVersion] = useAtom(solidityVersionAtom)
   const [versions, setVersions] = useAtom(versionsAtom)
 
   useEffect(() => {
+    console.log(apiUrl, 'hehe')
     const fetchServiceVersion = async (): Promise<void> => {
       try {
         if (apiUrl !== undefined) {
@@ -29,6 +31,7 @@ const SolidityVersion: React.FC = () => {
               'Content-Type': 'application/octet-stream'
             }
           })
+          console.log(response)
 
           const serviceVersion = await response.text()
 
@@ -45,11 +48,10 @@ const SolidityVersion: React.FC = () => {
               `🔴 You are using an outdated version of the zkSync plugin: ${pluginVersion}, please update to ${serviceVersion} by force-refreshing the page and clearing your browser cache.`
             )
 
-            await remixClient.terminal.log(
-              {
-                value: `🔴 You are using an outdated version of the zkSync plugin: ${pluginVersion}, please update to ${serviceVersion} by force-refreshing the page and clearing your browser cache.`,
-                type: 'error'
-              })
+            await remixClient.terminal.log({
+              value: `🔴 You are using an outdated version of the zkSync plugin: ${pluginVersion}, please update to ${serviceVersion} by force-refreshing the page and clearing your browser cache.`,
+              type: 'error'
+            })
           } else {
             await remixClient.call(
               'notification' as any,
@@ -57,11 +59,10 @@ const SolidityVersion: React.FC = () => {
               `🟢 You are using the latest version of the zkSync plugin: ${pluginVersion}`
             )
 
-            await remixClient.terminal.log(
-              {
-                value: `🟢 You are using the latest version of the zkSync plugin: ${pluginVersion}`,
-                type: 'info'
-              })
+            await remixClient.terminal.log({
+              value: `🟢 You are using the latest version of the zkSync plugin: ${pluginVersion}`,
+              type: 'info'
+            })
           }
         }
       } catch (e) {
@@ -136,11 +137,11 @@ const SolidityVersion: React.FC = () => {
   }, [versions])
 
   return (
-    <div className='version-wrapper'>
+    <div className="version-wrapper">
       <div>
         <D.Root>
           <D.Trigger>
-            <label className='solidity-version-legend'>
+            <label className="solidity-version-legend">
               Using zksolc-{solidityVersion} <BsChevronDown />
             </label>
           </D.Trigger>
@@ -162,12 +163,12 @@ const SolidityVersion: React.FC = () => {
           </D.Portal>
         </D.Root>
       </div>
-      <div className='version-right'>
-        <label className='nethermind-powered'>
+      <div className="version-right">
+        <label className="nethermind-powered">
           <span style={{ marginRight: '4px' }}>Powered by </span>
-          <Nethermind size='xs' />
+          <Nethermind size="xs" />
         </label>
-        <label className='plugin-version'>
+        <label className="plugin-version">
           Plugin version: {pluginVersion}
         </label>
       </div>

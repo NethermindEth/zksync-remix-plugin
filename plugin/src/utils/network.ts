@@ -20,9 +20,9 @@ const devnets: Devnet[] = [
     url: remoteDevnetUrl
   }
 ]
-
+console.log(import.meta.env.VITE_API_URL, 'metaurl')
 const testnetUrl = 'https://testnet.era.zksync.dev'
-
+console.log(apiUrl, 'apirul is this')
 const getAccounts = async (customDevnetUrl: string): Promise<DevnetAccount[]> => {
   const privateKeys = [
     '0xac1e735be8536c6534bb4f17f06f6afc73b2b5ba84ac2cfb12f7461b20c0bbe3',
