@@ -24,6 +24,7 @@ import {
 import { useAtomValue, useSetAtom } from 'jotai'
 import { solidityVersionAtom } from '../../atoms/version'
 import useRemixClient from '../../hooks/useRemixClient'
+import { providerAtom } from '../../atoms/connection'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface VerificationProps {
@@ -54,6 +55,7 @@ const Verification: React.FC<VerificationProps> = ({ setAccordian }) => {
   const setIsValidSolidity = useSetAtom(isValidSolidityAtom)
 
   const solidityVersion = useAtomValue(solidityVersionAtom)
+  const provider = useAtomValue(providerAtom)
 
   const [currWorkspacePath, setCurrWorkspacePath] = React.useState<string>('')
   const [contractAddress, setContractAddress] = React.useState<string>('')
@@ -367,8 +369,14 @@ const Verification: React.FC<VerificationProps> = ({ setAccordian }) => {
 
       setStatus('Verifying...')
 
+      let chainName = 'unknown'
+      if (provider) {
+        if (provider.network.chainId === 300) chainName = 'sepolia'
+        if (provider.network.chainId === 324) chainName = 'mainnet'
+      }
+
       response = await asyncFetch(
-        `verify-async/${solidityVersion}/${contractAddress}/${hashDir}/${currentFilePath}`,
+        `verify-async/${solidityVersion}/${chainName}/${contractAddress}/${hashDir}/${currentFilePath}`,
         'verify-result'
       )
 
@@ -385,6 +393,12 @@ const Verification: React.FC<VerificationProps> = ({ setAccordian }) => {
         value: 'Solidity verification request successful',
         type: 'info'
       })
+
+      await remixClient.call(
+        'notification' as any,
+        'toast',
+        'Solidity verification request successful'
+      )
 
       // get Json body from response
       const verificationResult = JSON.parse(await response.text()) as VerificationResult

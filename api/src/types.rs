@@ -46,4 +46,6 @@ pub enum ApiError {
     FailedToRemoveDir,
     #[error("Failed to remove file")]
     FailedToRemoveFile(IoError),
+    #[error("Unknown network selected: {0}")]
+    UnknownNetwork(String),
 }

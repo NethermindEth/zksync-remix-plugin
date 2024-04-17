@@ -48,6 +48,7 @@ pub enum ApiCommand {
     },
     Verify {
         version: String,
+        network: String,
         contract_address: String,
         path: PathBuf,
     },

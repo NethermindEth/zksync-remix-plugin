@@ -18,18 +18,19 @@ use tracing::info;
 use tracing::instrument;
 
 #[instrument]
-#[get("/verify/<version>/<contract_address>/<remix_file_path..>")]
+#[get("/verify/<version>/<network>/<contract_address>/<remix_file_path..>")]
 pub async fn verify(
     version: String,
+    network: String,
     contract_address: String,
     remix_file_path: PathBuf,
     _rate_limited: RateLimited,
 ) -> Json<VerifyResponse> {
     info!(
-        "/verify/{:?}/{:?}/{:?}",
-        version, contract_address, remix_file_path
+        "/verify/{:?}/{:?}/{:?}/{:?}",
+        version, network, contract_address, remix_file_path
     );
-    do_verify(version, contract_address, remix_file_path)
+    do_verify(version, network, contract_address, remix_file_path)
         .await
         .unwrap_or_else(|e| {
             Json(VerifyResponse {
@@ -40,22 +41,24 @@ pub async fn verify(
 }
 
 #[instrument]
-#[get("/verify-async/<version>/<contract_address>/<remix_file_path..>")]
+#[get("/verify-async/<version>/<network>/<contract_address>/<remix_file_path..>")]
 pub async fn verify_async(
     version: String,
+    network: String,
     contract_address: String,
     remix_file_path: PathBuf,
     _rate_limited: RateLimited,
     engine: &State<WorkerEngine>,
 ) -> String {
     info!(
-        "/verify-async/{:?}/{:?}/{:?}",
-        version, contract_address, remix_file_path
+        "/verify-async/{:?}/{:?}/{:?}/{:?}",
+        version, network, contract_address, remix_file_path
     );
     do_process_command(
         ApiCommand::Verify {
             path: remix_file_path,
             contract_address,
+            network,
             version,
         },
         engine,
@@ -89,6 +92,7 @@ async fn wrap_error(paths: Vec<String>, error: ApiError) -> ApiError {
 
 pub async fn do_verify(
     version: String,
+    network: String,
     contract_address: String,
     remix_file_path: PathBuf,
 ) -> Result<Json<VerifyResponse>> {
@@ -135,13 +139,18 @@ pub async fn do_verify(
         return Err(wrap_error(vec![file_path_dir], ApiError::FailedToWriteFile(err)).await);
     }
 
+    if ! vec!["sepolia", "mainnet"].contains(&network.as_str()) {
+        return Err(wrap_error(vec![file_path_dir], ApiError::UnknownNetwork(network)).await);
+    }
+    let network_arg = if network == "sepolia" { "zkSyncTestnet" } else { "zkSyncMainnet" };
+
     let verify_result = Command::new("npx")
         .arg("hardhat")
         .arg("verify")
         .arg("--config")
         .arg(hardhat_config_path.clone())
         .arg("--network")
-        .arg("zkSyncTestnet")
+        .arg(network_arg)
         .arg(contract_address)
         .current_dir(SOL_ROOT)
         .stdout(Stdio::piped())

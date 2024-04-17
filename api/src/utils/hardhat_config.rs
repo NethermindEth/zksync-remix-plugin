@@ -78,6 +78,14 @@ export const zkSyncTestnet = process.env.NODE_ENV == "test"
     // Verification endpoint for Sepolia
     verifyURL: "https://explorer.sepolia.era.zksync.dev/contract_verification"
   };
+
+export const zkSyncMainnet = {
+    url: "https://mainnet.era.zksync.io", // The testnet RPC URL of zkSync Era network.
+    ethNetwork: "mainnet", // The Ethereum Web3 RPC URL, or the identifier of the network (e.g. `mainnet` or `sepolia`)
+    zksync: true,
+    // Verification endpoint for Mainnet
+    verifyURL: "https://zksync2-mainnet-explorer.zksync.io/contract_verification"
+  };
 "#;
 
         let config = format!(
@@ -93,6 +101,7 @@ const config: HardhatUserConfig = {{
       zksync: false,
     }},
     zkSyncTestnet,
+    zkSyncMainnet,
   }},
   solidity: {{
     version: "0.8.24",
