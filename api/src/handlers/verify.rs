@@ -4,8 +4,8 @@ use crate::rate_limiter::RateLimited;
 use crate::types::{ApiError, Result};
 use crate::utils::hardhat_config::HardhatConfigBuilder;
 use crate::utils::lib::{
-    check_file_ext, get_file_path, path_buf_to_string, status_code_to_message, ALLOWED_VERSIONS,
-    ARTIFACTS_ROOT, CARGO_MANIFEST_DIR, SOL_ROOT, ZK_CACHE_ROOT,
+    check_file_ext, clean_up, get_file_path, path_buf_to_string, status_code_to_message,
+    ALLOWED_VERSIONS, ARTIFACTS_ROOT, CARGO_MANIFEST_DIR, SOL_ROOT,
 };
 use crate::worker::WorkerEngine;
 use rocket::serde::json;
@@ -16,6 +16,8 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use tracing::info;
 use tracing::instrument;
+
+const ALLOWED_NETWORKS: [&str; 2] = ["sepolia", "mainnet"];
 
 #[instrument]
 #[get("/verify/<version>/<network>/<contract_address>/<remix_file_path..>")]
@@ -77,14 +79,6 @@ pub async fn get_verify_result(process_id: String, engine: &State<WorkerEngine>)
     })
 }
 
-async fn clean_up(paths: Vec<String>) {
-    for path in paths {
-        let _ = fs::remove_dir_all(path).await;
-    }
-
-    let _ = fs::remove_dir_all(ZK_CACHE_ROOT).await;
-}
-
 async fn wrap_error(paths: Vec<String>, error: ApiError) -> ApiError {
     clean_up(paths).await;
     error
@@ -139,10 +133,14 @@ pub async fn do_verify(
         return Err(wrap_error(vec![file_path_dir], ApiError::FailedToWriteFile(err)).await);
     }
 
-    if ! vec!["sepolia", "mainnet"].contains(&network.as_str()) {
+    if !ALLOWED_NETWORKS.contains(&network.as_str()) {
         return Err(wrap_error(vec![file_path_dir], ApiError::UnknownNetwork(network)).await);
     }
-    let network_arg = if network == "sepolia" { "zkSyncTestnet" } else { "zkSyncMainnet" };
+    let network_arg = if network == "sepolia" {
+        "zkSyncTestnet"
+    } else {
+        "zkSyncMainnet"
+    };
 
     let verify_result = Command::new("npx")
         .arg("hardhat")

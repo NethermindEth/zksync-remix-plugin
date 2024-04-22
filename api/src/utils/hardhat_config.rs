@@ -72,18 +72,16 @@ export const zkSyncTestnet = process.env.NODE_ENV == "test"
     zksync: true,
   }
 : {
-    url: "https://sepolia.era.zksync.dev", // The testnet RPC URL of zkSync Era network.
-    ethNetwork: "sepolia", // The Ethereum Web3 RPC URL, or the identifier of the network (e.g. `mainnet` or `sepolia`)
+    url: "https://sepolia.era.zksync.dev",
+    ethNetwork: "sepolia",
     zksync: true,
-    // Verification endpoint for Sepolia
     verifyURL: "https://explorer.sepolia.era.zksync.dev/contract_verification"
   };
 
 export const zkSyncMainnet = {
-    url: "https://mainnet.era.zksync.io", // The testnet RPC URL of zkSync Era network.
-    ethNetwork: "mainnet", // The Ethereum Web3 RPC URL, or the identifier of the network (e.g. `mainnet` or `sepolia`)
+    url: "https://mainnet.era.zksync.io",
+    ethNetwork: "mainnet",
     zksync: true,
-    // Verification endpoint for Mainnet
     verifyURL: "https://zksync2-mainnet-explorer.zksync.io/contract_verification"
   };
 "#;

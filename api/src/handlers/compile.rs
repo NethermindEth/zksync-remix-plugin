@@ -4,9 +4,8 @@ use crate::rate_limiter::RateLimited;
 use crate::types::{ApiError, Result};
 use crate::utils::hardhat_config::HardhatConfigBuilder;
 use crate::utils::lib::{
-    check_file_ext, get_file_path, path_buf_to_string, status_code_to_message,
+    check_file_ext, clean_up, get_file_path, path_buf_to_string, status_code_to_message,
     to_human_error_batch, ALLOWED_VERSIONS, ARTIFACTS_ROOT, CARGO_MANIFEST_DIR, SOL_ROOT,
-    ZK_CACHE_ROOT,
 };
 use crate::worker::WorkerEngine;
 use rocket::serde::json;
@@ -66,14 +65,6 @@ pub async fn get_compile_result(process_id: String, engine: &State<WorkerEngine>
         }
         _ => String::from("Result not available"),
     })
-}
-
-async fn clean_up(paths: Vec<String>) {
-    for path in paths {
-        let _ = fs::remove_dir_all(path).await;
-    }
-
-    let _ = fs::remove_dir_all(ZK_CACHE_ROOT).await;
 }
 
 async fn wrap_error(paths: Vec<String>, error: ApiError) -> ApiError {
