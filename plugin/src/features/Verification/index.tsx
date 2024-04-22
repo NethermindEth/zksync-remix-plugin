@@ -25,6 +25,7 @@ import { useAtomValue, useSetAtom } from 'jotai'
 import { solidityVersionAtom } from '../../atoms/version'
 import useRemixClient from '../../hooks/useRemixClient'
 import { providerAtom } from '../../atoms/connection'
+import { envAtom } from '../../atoms/environment'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface VerificationProps {
@@ -56,9 +57,11 @@ const Verification: React.FC<VerificationProps> = ({ setAccordian }) => {
 
   const solidityVersion = useAtomValue(solidityVersionAtom)
   const provider = useAtomValue(providerAtom)
+  const env = useAtomValue(envAtom)
 
   const [currWorkspacePath, setCurrWorkspacePath] = React.useState<string>('')
   const [contractAddress, setContractAddress] = React.useState<string>('')
+  const [selectedChainName, setSelectedChainName] = React.useState<string | undefined>()
 
   useEffect(() => {
     // read hashDir from localStorage
@@ -74,6 +77,14 @@ const Verification: React.FC<VerificationProps> = ({ setAccordian }) => {
       storage.set('hashDir', hashDir)
     }
   }, [hashDir])
+
+  useEffect(() => {
+    let name: string | undefined
+    if (provider?.network?.chainId === 300) name = 'sepolia'
+    if (provider?.network?.chainId === 324) name = 'mainnet'
+    setSelectedChainName(name)
+    console.log(`effect ran! ${name ?? 'undefined'}`)
+  }, [provider, env])
 
   useEffect(() => {
     remixClient.on('fileManager', 'noFileSelected', () => {
@@ -369,11 +380,7 @@ const Verification: React.FC<VerificationProps> = ({ setAccordian }) => {
 
       setStatus('Verifying...')
 
-      let chainName = 'unknown'
-      if (provider) {
-        if (provider.network.chainId === 300) chainName = 'sepolia'
-        if (provider.network.chainId === 324) chainName = 'mainnet'
-      }
+      const chainName = selectedChainName ?? 'unknown'
 
       response = await asyncFetch(
         `verify-async/${solidityVersion}/${chainName}/${contractAddress}/${hashDir}/${currentFilePath}`,
@@ -503,11 +510,11 @@ const Verification: React.FC<VerificationProps> = ({ setAccordian }) => {
           className='btn btn-primary w-100 text-break remixui_disabled mb-1 mt-1 px-0'
           style={{
             cursor: `${
-              !validation || !currentFilename ? 'not-allowed' : 'pointer'
+              !validation || !currentFilename || isVerifying || !selectedChainName ? 'not-allowed' : 'pointer'
             }`
           }}
-          disabled={!validation || !currentFilename || isVerifying}
-          aria-disabled={!validation || !currentFilename || isVerifying}
+          disabled={!validation || !currentFilename || isVerifying || !selectedChainName}
+          aria-disabled={!validation || !currentFilename || isVerifying || !selectedChainName}
           onClick={onClick}
         >
           <div className='d-flex align-items-center justify-content-center'>
