@@ -80,7 +80,7 @@ const ManualAccountComp: React.FC<{
     }
 
     if (selectedAccount !== null) {
-      balanceUpdateIntervalRef.current = setInterval(updateBalance, 1000)
+      balanceUpdateIntervalRef.current = setInterval(updateBalance, 10000)
     }
 
     return () => {

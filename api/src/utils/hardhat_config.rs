@@ -72,11 +72,17 @@ export const zkSyncTestnet = process.env.NODE_ENV == "test"
     zksync: true,
   }
 : {
-    url: "https://testnet.era.zksync.dev",
-    ethNetwork: "goerli",
+    url: "https://sepolia.era.zksync.dev",
+    ethNetwork: "sepolia",
     zksync: true,
-    // contract verification endpoint
-    verifyURL: "https://zksync2-testnet-explorer.zksync.dev/contract_verification",
+    verifyURL: "https://explorer.sepolia.era.zksync.dev/contract_verification"
+  };
+
+export const zkSyncMainnet = {
+    url: "https://mainnet.era.zksync.io",
+    ethNetwork: "mainnet",
+    zksync: true,
+    verifyURL: "https://zksync2-mainnet-explorer.zksync.io/contract_verification"
   };
 "#;
 
@@ -93,6 +99,7 @@ const config: HardhatUserConfig = {{
       zksync: false,
     }},
     zkSyncTestnet,
+    zkSyncMainnet,
   }},
   solidity: {{
     version: "0.8.24",

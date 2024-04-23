@@ -152,3 +152,11 @@ pub fn to_human_error_batch(diagnostics: Vec<Diagnostic>) -> String {
         .collect::<Vec<String>>()
         .join("\n")
 }
+
+pub async fn clean_up(paths: Vec<String>) {
+    for path in paths {
+        let _ = fs::remove_dir_all(path).await;
+    }
+
+    let _ = fs::remove_dir_all(ZK_CACHE_ROOT).await;
+}

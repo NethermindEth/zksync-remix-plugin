@@ -14,6 +14,13 @@ pub struct CompileResponse {
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(crate = "rocket::serde")]
+pub struct VerifyResponse {
+    pub status: String,
+    pub message: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(crate = "rocket::serde")]
 pub struct SolFile {
     pub file_name: String,
     pub file_content: String,
@@ -39,6 +46,12 @@ pub enum ApiCommand {
         version: String,
         path: PathBuf,
     },
+    Verify {
+        version: String,
+        network: String,
+        contract_address: String,
+        path: PathBuf,
+    },
     #[allow(dead_code)]
     Shutdown,
 }
@@ -47,6 +60,7 @@ pub enum ApiCommand {
 pub enum ApiCommandResult {
     CompilerVersion(String),
     Compile(CompileResponse),
+    Verify(VerifyResponse),
     #[allow(dead_code)]
     Shutdown,
 }
