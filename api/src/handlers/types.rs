@@ -51,6 +51,7 @@ pub enum ApiCommand {
         network: String,
         contract_address: String,
         path: PathBuf,
+        inputs: Vec<String>,
     },
     #[allow(dead_code)]
     Shutdown,

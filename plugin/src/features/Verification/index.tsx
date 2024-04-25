@@ -9,7 +9,7 @@ import storage from '../../utils/storage'
 import { ethers } from 'ethers'
 import { type AccordianTabs } from '../Plugin'
 import { type VerificationResult } from '../../types/contracts'
-import { asyncFetch } from '../../utils/async_fetch'
+import { asyncPost } from '../../utils/async_api_requests'
 import {
   activeTomlPathAtom,
   verificationAtom,
@@ -26,6 +26,8 @@ import { solidityVersionAtom } from '../../atoms/version'
 import useRemixClient from '../../hooks/useRemixClient'
 import { providerAtom } from '../../atoms/connection'
 import { envAtom } from '../../atoms/environment'
+import ConstructorInput from '../../components/ConstructorInput'
+import { selectedContractAtom } from '../../atoms/compiledContracts'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface VerificationProps {
@@ -58,10 +60,25 @@ const Verification: React.FC<VerificationProps> = ({ setAccordian }) => {
   const solidityVersion = useAtomValue(solidityVersionAtom)
   const provider = useAtomValue(providerAtom)
   const env = useAtomValue(envAtom)
+  const selectedContract = useAtomValue(selectedContractAtom)
 
   const [currWorkspacePath, setCurrWorkspacePath] = React.useState<string>('')
   const [contractAddress, setContractAddress] = React.useState<string>('')
   const [selectedChainName, setSelectedChainName] = React.useState<string | undefined>()
+  const [inputs, setInputs] = React.useState<string[]>([])
+
+  useEffect(() => {
+    const constructor = selectedContract?.abi.find((abiElement) => {
+      return abiElement.type === 'constructor'
+    })
+
+    if (constructor === undefined || constructor?.inputs === undefined) {
+      setInputs([])
+      return
+    }
+
+    setInputs(new Array(constructor?.inputs.length).fill(''))
+  }, [selectedContract])
 
   useEffect(() => {
     // read hashDir from localStorage
@@ -382,9 +399,10 @@ const Verification: React.FC<VerificationProps> = ({ setAccordian }) => {
 
       const chainName = selectedChainName ?? 'unknown'
 
-      response = await asyncFetch(
+      response = await asyncPost(
         `verify-async/${solidityVersion}/${chainName}/${contractAddress}/${hashDir}/${currentFilePath}`,
-        'verify-result'
+        'verify-result',
+        inputs
       )
 
       if (!response.ok) {
@@ -395,17 +413,6 @@ const Verification: React.FC<VerificationProps> = ({ setAccordian }) => {
         )
         throw new Error('Solidity Verification Request Failed')
       }
-
-      await remixClient.terminal.log({
-        value: 'Solidity verification request successful',
-        type: 'info'
-      })
-
-      await remixClient.call(
-        'notification' as any,
-        'toast',
-        'Solidity verification request successful'
-      )
 
       // get Json body from response
       const verificationResult = JSON.parse(await response.text()) as VerificationResult
@@ -468,6 +475,23 @@ const Verification: React.FC<VerificationProps> = ({ setAccordian }) => {
         throw new Error(
           'Solidity Verification Failed, logs can be read in the terminal log'
         )
+      } else {
+        remixClient.emit('statusChanged', {
+          key: 'succeed',
+          type: 'success',
+          title: 'Verification Successful'
+        })
+
+        await remixClient.terminal.log({
+          value: 'Verification successful.',
+          type: 'info'
+        })
+
+        await remixClient.call(
+          'notification' as any,
+          'toast',
+          'Verification successful.'
+        )
       }
     } catch (e) {
       setStatus('failed')
@@ -506,6 +530,7 @@ const Verification: React.FC<VerificationProps> = ({ setAccordian }) => {
             placeholder={'Contract Address'}
           />
         </div>
+        <ConstructorInput inputs={inputs} setInputs={setInputs}></ConstructorInput>
         <button
           className='btn btn-primary w-100 text-break remixui_disabled mb-1 mt-1 px-0'
           style={{

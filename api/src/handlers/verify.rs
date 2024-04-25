@@ -8,8 +8,7 @@ use crate::utils::lib::{
     ALLOWED_VERSIONS, ARTIFACTS_ROOT, CARGO_MANIFEST_DIR, SOL_ROOT,
 };
 use crate::worker::WorkerEngine;
-use rocket::serde::json;
-use rocket::serde::json::Json;
+use rocket::serde::{json, json::Json, Deserialize};
 use rocket::tokio::fs;
 use rocket::State;
 use std::path::{Path, PathBuf};
@@ -19,42 +18,62 @@ use tracing::instrument;
 
 const ALLOWED_NETWORKS: [&str; 2] = ["sepolia", "mainnet"];
 
+#[derive(Debug, Deserialize)]
+#[serde(crate = "rocket::serde")]
+struct VerifyData {
+    inputs: Vec<String>,
+}
+
 #[instrument]
-#[get("/verify/<version>/<network>/<contract_address>/<remix_file_path..>")]
+#[post(
+    "/verify/<version>/<network>/<contract_address>/<remix_file_path..>",
+    data = "<data>"
+)]
 pub async fn verify(
     version: String,
     network: String,
     contract_address: String,
     remix_file_path: PathBuf,
     _rate_limited: RateLimited,
+    data: Json<VerifyData>,
 ) -> Json<VerifyResponse> {
     info!(
-        "/verify/{:?}/{:?}/{:?}/{:?}",
-        version, network, contract_address, remix_file_path
+        "/verify/{:?}/{:?}/{:?}/{:?} data: {:?}",
+        version, network, contract_address, remix_file_path, data.inputs,
     );
-    do_verify(version, network, contract_address, remix_file_path)
-        .await
-        .unwrap_or_else(|e| {
-            Json(VerifyResponse {
-                message: e.to_string(),
-                status: "Error".to_string(),
-            })
+    do_verify(
+        version,
+        network,
+        contract_address,
+        remix_file_path,
+        data.inputs.to_vec(),
+    )
+    .await
+    .unwrap_or_else(|e| {
+        Json(VerifyResponse {
+            message: e.to_string(),
+            status: "Error".to_string(),
         })
+    })
 }
 
 #[instrument]
-#[get("/verify-async/<version>/<network>/<contract_address>/<remix_file_path..>")]
-pub async fn verify_async(
+#[post(
+    "/verify-async/<version>/<network>/<contract_address>/<remix_file_path..>",
+    data = "<data>"
+)]
+pub fn verify_async(
     version: String,
     network: String,
     contract_address: String,
     remix_file_path: PathBuf,
     _rate_limited: RateLimited,
     engine: &State<WorkerEngine>,
+    data: Json<VerifyData>,
 ) -> String {
     info!(
-        "/verify-async/{:?}/{:?}/{:?}/{:?}",
-        version, network, contract_address, remix_file_path
+        "/verify-async/{:?}/{:?}/{:?}/{:?} data: {:?}",
+        version, network, contract_address, remix_file_path, data.inputs
     );
     do_process_command(
         ApiCommand::Verify {
@@ -62,6 +81,7 @@ pub async fn verify_async(
             contract_address,
             network,
             version,
+            inputs: data.inputs.to_vec(),
         },
         engine,
     )
@@ -89,6 +109,7 @@ pub async fn do_verify(
     network: String,
     contract_address: String,
     remix_file_path: PathBuf,
+    inputs: Vec<String>,
 ) -> Result<Json<VerifyResponse>> {
     if !ALLOWED_VERSIONS.contains(&version.as_str()) {
         return Err(wrap_error(vec![], ApiError::VersionNotSupported(version)).await);
@@ -147,9 +168,9 @@ pub async fn do_verify(
         .arg("verify")
         .arg("--config")
         .arg(hardhat_config_path.clone())
-        .arg("--network")
-        .arg(network_arg)
+        .args(["--network", network_arg])
         .arg(contract_address)
+        .args(inputs)
         .current_dir(SOL_ROOT)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())

@@ -1,14 +1,6 @@
 import { apiUrl } from './network'
 
-export async function asyncFetch (method: string, getterMethod: string): Promise<Response> {
-  const response = await fetch(`${apiUrl}/${method}`, {
-    method: 'GET',
-    redirect: 'follow',
-    headers: {
-      'Content-Type': 'application/octet-stream'
-    }
-  })
-
+async function handleAsyncApiResponse (response: Response, getterMethod: string): Promise<Response> {
   const pid = await response.text()
 
   try {
@@ -24,6 +16,31 @@ export async function asyncFetch (method: string, getterMethod: string): Promise
   } catch (e) {
     throw new Error(`Error while running process with id ${pid}, error: ${String(e)}`)
   }
+}
+
+export async function asyncPost (method: string, getterMethod: string, data: string[]): Promise<Response> {
+  const response = await fetch(`${apiUrl}/${method}`, {
+    method: 'POST',
+    redirect: 'follow',
+    headers: {
+      'Content-Type': 'application/octet-stream'
+    },
+    body: JSON.stringify({ inputs: data })
+  })
+
+  return await handleAsyncApiResponse(response, getterMethod)
+}
+
+export async function asyncGet (method: string, getterMethod: string): Promise<Response> {
+  const response = await fetch(`${apiUrl}/${method}`, {
+    method: 'GET',
+    redirect: 'follow',
+    headers: {
+      'Content-Type': 'application/octet-stream'
+    }
+  })
+
+  return await handleAsyncApiResponse(response, getterMethod)
 }
 
 export async function waitProcess (pid: string): Promise<string> {
