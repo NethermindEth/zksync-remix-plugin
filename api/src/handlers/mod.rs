@@ -113,7 +113,8 @@ pub async fn dispatch_command(command: ApiCommand) -> Result<ApiCommandResult, A
             contract_address,
             network,
             version,
-        } => match do_verify(version, network, contract_address, remix_file_path).await {
+            inputs,
+        } => match do_verify(version, network, contract_address, remix_file_path, inputs).await {
             Ok(verify_response) => Ok(ApiCommandResult::Verify(verify_response.into_inner())),
             Err(e) => Err(e),
         },

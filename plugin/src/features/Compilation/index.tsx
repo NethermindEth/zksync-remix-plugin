@@ -9,7 +9,7 @@ import storage from '../../utils/storage'
 import { ethers } from 'ethers'
 import { type AccordianTabs } from '../Plugin'
 import { type CompilationResult, type Contract } from '../../types/contracts'
-import { asyncFetch } from '../../utils/async_fetch'
+import { asyncGet } from '../../utils/async_api_requests'
 import {
   activeTomlPathAtom,
   compilationAtom,
@@ -370,7 +370,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
       setStatus('Compiling...')
 
-      response = await asyncFetch(`compile-async/${solidityVersion}/${hashDir}/${currentFilePath}`, 'compile-result')
+      response = await asyncGet(`compile-async/${solidityVersion}/${hashDir}/${currentFilePath}`, 'compile-result')
 
       if (!response.ok) {
         await remixClient.call(
