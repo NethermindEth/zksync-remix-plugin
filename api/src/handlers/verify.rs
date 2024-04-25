@@ -8,7 +8,7 @@ use crate::utils::lib::{
     ALLOWED_VERSIONS, ARTIFACTS_ROOT, CARGO_MANIFEST_DIR, SOL_ROOT,
 };
 use crate::worker::WorkerEngine;
-use rocket::serde::{Deserialize, json::Json, json};
+use rocket::serde::{json, json::Json, Deserialize};
 use rocket::tokio::fs;
 use rocket::State;
 use std::path::{Path, PathBuf};
@@ -21,36 +21,47 @@ const ALLOWED_NETWORKS: [&str; 2] = ["sepolia", "mainnet"];
 #[derive(Debug, Deserialize)]
 #[serde(crate = "rocket::serde")]
 struct VerifyData {
-    inputs: Vec<String>
+    inputs: Vec<String>,
 }
 
 #[instrument]
-#[post("/verify/<version>/<network>/<contract_address>/<remix_file_path..>", data = "<data>")]
+#[post(
+    "/verify/<version>/<network>/<contract_address>/<remix_file_path..>",
+    data = "<data>"
+)]
 pub async fn verify(
     version: String,
     network: String,
     contract_address: String,
     remix_file_path: PathBuf,
     _rate_limited: RateLimited,
-    data: Json<VerifyData>
+    data: Json<VerifyData>,
 ) -> Json<VerifyResponse> {
     info!(
         "/verify/{:?}/{:?}/{:?}/{:?} data: {:?}",
-        version, network, contract_address, remix_file_path,
-        data.inputs,
+        version, network, contract_address, remix_file_path, data.inputs,
     );
-    do_verify(version, network, contract_address, remix_file_path, data.inputs.to_vec())
-        .await
-        .unwrap_or_else(|e| {
-            Json(VerifyResponse {
-                message: e.to_string(),
-                status: "Error".to_string(),
-            })
+    do_verify(
+        version,
+        network,
+        contract_address,
+        remix_file_path,
+        data.inputs.to_vec(),
+    )
+    .await
+    .unwrap_or_else(|e| {
+        Json(VerifyResponse {
+            message: e.to_string(),
+            status: "Error".to_string(),
         })
+    })
 }
 
 #[instrument]
-#[post("/verify-async/<version>/<network>/<contract_address>/<remix_file_path..>", data = "<data>")]
+#[post(
+    "/verify-async/<version>/<network>/<contract_address>/<remix_file_path..>",
+    data = "<data>"
+)]
 pub fn verify_async(
     version: String,
     network: String,
@@ -58,7 +69,7 @@ pub fn verify_async(
     remix_file_path: PathBuf,
     _rate_limited: RateLimited,
     engine: &State<WorkerEngine>,
-    data: Json<VerifyData>
+    data: Json<VerifyData>,
 ) -> String {
     info!(
         "/verify-async/{:?}/{:?}/{:?}/{:?} data: {:?}",
