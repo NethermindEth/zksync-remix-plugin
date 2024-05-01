@@ -157,6 +157,9 @@ devDependencies:
   eslint-plugin-react:
     specifier: ^7.32.2
     version: 7.33.2(eslint@8.53.0)
+  eslint-plugin-react-hooks:
+    specifier: ^4.6.2
+    version: 4.6.2(eslint@8.53.0)
   typescript:
     specifier: ^5.1.6
     version: 5.2.2
@@ -3550,13 +3553,6 @@ packages:
   /@web3modal/siwe@3.5.7(@types/react@18.2.37)(typescript@5.2.2):
     resolution: {integrity: sha512-dV0yhJYtKq4VxKSSlTxpFgVice0qhcTPfTxrD9Z8u8O5QYw4gv8S7g6dvtFCvTce4DlHSlqNM9MZqeViB6BHpg==}
     requiresBuild: true
-    peerDependenciesMeta:
-      react:
-        optional: true
-      react-dom:
-        optional: true
-      vue:
-        optional: true
     dependencies:
       '@web3modal/core': 3.5.7(@types/react@18.2.37)(react@18.2.0)
       '@web3modal/scaffold-utils': 3.5.7(@types/react@18.2.37)(react@18.2.0)
@@ -3582,15 +3578,6 @@ packages:
     peerDependencies:
       '@wagmi/core': '>=1 <2'
       viem: '>=1 <2'
-    peerDependenciesMeta:
-      '@web3modal/siwe':
-        optional: true
-      react:
-        optional: true
-      react-dom:
-        optional: true
-      vue:
-        optional: true
     dependencies:
       '@wagmi/core': 1.4.13(@types/react@18.2.37)(react@18.2.0)(typescript@5.2.2)(viem@1.21.4)
       '@web3modal/polyfills': 3.5.7
@@ -4729,6 +4716,15 @@ packages:
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     peerDependencies:
       eslint: ^7.0.0 || ^8.0.0
+    dependencies:
+      eslint: 8.53.0
+    dev: true
+
+  /eslint-plugin-react-hooks@4.6.2(eslint@8.53.0):
+    resolution: {integrity: sha512-QzliNJq4GinDBcD8gPB5v0wh6g8q3SUi6EFF0x8N/BL9PoVs0atuGc47ozMRyOWAKdwaZ5OnbOEa3WR+dSGKuQ==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      eslint: ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0-0
     dependencies:
       eslint: 8.53.0
     dev: true
