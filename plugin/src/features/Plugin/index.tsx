@@ -4,7 +4,6 @@ import './styles.css'
 import Compilation from '../Compilation'
 import Deployment from '../Deployment'
 import Interaction from '../Interaction'
-import Verification from '../Verification'
 import Accordian, { AccordianItem, AccordionContent, AccordionTrigger } from '../../ui_components/Accordian'
 import TransactionHistory from '../TransactionHistory'
 import CompilerVersion from '../CompilerVersion'
@@ -12,7 +11,6 @@ import StateAction from '../../components/StateAction'
 import BackgroundNotices from '../../components/BackgroundNotices'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { isCompilingAtom, statusAtom as compilationStatusAtom } from '../../atoms/compilation'
-import { isVerifyingAtom, statusAtom as verificationStatusAtom } from '../../atoms/verification'
 import { deploymentAtom } from '../../atoms/deployment'
 import useRemixClient from '../../hooks/useRemixClient'
 import { pluginLoaded } from '../../atoms/remixClient'
@@ -20,7 +18,6 @@ import { pluginLoaded } from '../../atoms/remixClient'
 export type AccordianTabs =
   | 'compile'
   | 'deploy'
-  | 'verify'
   | 'interaction'
   | 'transactions'
   | ''
@@ -29,9 +26,6 @@ const Plugin: React.FC = () => {
   // Compilation Context state variables
   const compilationStatus = useAtomValue(compilationStatusAtom)
   const isCompiling = useAtomValue(isCompilingAtom)
-
-  const verificationStatus = useAtomValue(verificationStatusAtom)
-  const isVerifying = useAtomValue(isVerifyingAtom)
 
   // Deployment Context state variables
   const {
@@ -133,32 +127,6 @@ const Plugin: React.FC = () => {
               </AccordionTrigger>
               <AccordionContent>
                 <Deployment setActiveTab={setCurrentAccordian} />
-              </AccordionContent>
-            </AccordianItem>
-            <AccordianItem value='verify'>
-              <AccordionTrigger
-                onClick={() => {
-                  handleTabView('verify')
-                }}
-              >
-                                <span
-                                  className='d-flex align-items-center'
-                                  style={{ gap: '0.5rem' }}
-                                >
-                                  <p style={{ all: 'unset' }}>Verify</p>
-                                  <StateAction
-                                    value={
-                                      isVerifying
-                                        ? 'loading'
-                                        : verificationStatus === 'done'
-                                          ? 'success'
-                                          : verificationStatus === 'failed' ? 'error' : ''
-                                    }
-                                  />
-                                </span>
-              </AccordionTrigger>
-              <AccordionContent>
-                <Verification setAccordian={setCurrentAccordian} />
               </AccordionContent>
             </AccordianItem>
             <AccordianItem value='interaction'>
