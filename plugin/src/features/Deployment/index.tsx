@@ -40,9 +40,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const contracts = useAtomValue(contractsAtom)
   const selectedContract = useAtomValue(selectedContractAtom)
   const account = useAtomValue(accountAtom)
-  const [deployedContracts, deployedSetContracts] = useAtom(deployedContractsAtom)
-  const deployedSetSelectedContract = useSetAtom(deployedSelectedContractAtom)
-  const deployedSelectedContract = useAtomValue(deployedSelectedContractAtom)
+  const [deployedContracts, setDeployedContracts] = useAtom(deployedContractsAtom)
+  const setDeployedSelectedContract = useSetAtom(deployedSelectedContractAtom)
   const [inputs, setInputs] = useState<string[]>([])
   const [shouldRunVerification, setShouldRunVerification] = useState<boolean>(false)
 
@@ -351,8 +350,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   //   }, 100)
   // }, [currentFilename, remixClient])
 
-  async function verify (): Promise<void> {
-    if (!deployedSelectedContract) {
+  async function verify (contract: DeployedContract | null): Promise<void> {
+    if (!contract) {
       throw new Error('Not able to retrieve deployed contract for verification')
     }
 
@@ -378,7 +377,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       const chainName = selectedChainName ?? 'unknown'
 
       const response = await asyncPost(
-        `verify-async/${solidityVersion}/${chainName}/${deployedSelectedContract.address}/${hashDir}/${currentFilePath}`,
+        `verify-async/${solidityVersion}/${chainName}/${contract.address}/${hashDir}/${currentFilePath}`,
         'verify-result',
         inputs
       )
@@ -563,11 +562,11 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         env
       }
 
-      deployedSetContracts([deployedContract, ...deployedContracts])
-      deployedSetSelectedContract(deployedContract)
+      setDeployedContracts([deployedContract, ...deployedContracts])
+      setDeployedSelectedContract(deployedContract)
 
       if (shouldRunVerification) {
-        await verify()
+        await verify(deployedContract)
       }
 
       setActiveTab('interaction')
@@ -583,22 +582,23 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 
       setTransactions([transaction, ...transactions])
     } catch (e) {
-      await remixClient.terminal.log({
-        value: `Error: ${JSON.stringify(e)}`,
-        type: 'error'
-      })
-
+      if (e instanceof Error) {
+        await remixClient.terminal.log({
+          value: `Error: ${JSON.stringify(e.message)}`,
+          type: 'error'
+        })
+        await remixClient.call(
+          'notification' as any,
+          'toast',
+          `Error: ${JSON.stringify(e.message)}`
+        )
+      }
       remixClient.emit('statusChanged', {
         key: 'failed',
         type: 'error',
         title: `Contract ${selectedContract.contractName} failed to deploy!`
       })
-
-      await remixClient.call(
-        'notification' as any,
-        'toast',
-        `Error: ${JSON.stringify(e)}`
-      )
+      console.error(e)
     }
   }
 
