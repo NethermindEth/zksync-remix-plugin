@@ -1,4 +1,4 @@
-import { apiUrl } from '../../utils/network'
+import { apiUrl } from '../utils/network'
 
 export async function saveCode (
   solidityVersion: string,

@@ -7,7 +7,6 @@ import './devnetAccountSelector.css'
 import copy from 'copy-to-clipboard'
 import { useAtom, useAtomValue } from 'jotai'
 import { accountAtom, providerAtom } from '../../atoms/connection'
-import useRemixClient from '../../hooks/useRemixClient'
 import {
   availableDevnetAccountsAtom,
   devnetAtom,
@@ -19,9 +18,10 @@ import { transactionsAtom } from '../../atoms/transaction'
 import { BsCheck, BsChevronDown } from 'react-icons/bs'
 import * as D from '../../ui_components/Dropdown'
 import { FaCheck } from 'react-icons/fa'
+import { remixClientAtom } from '../../stores/remixClient'
 
 const DevnetAccountSelector: React.FC = () => {
-  const { remixClient } = useRemixClient()
+  const remixClient = useAtomValue(remixClientAtom)
 
   const [account, setAccount] = useAtom(accountAtom)
   const [provider, setProvider] = useAtom(providerAtom)

@@ -10,10 +10,11 @@ import CompilerVersion from '../CompilerVersion'
 import StateAction from '../../components/StateAction'
 import BackgroundNotices from '../../components/BackgroundNotices'
 import { useAtomValue, useSetAtom } from 'jotai'
-import { isCompilingAtom, statusAtom as compilationStatusAtom } from '../../atoms/compilation'
+import { isCompilingAtom, statusAtom as compilationStatusAtom, hashDirAtom } from '../../atoms/compilation'
 import { deploymentAtom } from '../../atoms/deployment'
-import useRemixClient from '../../hooks/useRemixClient'
-import { pluginLoaded } from '../../atoms/remixClient'
+import { currentFilenameAtom, isLoadedAtom, isValidSolidityAtom, remixClientAtom } from '../../stores/remixClient'
+import storage from '../../utils/storage'
+import { ethers } from 'ethers'
 
 export type AccordianTabs =
   | 'compile'
@@ -27,32 +28,52 @@ const Plugin: React.FC = () => {
   const compilationStatus = useAtomValue(compilationStatusAtom)
   const isCompiling = useAtomValue(isCompilingAtom)
 
+  const isLoaded = useAtomValue(isLoadedAtom)
+  const isValidSolidity = useAtomValue(isValidSolidityAtom)
+  const currentFilename = useAtomValue(currentFilenameAtom)
+  const remixClient = useAtomValue(remixClientAtom)
+
+  const setHashDir = useSetAtom(hashDirAtom)
+
+  useEffect(() => {
+    // read hashDir from localStorage
+    const hashDir = storage.get('hashDir')
+    if (hashDir != null) {
+      setHashDir(hashDir)
+    } else {
+      // create a random hash of length 32
+      const hashDir = ethers.utils
+        .hashMessage(ethers.utils.randomBytes(32))
+        .replace('0x', '')
+      setHashDir(hashDir)
+      storage.set('hashDir', hashDir)
+    }
+  }, [setHashDir])
+
+  useEffect(() => {
+    if (isValidSolidity) {
+      remixClient.emit('statusChanged', {
+        key: 'succeed',
+        type: 'info',
+        title: 'Current file: ' + currentFilename
+      })
+    } else {
+      remixClient.emit('statusChanged', {
+        key: 'failed',
+        type: 'warning',
+        title: 'Please open a solidity file to compile'
+      })
+    }
+  }, [remixClient, isValidSolidity, currentFilename])
+
   // Deployment Context state variables
-  const {
-    isDeploying,
-    deployStatus
-  } = useAtomValue(deploymentAtom)
+  const { isDeploying, deployStatus } = useAtomValue(deploymentAtom)
 
   // Interaction state variables
   const [interactionStatus, setInteractionStatus] = useState<'loading' | 'success' | 'error' | ''>('')
 
   const [currentAccordian, setCurrentAccordian] =
     useState<AccordianTabs>('compile')
-
-  const setPluginLoaded = useSetAtom(pluginLoaded)
-  const { remixClient } = useRemixClient()
-
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    const id = setTimeout(async (): Promise<void> => {
-      await remixClient.onload(() => {
-        setPluginLoaded(true)
-      })
-    }, 1)
-    return () => {
-      clearInterval(id)
-    }
-  }, [])
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const handleTabView = (clicked: AccordianTabs) => {
@@ -65,7 +86,8 @@ const Plugin: React.FC = () => {
 
   return (
     // add a button for selecting the solidity version
-    <>
+    (isLoaded
+      ? <>
       <div className='plugin-wrapper'>
         <div className='plugin-main-wrapper'>
           <CompilerVersion />
@@ -81,21 +103,21 @@ const Plugin: React.FC = () => {
                   handleTabView('compile')
                 }}
               >
-                                <span
-                                  className='d-flex align-items-center'
-                                  style={{ gap: '0.5rem' }}
-                                >
-                                  <p style={{ all: 'unset' }}>Compile</p>
-                                  <StateAction
-                                    value={
-                                      isCompiling
-                                        ? 'loading'
-                                        : compilationStatus === 'done'
-                                          ? 'success'
-                                          : compilationStatus === 'failed' ? 'error' : ''
-                                    }
-                                  />
-                                </span>
+                <span
+                  className='d-flex align-items-center'
+                  style={{ gap: '0.5rem' }}
+                >
+                  <p style={{ all: 'unset' }}>Compile</p>
+                  <StateAction
+                    value={
+                      isCompiling
+                        ? 'loading'
+                        : compilationStatus === 'done'
+                          ? 'success'
+                          : compilationStatus === 'failed' ? 'error' : ''
+                    }
+                  />
+                </span>
               </AccordionTrigger>
               <AccordionContent>
                 <Compilation setAccordian={setCurrentAccordian} />
@@ -179,6 +201,8 @@ const Plugin: React.FC = () => {
 
       </div>
     </>
+      : <h1>Loading...</h1>
+    )
   )
 }
 

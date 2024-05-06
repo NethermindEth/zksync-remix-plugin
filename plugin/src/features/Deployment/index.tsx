@@ -11,22 +11,20 @@ import * as zksync from 'zksync-ethers'
 import ConstructorInput from '../../components/ConstructorInput'
 import { type VerificationResult, type DeployedContract } from '../../types/contracts'
 import { mockManualChain, type Transaction } from '../../types/transaction'
-import { ethers, type Contract } from 'ethers'
+import { type Contract } from 'ethers'
 import { useWalletClient } from 'wagmi'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import { transactionsAtom } from '../../atoms/transaction'
-import useRemixClient from '../../hooks/useRemixClient'
 import { contractsAtom, selectedContractAtom } from '../../atoms/compiledContracts'
 import { accountAtom, providerAtom } from '../../atoms/connection'
 import { deployedContractsAtom, deployedSelectedContractAtom } from '../../atoms/deployedContracts'
 import { envAtom } from '../../atoms/environment'
-import { activeTomlPathAtom, currentFilenameAtom, hashDirAtom, isValidSolidityAtom, isVerifyingAtom, noFileSelectedAtom, tomlPathsAtom, verificationAtom } from '../../atoms/verification'
-import storage from '../../utils/storage'
-import { getFileExtension, getFileNameFromPath } from '../../utils/utils'
-import { asyncPost } from '../../utils/async_api_requests'
+import { isVerifyingAtom, verificationAtom } from '../../atoms/verification'
+import { asyncPost } from '../../api/asyncRequests'
 import { solidityVersionAtom } from '../../atoms/version'
 import { deployStatusAtom } from '../../atoms/deployment'
-import { saveCode } from './save_code'
+import { saveCode } from '../../api/saveCode'
+import { remixClientAtom } from '../../stores/remixClient'
 
 interface DeploymentProps {
   setActiveTab: (tab: AccordianTabs) => void
@@ -34,7 +32,6 @@ interface DeploymentProps {
 
 const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const { data: walletClient } = useWalletClient()
-  const { remixClient } = useRemixClient()
 
   const [transactions, setTransactions] = useAtom(transactionsAtom)
   const contracts = useAtomValue(contractsAtom)
@@ -47,30 +44,22 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 
   const {
     currentFilename,
-    noFileSelected,
     hashDir,
     isValidSolidity,
-    isVerifying,
-    activeTomlPath,
-    tomlPaths
+    isVerifying
   } = useAtomValue(verificationAtom)
 
   const setStatus = useSetAtom(deployStatusAtom)
 
-  const setCurrentFilename = useSetAtom(currentFilenameAtom)
   const setIsVerifying = useSetAtom(isVerifyingAtom)
-  const setNoFileSelected = useSetAtom(noFileSelectedAtom)
-  const setHashDir = useSetAtom(hashDirAtom)
-  const setTomlPaths = useSetAtom(tomlPathsAtom)
-  const setActiveTomlPath = useSetAtom(activeTomlPathAtom)
-  const setIsValidSolidity = useSetAtom(isValidSolidityAtom)
 
-  const [currWorkspacePath, setCurrWorkspacePath] = React.useState<string>('')
   const [selectedChainName, setSelectedChainName] = React.useState<string | undefined>()
 
   const solidityVersion = useAtomValue(solidityVersionAtom)
   const env = useAtomValue(envAtom)
   const provider = useAtomValue(providerAtom)
+
+  const remixClient = useAtomValue(remixClientAtom)
 
   useEffect(() => {
     const constructor = selectedContract?.abi.find((abiElement) => {
@@ -86,269 +75,11 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   }, [selectedContract])
 
   useEffect(() => {
-    // read hashDir from localStorage
-    const hashDir = storage.get('hashDir')
-    if (hashDir != null) {
-      setHashDir(hashDir)
-    } else {
-      // create a random hash of length 32
-      const hashDir = ethers.utils
-        .hashMessage(ethers.utils.randomBytes(32))
-        .replace('0x', '')
-      setHashDir(hashDir)
-      storage.set('hashDir', hashDir)
-    }
-  }, [hashDir])
-
-  useEffect(() => {
     let name: string | undefined
     if (provider?.network?.chainId === 300) name = 'sepolia'
     if (provider?.network?.chainId === 324) name = 'mainnet'
     setSelectedChainName(name)
   }, [provider, env])
-
-  useEffect(() => {
-    remixClient.on('fileManager', 'noFileSelected', () => {
-      setNoFileSelected(true)
-    })
-  }, [remixClient])
-
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    setTimeout(async () => {
-      try {
-        if (noFileSelected) {
-          throw new Error('No file selected')
-        }
-
-        // get current file
-        const currentFile = await remixClient.call(
-          'fileManager',
-          'getCurrentFile'
-        )
-        if (currentFile.length > 0) {
-          const filename = getFileNameFromPath(currentFile)
-          const currentFileExtension = getFileExtension(filename)
-          setIsValidSolidity(currentFileExtension === 'sol')
-          setCurrentFilename(filename)
-
-          remixClient.emit('statusChanged', {
-            key: 'succeed',
-            type: 'info',
-            title: 'Current file: ' + currentFilename
-          })
-        }
-      } catch (e) {
-        remixClient.emit('statusChanged', {
-          key: 'failed',
-          type: 'info',
-          title: 'Please open a solidity file to verify'
-        })
-        console.log('error: ', e)
-      }
-    }, 500)
-  }, [remixClient, currentFilename, noFileSelected])
-
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    setTimeout(async () => {
-      remixClient.on(
-        'fileManager',
-        'currentFileChanged',
-        (currentFileChanged: any) => {
-          const filename = getFileNameFromPath(currentFileChanged)
-          const currentFileExtension = getFileExtension(filename)
-          setIsValidSolidity(currentFileExtension === 'sol')
-          setCurrentFilename(filename)
-          remixClient.emit('statusChanged', {
-            key: 'succeed',
-            type: 'info',
-            title: 'Current file: ' + currentFilename
-          })
-          setNoFileSelected(false)
-        }
-      )
-    }, 500)
-  }, [remixClient, currentFilename])
-
-  async function getTomlPaths (
-    workspacePath: string,
-    currPath: string
-  ): Promise<string[]> {
-    const resTomlPaths: string[] = []
-
-    try {
-      const allFiles = await remixClient.fileManager.readdir(
-        workspacePath + '/' + currPath
-      )
-      // get keys of allFiles object
-      const allFilesKeys = Object.keys(allFiles)
-      // const get all values of allFiles object
-      const allFilesValues = Object.values(allFiles)
-
-      for (let i = 0; i < allFilesKeys.length; i++) {
-        if (allFilesKeys[i].endsWith('Scarb.toml')) {
-          resTomlPaths.push(currPath)
-        }
-        if (Object.values(allFilesValues[i])[0]) {
-          const recTomlPaths = await getTomlPaths(
-            workspacePath,
-            allFilesKeys[i]
-          )
-          resTomlPaths.push(...recTomlPaths)
-        }
-      }
-    } catch (e) {
-      console.log('error: ', e)
-    }
-    return resTomlPaths
-  }
-
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    setTimeout(async () => {
-      // get current workspace path
-      try {
-        const currWorkspace = await remixClient.filePanel.getCurrentWorkspace()
-        setCurrWorkspacePath(currWorkspace.absolutePath)
-      } catch (e) {
-        console.log('error: ', e)
-      }
-    })
-  })
-
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    setTimeout(async () => {
-      // get current workspace path
-      try {
-        if (currWorkspacePath === '') return
-        const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
-
-        setTomlPaths(allTomlPaths)
-        if (activeTomlPath === '' || activeTomlPath === undefined) {
-          setActiveTomlPath(tomlPaths[0])
-        }
-      } catch (e) {
-        console.log('error: ', e)
-      }
-    }, 100)
-  }, [currWorkspacePath])
-
-  useEffect(() => {
-    if (activeTomlPath === '' || activeTomlPath === undefined) {
-      setActiveTomlPath(tomlPaths[0])
-    }
-  }, [tomlPaths])
-
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    setTimeout(async () => {
-      remixClient.on('fileManager', 'fileAdded', (_: any) => {
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        setTimeout(async () => {
-          // get current workspace path
-          try {
-            const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
-
-            setTomlPaths(allTomlPaths)
-          } catch (e) {
-            console.log('error: ', e)
-          }
-        }, 100)
-      })
-      remixClient.on('fileManager', 'folderAdded', (_: any) => {
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        setTimeout(async () => {
-          // get current workspace path
-          try {
-            const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
-
-            setTomlPaths(allTomlPaths)
-          } catch (e) {
-            console.log('error: ', e)
-          }
-        }, 100)
-      })
-      remixClient.on('fileManager', 'fileRemoved', (_: any) => {
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        setTimeout(async () => {
-          // get current workspace path
-          try {
-            const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
-
-            setTomlPaths(allTomlPaths)
-          } catch (e) {
-            console.log('error: ', e)
-          }
-        }, 100)
-      })
-      remixClient.on('filePanel', 'workspaceCreated', (_: any) => {
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        setTimeout(async () => {
-          // get current workspace path
-          try {
-            const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
-
-            setTomlPaths(allTomlPaths)
-          } catch (e) {
-            console.log('error: ', e)
-          }
-        }, 100)
-      })
-      remixClient.on('filePanel', 'workspaceRenamed', (_: any) => {
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        setTimeout(async () => {
-          // get current workspace path
-          try {
-            const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
-
-            setTomlPaths(allTomlPaths)
-          } catch (e) {
-            console.log('error: ', e)
-          }
-        }, 100)
-      })
-    }, 500)
-  }, [remixClient])
-
-  // useEffect(() => {
-  //   // eslint-disable-next-line @typescript-eslint/no-misused-promises
-  //   setTimeout(async () => {
-  //     try {
-  //       if (noFileSelected) {
-  //         throw new Error('No file selected')
-  //       }
-  //       const currentFilePath = await remixClient.call(
-  //         'fileManager',
-  //         'getCurrentFile'
-  //       )
-  //       if (!currentFilePath.endsWith('.sol')) {
-  //         throw new Error('Not a valid solidity file')
-  //       }
-  //       const currentFileContent = await remixClient.call(
-  //         'fileManager',
-  //         'readFile',
-  //         currentFilePath
-  //       )
-  //       await fetch(`${apiUrl}/save_code/${hashDir}/${currentFilePath}`, {
-  //         method: 'POST',
-  //         body: currentFileContent,
-  //         redirect: 'follow',
-  //         headers: {
-  //           'Content-Type': 'application/octet-stream'
-  //         }
-  //       })
-  //     } catch (e) {
-  //       remixClient.emit('statusChanged', {
-  //         key: 'failed',
-  //         type: 'info',
-  //         title: 'Please open a solidity file to verify'
-  //       })
-  //       console.log('error: ', e)
-  //     }
-  //   }, 100)
-  // }, [currentFilename, remixClient])
 
   async function verify (contract: DeployedContract | null): Promise<void> {
     if (!contract) {

@@ -18,8 +18,9 @@ const InputField: React.FC<InputFieldProps> = ({
 }) => {
   return (
     <div className='input-field'>
-      <label htmlFor={`input-${index}`}
-             className='input-label'>{name !== '' && name !== undefined ? name + ':' : ''}</label>
+      <label htmlFor={`input-${index}`} className='input-label'>
+        {name !== '' && name !== undefined ? name + ':' : ''}
+      </label>
       <input
         type='text'
         id={`input-${index}`}

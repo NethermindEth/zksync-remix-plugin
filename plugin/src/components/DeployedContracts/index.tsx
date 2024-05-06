@@ -11,8 +11,8 @@ import { BsChevronDown } from 'react-icons/bs'
 import copy from 'copy-to-clipboard'
 import { MdCopyAll } from 'react-icons/md'
 import { FaCheck } from 'react-icons/fa'
-import useRemixClient from '../../hooks/useRemixClient'
 import { envAtom } from '../../atoms/environment'
+import { remixClientAtom } from '../../stores/remixClient'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 
@@ -24,7 +24,7 @@ const DeployedContracts: React.FC = () => {
     setSelectedContract
   ] = useAtom(deployedSelectedContractAtom)
 
-  const { remixClient } = useRemixClient()
+  const remixClient = useAtomValue(remixClientAtom)
 
   const [dropdownControl, setDropdownControl] = React.useState(false)
 
