@@ -118,35 +118,19 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
           {element.name}
       </button>
       {
-        element.type === 'payable'
-          ? <InputField
-              key={'amount'}
-              placeholder='amount'
-              index={element.inputs.length}
-              value={inputs[element.inputs.length]}
-              onChange={(index, newValue) => {
-                const newInputs = [...inputs]
-                newInputs[index] = newValue
-                setInputs(newInputs)
-              }}
-            />
-          : <></>
-      }
-      {
-        element.inputs.map((input: Input, index: number) => {
-          return (
-            <InputField
-              key={index}
-              placeholder={generateInputName(input)}
-              index={index}
-              value={inputs[index]}
-              onChange={(index, newValue) => {
-                const newInputs = [...inputs]
-                newInputs[index] = newValue
-                setInputs(newInputs)
-              }} />
-          )
-        })
+        element.inputs.map((input: Input, index: number) =>
+          <InputField
+            key={index}
+            placeholder={generateInputName(input)}
+            index={index}
+            value={inputs[index]}
+            onChange={(index, newValue) => {
+              const newInputs = [...inputs]
+              newInputs[index] = newValue
+              setInputs(newInputs)
+            }}
+          />
+        )
       }
     </div>
   )
