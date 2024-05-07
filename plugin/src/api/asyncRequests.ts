@@ -1,4 +1,4 @@
-import { apiUrl } from './network'
+import { apiUrl } from '../utils/network'
 
 async function handleAsyncApiResponse (response: Response, getterMethod: string): Promise<Response> {
   const pid = await response.text()

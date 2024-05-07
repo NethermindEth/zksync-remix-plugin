@@ -4,13 +4,13 @@ import { apiUrl } from '../../utils/network'
 import Nethermind from '../../components/NM'
 import './style.css'
 import { BsChevronDown } from 'react-icons/bs'
-import { useAtom } from 'jotai'
+import { useAtom, useAtomValue } from 'jotai'
 import { solidityVersionAtom, versionsAtom } from '../../atoms/version'
-import useRemixClient from '../../hooks/useRemixClient'
 import semver from 'semver'
+import { remixClientAtom } from '../../stores/remixClient'
 
 const SolidityVersion: React.FC = () => {
-  const { remixClient } = useRemixClient()
+  const remixClient = useAtomValue(remixClientAtom)
 
   const envViteVersion: string | undefined = import.meta.env.VITE_VERSION
   const pluginVersion = envViteVersion !== undefined ? `v${envViteVersion}` : 'v0.2.5'

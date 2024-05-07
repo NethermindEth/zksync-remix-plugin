@@ -10,6 +10,8 @@
     "@radix-ui/react-tooltip": "^1.0.6",
     "@remixproject/engine": "^0.3.38",
     "@remixproject/plugin": "^0.3.38",
+    "@remixproject/plugin-api": "^0.3.38",
+    "@remixproject/plugin-utils": "^0.3.38",
     "@remixproject/plugin-webview": "^0.3.38",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",

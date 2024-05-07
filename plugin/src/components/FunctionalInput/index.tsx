@@ -6,13 +6,13 @@ import { type AbiElement, type Input } from '../../types/contracts'
 import InputField from '../InputField'
 import { Contract } from 'ethers'
 import { mockManualChain, type Transaction } from '../../types/transaction'
-import useRemixClient from '../../hooks/useRemixClient'
 import { useAtom, useAtomValue } from 'jotai'
 import { deployedSelectedContractAtom } from '../../atoms/deployedContracts'
 import { transactionsAtom } from '../../atoms/transaction'
 import { accountAtom, providerAtom } from '../../atoms/connection'
 import { useWalletClient } from 'wagmi'
 import { envAtom } from '../../atoms/environment'
+import { remixClientAtom } from '../../stores/remixClient'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface CompiledContractsProps {
@@ -20,7 +20,7 @@ interface CompiledContractsProps {
 }
 
 const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledContractsProps) => {
-  const { remixClient } = useRemixClient()
+  const remixClient = useAtomValue(remixClientAtom)
   const { data: walletClient } = useWalletClient()
 
   const selectedContract = useAtomValue(deployedSelectedContractAtom)
@@ -109,22 +109,28 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
 
   return (
     <div>
-      <button onClick={() => {
-        callContract().catch(console.error)
-      }} className={`btn btn-primary w-100 text-break mb-1 mt-1 px-0 ${
-        element.stateMutability === 'view' ? '' : 'btn-warning'
-      }`}>{element.name}</button>
+      <button
+        onClick={() => { callContract().catch(console.error) }}
+        className={`
+          btn btn-primary w-100 text-break mb-1 mt-1 px-0
+          ${element.stateMutability === 'view' ? '' : 'btn-warning'}
+        `}>
+          {element.name}
+      </button>
       {
-        element.inputs.map((input: Input, index: number) => {
-          return (
-            <InputField key={index} placeholder={generateInputName(input)} index={index} value={inputs[index]}
-                        onChange={(index, newValue) => {
-                          const newInputs = [...inputs]
-                          newInputs[index] = newValue
-                          setInputs(newInputs)
-                        }} />
-          )
-        })
+        element.inputs.map((input: Input, index: number) =>
+          <InputField
+            key={index}
+            placeholder={generateInputName(input)}
+            index={index}
+            value={inputs[index]}
+            onChange={(index, newValue) => {
+              const newInputs = [...inputs]
+              newInputs[index] = newValue
+              setInputs(newInputs)
+            }}
+          />
+        )
       }
     </div>
   )
