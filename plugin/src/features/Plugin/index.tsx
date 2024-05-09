@@ -51,6 +51,7 @@ const Plugin: React.FC = () => {
   }, [setHashDir])
 
   useEffect(() => {
+    if (!isLoaded) return
     if (isValidSolidity) {
       remixClient.emit('statusChanged', {
         key: 'succeed',
@@ -64,7 +65,7 @@ const Plugin: React.FC = () => {
         title: 'Please open a solidity file to compile'
       })
     }
-  }, [remixClient, isValidSolidity, currentFilename])
+  }, [remixClient, isValidSolidity, currentFilename, isLoaded])
 
   // Deployment Context state variables
   const { isDeploying, deployStatus } = useAtomValue(deploymentAtom)
