@@ -83,20 +83,20 @@ const DevnetAccountSelector: React.FC = () => {
         `❗️ Server ${devnet.name} - ${devnet.url} is not healthy or not reachable at the moment`
       )
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 
   useEffect(() => {
     updateAccountBalances().catch((e) => {
-      console.log(e)
+      console.error(e)
     })
   }, [transactions])
 
   useEffect(() => {
     if (!isDevnetAlive) {
       notifyDevnetStatus().catch((e) => {
-        console.log(e)
+        console.error(e)
       })
     }
   }, [isDevnetAlive])

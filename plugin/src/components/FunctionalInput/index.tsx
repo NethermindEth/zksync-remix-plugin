@@ -47,7 +47,6 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
       }
 
       const contractAddress = selectedContract.address
-      console.log(selectedContract)
       const contract = new zksync.Contract(contractAddress, selectedContract.abi, account)
 
       const method = contract[element.name]

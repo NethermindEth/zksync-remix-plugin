@@ -348,9 +348,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                     <button
                       className='deploy-btn btn btn-primary btn-warning w-100 text-break mb-1 mt-2 px-0'
                       onClick={() => {
-                        deploy().catch((err) => {
-                          console.log(err)
-                        })
+                        deploy().catch((err) => { console.error(err) })
                       }}
                     >
                       Deploy { shouldRunVerification ? ' and Verify' : '' }
