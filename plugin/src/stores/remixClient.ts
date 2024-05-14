@@ -61,10 +61,6 @@ async function initializeRemixClient (): Promise<void> {
   const currWorkspace = await remixClient.filePanel.getCurrentWorkspace()
   remixClientStore.set(currentWorkspacePathAtom, currWorkspace.absolutePath)
 
-  remixClient.on('fileManager', 'noFileSelected', () => {
-    remixClientStore.set(noFileSelectedAtom, true)
-  })
-
   remixClient.on('fileManager', 'currentFileChanged', (currentFileChanged: any) => {
     const filename = getFileNameFromPath(currentFileChanged)
     const currentFileExtension = getFileExtension(filename)
@@ -72,6 +68,12 @@ async function initializeRemixClient (): Promise<void> {
     remixClientStore.set(isValidSolidityAtom, isValidSolidity)
     remixClientStore.set(currentFilenameAtom, filename)
     remixClientStore.set(noFileSelectedAtom, false)
+  })
+
+  remixClient.on('fileManager', 'noFileSelected', () => {
+    remixClientStore.set(noFileSelectedAtom, true)
+    remixClientStore.set(currentFilenameAtom, '')
+    remixClientStore.set(isValidSolidityAtom, false)
   })
 
   remixClient.on('fileManager', 'fileAdded', async (_: any) => {

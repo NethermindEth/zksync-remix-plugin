@@ -10,6 +10,7 @@ export interface Transaction {
   account: Wallet | Signer | null
   provider: Provider | null
   chain: Chain | undefined | null
+  value: string | undefined | null
 }
 
 export const mockManualChain: Chain<ChainFormatters> = {
