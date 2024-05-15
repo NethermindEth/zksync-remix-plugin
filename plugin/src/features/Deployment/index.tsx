@@ -24,7 +24,8 @@ import { asyncPost } from '../../api/asyncRequests'
 import { solidityVersionAtom } from '../../atoms/version'
 import { deployStatusAtom } from '../../atoms/deployment'
 import { saveCode } from '../../api/saveCode'
-import { remixClientAtom } from '../../stores/remixClient'
+import { currentFilenameAtom, isValidSolidityAtom, remixClientAtom } from '../../stores/remixClient'
+import { hashDirAtom } from '../../atoms/compilation'
 
 interface DeploymentProps {
   setActiveTab: (tab: AccordianTabs) => void
@@ -42,12 +43,10 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const [inputs, setInputs] = useState<string[]>([])
   const [shouldRunVerification, setShouldRunVerification] = useState<boolean>(false)
 
-  const {
-    currentFilename,
-    hashDir,
-    isValidSolidity,
-    isVerifying
-  } = useAtomValue(verificationAtom)
+  const { isVerifying } = useAtomValue(verificationAtom)
+  const isValidSolidity = useAtomValue(isValidSolidityAtom)
+  const currentFilename = useAtomValue(currentFilenameAtom)
+  const hashDir = useAtomValue(hashDirAtom)
 
   const setStatus = useSetAtom(deployStatusAtom)
 
@@ -308,7 +307,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         txId: txHash,
         env,
         chain: (env !== 'manual' ? walletClient?.chain : mockManualChain),
-        provider
+        provider,
+        value: undefined
       }
 
       setTransactions([transaction, ...transactions])
@@ -348,9 +348,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                     <button
                       className='deploy-btn btn btn-primary btn-warning w-100 text-break mb-1 mt-2 px-0'
                       onClick={() => {
-                        deploy().catch((err) => {
-                          console.log(err)
-                        })
+                        deploy().catch((err) => { console.error(err) })
                       }}
                     >
                       Deploy { shouldRunVerification ? ' and Verify' : '' }

@@ -12,7 +12,7 @@ import BackgroundNotices from '../../components/BackgroundNotices'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { isCompilingAtom, statusAtom as compilationStatusAtom, hashDirAtom } from '../../atoms/compilation'
 import { deploymentAtom } from '../../atoms/deployment'
-import { currentFilenameAtom, isLoadedAtom, isValidSolidityAtom, remixClientAtom } from '../../stores/remixClient'
+import { isLoadedAtom } from '../../stores/remixClient'
 import storage from '../../utils/storage'
 import { ethers } from 'ethers'
 
@@ -29,9 +29,6 @@ const Plugin: React.FC = () => {
   const isCompiling = useAtomValue(isCompilingAtom)
 
   const isLoaded = useAtomValue(isLoadedAtom)
-  const isValidSolidity = useAtomValue(isValidSolidityAtom)
-  const currentFilename = useAtomValue(currentFilenameAtom)
-  const remixClient = useAtomValue(remixClientAtom)
 
   const setHashDir = useSetAtom(hashDirAtom)
 
@@ -49,23 +46,6 @@ const Plugin: React.FC = () => {
       storage.set('hashDir', hashDir)
     }
   }, [setHashDir])
-
-  useEffect(() => {
-    if (!isLoaded) return
-    if (isValidSolidity) {
-      remixClient.emit('statusChanged', {
-        key: 'succeed',
-        type: 'info',
-        title: 'Current file: ' + currentFilename
-      })
-    } else {
-      remixClient.emit('statusChanged', {
-        key: 'failed',
-        type: 'warning',
-        title: 'Please open a solidity file to compile'
-      })
-    }
-  }, [remixClient, isValidSolidity, currentFilename, isLoaded])
 
   // Deployment Context state variables
   const { isDeploying, deployStatus } = useAtomValue(deploymentAtom)

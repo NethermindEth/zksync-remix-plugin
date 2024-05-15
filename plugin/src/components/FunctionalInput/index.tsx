@@ -1,10 +1,11 @@
 // A component that reads the compiled contracts from the context and displays them in a select
 
 import React, { useEffect, useState } from 'react'
+import * as zksync from 'zksync-ethers'
 import { generateInputName } from '../../utils/utils'
 import { type AbiElement, type Input } from '../../types/contracts'
 import InputField from '../InputField'
-import { Contract } from 'ethers'
+import { ethers } from 'ethers'
 import { mockManualChain, type Transaction } from '../../types/transaction'
 import { useAtom, useAtomValue } from 'jotai'
 import { deployedSelectedContractAtom } from '../../atoms/deployedContracts'
@@ -31,6 +32,7 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
   const provider = useAtomValue(providerAtom)
 
   const [inputs, setInputs] = useState<string[]>([])
+  const [value, setValue] = useState<string>('')
 
   const callContract = async (): Promise<void> => {
     if (selectedContract == null) {
@@ -45,8 +47,7 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
       }
 
       const contractAddress = selectedContract.address
-      const contract = new Contract(contractAddress, selectedContract.abi, account)
-        .connect(account)
+      const contract = new zksync.Contract(contractAddress, selectedContract.abi, account)
 
       const method = contract[element.name]
 
@@ -56,6 +57,10 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
         title: `Executing "${element.name}" method!`
       })
 
+      if (element.stateMutability === 'payable') {
+        const options: any = { value: ethers.utils.parseEther(value) }
+        inputs.push(options)
+      }
       const result = await method(...inputs)
 
       remixClient.emit('statusChanged', {
@@ -71,7 +76,8 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
           txId: result.hash,
           env,
           chain: (env !== 'manual' ? walletClient?.chain : mockManualChain),
-          provider
+          provider,
+          value
         }
 
         setTransactions([transaction, ...transactions])
@@ -117,6 +123,17 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
         `}>
           {element.name}
       </button>
+      {
+        element.stateMutability === 'payable'
+          ? <InputField
+              key={'value'}
+              placeholder={'Amount (ETH)'}
+              index={element.inputs.length}
+              value={ value }
+              onChange={ (_, newValue) => { setValue(newValue) } }
+            />
+          : <></>
+      }
       {
         element.inputs.map((input: Input, index: number) =>
           <InputField
