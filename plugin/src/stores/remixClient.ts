@@ -55,25 +55,47 @@ async function handleTomlPathsChange (): Promise<void> {
   }
 }
 
-async function initializeRemixClient (): Promise<void> {
+async function handleStatusChange (): Promise<void> {
+  const isValidSolidity = remixClientStore.get(isValidSolidityAtom)
+  const currentFilename = remixClientStore.get(currentFilenameAtom)
+  if (isValidSolidity) {
+    remixClient.emit('statusChanged', {
+      key: 'succeed',
+      type: 'info',
+      title: 'Current file: ' + currentFilename
+    })
+  } else {
+    remixClient.emit('statusChanged', {
+      key: 'failed',
+      type: 'warning',
+      title: 'Please open a solidity file to compile'
+    })
+  }
+}
+
+async function initializeRemixClient (): Promise<RemixClient> {
   await remixClient.onload()
 
   const currWorkspace = await remixClient.filePanel.getCurrentWorkspace()
   remixClientStore.set(currentWorkspacePathAtom, currWorkspace.absolutePath)
 
-  remixClient.on('fileManager', 'currentFileChanged', (currentFileChanged: any) => {
+  remixClient.on('fileManager', 'currentFileChanged', async (currentFileChanged: any) => {
     const filename = getFileNameFromPath(currentFileChanged)
     const currentFileExtension = getFileExtension(filename)
     const isValidSolidity = currentFileExtension === 'sol'
     remixClientStore.set(isValidSolidityAtom, isValidSolidity)
     remixClientStore.set(currentFilenameAtom, filename)
     remixClientStore.set(noFileSelectedAtom, false)
+
+    await handleStatusChange()
   })
 
-  remixClient.on('fileManager', 'noFileSelected', () => {
+  remixClient.on('fileManager', 'noFileSelected', async () => {
     remixClientStore.set(noFileSelectedAtom, true)
     remixClientStore.set(currentFilenameAtom, '')
     remixClientStore.set(isValidSolidityAtom, false)
+
+    await handleStatusChange()
   })
 
   remixClient.on('fileManager', 'fileAdded', async (_: any) => {
@@ -96,14 +118,13 @@ async function initializeRemixClient (): Promise<void> {
     await handleTomlPathsChange()
   })
 
-  remixClientStore.set(isLoadedAtom, true)
   console.log('Remix client initialized')
+
+  return remixClient
 }
 
-void (async () => { await initializeRemixClient() })()
-remixClientStore.set(remixClientAtom, remixClient)
-
 export {
+  initializeRemixClient,
   remixClientStore,
   remixClientAtom,
   noFileSelectedAtom,
