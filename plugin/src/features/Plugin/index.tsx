@@ -9,10 +9,10 @@ import TransactionHistory from '../TransactionHistory'
 import CompilerVersion from '../CompilerVersion'
 import StateAction from '../../components/StateAction'
 import BackgroundNotices from '../../components/BackgroundNotices'
-import { useAtomValue, useSetAtom } from 'jotai'
+import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import { isCompilingAtom, statusAtom as compilationStatusAtom, hashDirAtom } from '../../atoms/compilation'
 import { deploymentAtom } from '../../atoms/deployment'
-import { isLoadedAtom } from '../../stores/remixClient'
+import { initializeRemixClient, isLoadedAtom, remixClientAtom } from '../../stores/remixClient'
 import storage from '../../utils/storage'
 import { ethers } from 'ethers'
 
@@ -28,9 +28,18 @@ const Plugin: React.FC = () => {
   const compilationStatus = useAtomValue(compilationStatusAtom)
   const isCompiling = useAtomValue(isCompilingAtom)
 
-  const isLoaded = useAtomValue(isLoadedAtom)
+  const [isLoaded, setIsLoaded] = useAtom(isLoadedAtom)
+  const setRemixClient = useSetAtom(remixClientAtom)
 
   const setHashDir = useSetAtom(hashDirAtom)
+
+  useEffect(() => {
+    (async () => {
+      const client = await initializeRemixClient()
+      setRemixClient(client)
+      setIsLoaded(true)
+    })().catch(console.error)
+  }, [setIsLoaded, setRemixClient])
 
   useEffect(() => {
     // read hashDir from localStorage
