@@ -19,7 +19,7 @@ pub struct VerifyResponse {
     pub message: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(crate = "rocket::serde")]
 pub struct SolFile {
     pub file_name: String,

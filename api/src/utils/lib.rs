@@ -18,7 +18,7 @@ pub const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
 
 pub const DURATION_TO_PURGE: u64 = 60 * 5; // 5 minutes
 
-pub const ALLOWED_VERSIONS: [&str; 1] = ["latest"];
+pub const ZKSOLC_VERSIONS: [&str; 1] = ["1.4.1"];
 
 #[allow(dead_code)]
 pub const TEMP_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/", "temp/");

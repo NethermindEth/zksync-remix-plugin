@@ -1,6 +1,6 @@
 use crate::types::{ApiError, Result};
 use crate::utils::lib::{
-    get_file_path, init_parent_directories, path_buf_to_string, ALLOWED_VERSIONS,
+    get_file_path, init_parent_directories, path_buf_to_string, ZKSOLC_VERSIONS,
 };
 use rocket::data::ToByteUnit;
 use rocket::Data;
@@ -22,7 +22,7 @@ pub async fn do_save_code(
     version: String,
     remix_file_path: PathBuf,
 ) -> Result<String> {
-    if !ALLOWED_VERSIONS.contains(&version.as_str()) {
+    if !ZKSOLC_VERSIONS.contains(&version.as_str()) {
         return Err(ApiError::VersionNotSupported(version));
     }
 

@@ -5,7 +5,7 @@ use crate::types::{ApiError, Result};
 use crate::utils::hardhat_config::HardhatConfigBuilder;
 use crate::utils::lib::{
     check_file_ext, clean_up, get_file_path, path_buf_to_string, status_code_to_message,
-    to_human_error_batch, ALLOWED_VERSIONS, ARTIFACTS_ROOT, CARGO_MANIFEST_DIR, SOL_ROOT,
+    to_human_error_batch, ZKSOLC_VERSIONS, ARTIFACTS_ROOT, CARGO_MANIFEST_DIR, SOL_ROOT,
 };
 use crate::worker::WorkerEngine;
 use rocket::serde::json;
@@ -76,7 +76,7 @@ pub async fn do_compile(
     version: String,
     remix_file_path: PathBuf,
 ) -> Result<Json<CompileResponse>> {
-    if !ALLOWED_VERSIONS.contains(&version.as_str()) {
+    if !ZKSOLC_VERSIONS.contains(&version.as_str()) {
         return Err(wrap_error(vec![], ApiError::VersionNotSupported(version)).await);
     }
 

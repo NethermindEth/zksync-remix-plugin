@@ -16,6 +16,7 @@ use crate::utils::lib::{ARTIFACTS_ROOT, SOL_ROOT};
 use crate::worker::WorkerEngine;
 use clokwerk::{Scheduler, TimeUnits};
 use handlers::compile::{compile, compile_async, get_compile_result};
+use handlers::compile_multiple::{compile_multiple};
 use handlers::compiler_version::{allowed_versions, compiler_version};
 use handlers::process::get_process_status;
 use handlers::save_code::save_code;
@@ -87,6 +88,7 @@ async fn rocket() -> _ {
                 compile,
                 compile_async,
                 get_compile_result,
+                compile_multiple,
                 verify,
                 verify_async,
                 get_verify_result,

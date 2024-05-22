@@ -1,4 +1,5 @@
 pub mod compile;
+pub mod compile_multiple;
 pub mod compiler_version;
 pub mod process;
 pub mod save_code;
