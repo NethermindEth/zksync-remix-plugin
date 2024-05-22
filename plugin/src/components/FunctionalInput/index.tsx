@@ -57,11 +57,12 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
         title: `Executing "${element.name}" method!`
       })
 
+      const callParameters = [...inputs]
       if (element.stateMutability === 'payable') {
         const options: any = { value: ethers.utils.parseEther(value) }
-        inputs.push(options)
+        callParameters.push(options)
       }
-      const result = await method(...inputs)
+      const result = await method(...callParameters)
 
       remixClient.emit('statusChanged', {
         key: 'succeed',
@@ -100,6 +101,18 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
         type: 'error',
         title: `Contract ${selectedContract.contractName} failed to deploy!`
       })
+
+      if (e instanceof Error) {
+        await remixClient.terminal.log({
+          value: `Error in function invocation (message): ${JSON.stringify(e.message)}`,
+          type: 'error'
+        })
+      } else {
+        await remixClient.terminal.log({
+          value: `Error in function invocation: ${JSON.stringify(e)}`,
+          type: 'error'
+        })
+      }
 
       await remixClient.call(
         'notification' as any,
