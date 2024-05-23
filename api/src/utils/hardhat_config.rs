@@ -1,5 +1,4 @@
-use crate::utils::lib::{timestamp, DEFAULT_SOLIDITY_VERSION, DEFAULT_ZKSOLC_VERSION};
-use rand::Rng;
+use crate::utils::lib::{DEFAULT_SOLIDITY_VERSION, DEFAULT_ZKSOLC_VERSION};
 use rocket::serde::json::serde_json;
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]

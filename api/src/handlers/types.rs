@@ -2,7 +2,6 @@ use rocket::http::Status;
 use rocket::response::Responder;
 use rocket::Request;
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(crate = "rocket::serde")]
@@ -43,23 +42,27 @@ pub struct CompilationRequest {
     pub contracts: Vec<CompiledFile>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct FileContentMap {
-    pub file_name: String,
-    pub file_content: String,
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
+#[serde(crate = "rocket::serde")]
+pub struct VerifyConfig {
+    pub version: String,
+    pub network: String,
+    pub contract_address: String,
+    pub inputs: Vec<String>,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
+#[serde(crate = "rocket::serde")]
+pub struct VerificationRequest {
+    pub config: VerifyConfig,
+    pub contracts: Vec<CompiledFile>,
 }
 
 #[derive(Debug)]
 pub enum ApiCommand {
     CompilerVersion,
     Compile(CompilationRequest),
-    Verify {
-        version: String,
-        network: String,
-        contract_address: String,
-        path: PathBuf,
-        inputs: Vec<String>,
-    },
+    Verify(VerificationRequest),
     #[allow(dead_code)]
     Shutdown,
 }

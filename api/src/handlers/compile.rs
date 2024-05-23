@@ -7,9 +7,9 @@ use crate::types::{ApiError, Result};
 use crate::utils::cleaner::AutoCleanUp;
 use crate::utils::hardhat_config::HardhatConfigBuilder;
 use crate::utils::lib::{
-    generate_folder_name, list_files_in_directory, status_code_to_message, ARTIFACTS_ROOT,
-    DEFAULT_SOLIDITY_VERSION, HARDHAT_CACHE_PATH, HARDHAT_ENV_DOCKER_IMAGE, HARDHAT_ENV_ROOT,
-    SOL_ROOT, ZKSOLC_VERSIONS,
+    generate_folder_name, initialize_files, list_files_in_directory, status_code_to_message,
+    ARTIFACTS_ROOT, DEFAULT_SOLIDITY_VERSION, HARDHAT_CACHE_PATH, HARDHAT_ENV_DOCKER_IMAGE,
+    HARDHAT_ENV_ROOT, SOL_ROOT, ZKSOLC_VERSIONS,
 };
 use crate::worker::WorkerEngine;
 use rocket::serde::json;
@@ -118,24 +118,8 @@ pub async fn do_compile(compilation_request: CompilationRequest) -> Result<Json<
         .await
         .map_err(ApiError::FailedToWriteFile)?;
 
-    for contract in compilation_request.contracts.iter() {
-        let file_path_str = format!(
-            "{}/{}",
-            contracts_path.to_str().unwrap(),
-            contract.file_name
-        );
-        let file_path = Path::new(&file_path_str);
-
-        // create parent directories
-        tokio::fs::create_dir_all(file_path.parent().unwrap())
-            .await
-            .map_err(ApiError::FailedToWriteFile)?;
-
-        // write file
-        tokio::fs::write(file_path, contract.file_content.clone())
-            .await
-            .map_err(ApiError::FailedToWriteFile)?;
-    }
+    // initialize the files
+    initialize_files(compilation_request.contracts, contracts_path).await?;
 
     let command = Command::new("docker")
         .arg("run")

@@ -1,7 +1,6 @@
 pub mod compile;
 pub mod compiler_version;
 pub mod process;
-pub mod save_code;
 pub mod service_version;
 pub mod types;
 pub mod verify;
@@ -46,13 +45,7 @@ pub async fn dispatch_command(command: ApiCommand) -> Result<ApiCommandResult, A
             Ok(compile_response) => Ok(ApiCommandResult::Compile(compile_response.into_inner())),
             Err(e) => Err(e),
         },
-        ApiCommand::Verify {
-            path: remix_file_path,
-            contract_address,
-            network,
-            version,
-            inputs,
-        } => match do_verify(version, network, contract_address, remix_file_path, inputs).await {
+        ApiCommand::Verify(request) => match do_verify(request).await {
             Ok(verify_response) => Ok(ApiCommandResult::Verify(verify_response.into_inner())),
             Err(e) => Err(e),
         },

@@ -1,5 +1,6 @@
 use crate::handlers::types::{CompilationConfig, CompilationRequest, CompiledFile};
 use crate::types::{ApiError, Result};
+use rocket::tokio;
 use rocket::tokio::fs;
 use solang_parser::diagnostics::{Diagnostic, ErrorType, Level};
 use solang_parser::pt::Loc;
@@ -32,6 +33,8 @@ pub const HARDHAT_ENV_DOCKER_IMAGE: &str = "hardhat_env:5";
 pub const DEFAULT_SOLIDITY_VERSION: &str = "0.8.24";
 
 pub const DEFAULT_ZKSOLC_VERSION: &str = "1.4.1";
+
+pub const ALLOWED_NETWORKS: [&str; 2] = ["sepolia", "mainnet"];
 
 #[allow(dead_code)]
 pub const TEMP_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/", "temp/");
@@ -227,4 +230,23 @@ pub fn generate_mock_solidity_file_content() -> String {
     }
     "#
     .to_string()
+}
+
+pub async fn initialize_files(files: Vec<CompiledFile>, file_path: &Path) -> Result<()> {
+    for file in files {
+        let file_path_str = format!("{}/{}", file_path.to_str().unwrap(), file.file_name);
+        let file_path = Path::new(&file_path_str);
+
+        // create parent directories
+        tokio::fs::create_dir_all(file_path.parent().unwrap())
+            .await
+            .map_err(ApiError::FailedToWriteFile)?;
+
+        // write file
+        tokio::fs::write(file_path, file.file_content.clone())
+            .await
+            .map_err(ApiError::FailedToWriteFile)?;
+    }
+
+    Ok(())
 }
