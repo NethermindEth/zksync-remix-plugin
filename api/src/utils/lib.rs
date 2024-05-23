@@ -5,6 +5,7 @@ use solang_parser::pt::Loc;
 use std::path::{Path, PathBuf};
 use uuid::Uuid;
 use walkdir::WalkDir;
+use crate::handlers::types::{CompilationConfig, CompilationRequest, CompiledFile};
 
 pub const SOL_ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/", "hardhat_env/contracts/");
 pub const ZK_CACHE_ROOT: &str = concat!(
@@ -13,6 +14,9 @@ pub const ZK_CACHE_ROOT: &str = concat!(
     "hardhat_env/contracts/cache-zk/"
 );
 pub const HARDHAT_ENV_ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/", "hardhat_env/");
+
+pub const HARDHAT_CACHE_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/", "hardhat_env/hardhat-cache");
+
 pub const ARTIFACTS_ROOT: &str =
     concat!(env!("CARGO_MANIFEST_DIR"), "/", "hardhat_env/artifacts-zk");
 
@@ -183,4 +187,36 @@ pub fn list_files_in_directory<P: AsRef<Path>>(path: P) -> Vec<String> {
     }
 
     file_paths
+}
+
+pub fn generate_mock_compile_request() -> CompilationRequest {
+    CompilationRequest {
+        config: CompilationConfig { version: "1.4.1".to_string(), user_libraries: vec![] },
+        contracts: vec![
+            CompiledFile {
+                file_name: "SimpleStorage.sol".to_string(),
+                file_content: generate_mock_solidity_file_content(),
+                is_contract: false,
+            },
+        ],
+    }
+}
+
+pub fn generate_mock_solidity_file_content() -> String {
+    r#"
+    pragma solidity ^0.8.0;
+
+    contract SimpleStorage {
+        uint256 storedData;
+
+        function set(uint256 x) public {
+            storedData = x;
+        }
+
+        function get() public view returns (uint256) {
+            return storedData;
+        }
+    }
+    "#
+        .to_string()
 }

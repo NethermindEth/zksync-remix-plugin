@@ -12,13 +12,6 @@ pub struct CompileResponse {
     pub file_content: Vec<CompiledFile>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-#[serde(crate = "rocket::serde")]
-pub struct VerifyResponse {
-    pub status: String,
-    pub message: String,
-}
-
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(crate = "rocket::serde")]
 pub struct CompiledFile {
@@ -28,6 +21,12 @@ pub struct CompiledFile {
     pub is_contract: bool
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(crate = "rocket::serde")]
+pub struct VerifyResponse {
+    pub status: String,
+    pub message: String,
+}
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
 #[serde(crate = "rocket::serde")]

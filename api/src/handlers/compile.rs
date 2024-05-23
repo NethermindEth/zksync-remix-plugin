@@ -4,12 +4,12 @@ use crate::handlers::types::{ApiCommand, ApiCommandResult, CompileResponse, File
 use crate::rate_limiter::RateLimited;
 use crate::types::{ApiError, Result};
 use crate::utils::hardhat_config::HardhatConfigBuilder;
-use crate::utils::lib::{ZKSOLC_VERSIONS, ARTIFACTS_ROOT, SOL_ROOT, HARDHAT_ENV_ROOT, generate_folder_name, list_files_in_directory};
+use crate::utils::lib::{ZKSOLC_VERSIONS, ARTIFACTS_ROOT, SOL_ROOT, HARDHAT_ENV_ROOT, generate_folder_name, list_files_in_directory, HARDHAT_CACHE_PATH};
 use crate::worker::WorkerEngine;
 use rocket::serde::json::Json;
 use rocket::{State, tokio};
 use std::path::{Path};
-use std::process::{Command};
+use std::process::{Command, Stdio};
 use rocket::serde::json;
 use rocket::tokio::fs;
 use tracing::info;
@@ -70,6 +70,7 @@ pub async fn do_compile(
 ) -> Result<Json<CompileResponse>> {
     let version = compilation_request.config.version;
 
+    // check if the version is supported
     if !ZKSOLC_VERSIONS.contains(&version.as_str()) {
         return Err(ApiError::VersionNotSupported(version));
     }
@@ -103,8 +104,6 @@ pub async fn do_compile(
         tokio::fs::write(file_path, contract.file_content.clone()).await.map_err(ApiError::FailedToWriteFile)?;
     }
 
-    let hardhat_cache_path = Path::new(HARDHAT_ENV_ROOT).join("hardhat-cache");
-
     let command = Command::new("docker")
         .arg("run")
         .arg("--rm")
@@ -113,18 +112,19 @@ pub async fn do_compile(
         .arg("-v")
         .arg(format!("{}:/app/artifacts-zk", artifacts_path.to_str().unwrap()))
         .arg("-v")
-        .arg(format!("{}:/root/.cache/hardhat-nodejs/", hardhat_cache_path.to_str().unwrap()))
+        .arg(format!("{}:/root/.cache/hardhat-nodejs/", HARDHAT_CACHE_PATH))
         .arg(format!("hardhat_env:{}", version))
         .arg("npx")
         .arg("hardhat")
         .arg("compile")
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
         .spawn();
 
     let process = command.map_err(ApiError::FailedToExecuteCommand)?;
-
     let output = process.wait_with_output().map_err(ApiError::FailedToReadOutput)?;
-
     let status = output.status;
+    let message = String::from_utf8_lossy(&output.stdout).to_string();
 
     if !status.success() {
         return Ok(Json(CompileResponse {
@@ -161,7 +161,7 @@ pub async fn do_compile(
 
     Ok(Json(CompileResponse {
         file_content: file_contents,
-        message: "Success".to_string(),
         status: "Success".to_string(),
+        message,
     }))
 }
