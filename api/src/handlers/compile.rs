@@ -5,9 +5,11 @@ use crate::handlers::types::{
 use crate::rate_limiter::RateLimited;
 use crate::types::{ApiError, Result};
 use crate::utils::cleaner::AutoCleanUp;
+use crate::utils::hardhat_config::HardhatConfigBuilder;
 use crate::utils::lib::{
     generate_folder_name, list_files_in_directory, status_code_to_message, ARTIFACTS_ROOT,
-    HARDHAT_CACHE_PATH, SOL_ROOT, ZKSOLC_VERSIONS,
+    DEFAULT_SOLIDITY_VERSION, HARDHAT_CACHE_PATH, HARDHAT_ENV_DOCKER_IMAGE, HARDHAT_ENV_ROOT,
+    SOL_ROOT, ZKSOLC_VERSIONS,
 };
 use crate::worker::WorkerEngine;
 use rocket::serde::json;
@@ -70,11 +72,17 @@ pub async fn do_compile(compilation_request: CompilationRequest) -> Result<Json<
 
     let namespace = generate_folder_name();
 
+    // root directory for the contracts
     let contracts_path_str = format!("{}/{}", SOL_ROOT, namespace);
     let contracts_path = Path::new(&contracts_path_str);
 
+    // root directory for the artifacts
     let artifacts_path_str = format!("{}/{}", ARTIFACTS_ROOT, namespace);
     let artifacts_path = Path::new(&artifacts_path_str);
+
+    // root directory for user files (hardhat config, etc)
+    let user_files_path_str = format!("{}/user-{}", HARDHAT_ENV_ROOT, namespace);
+    let hardhat_config_path = Path::new(&user_files_path_str).join("hardhat.config.ts");
 
     // instantly create the directories
     tokio::fs::create_dir_all(contracts_path)
@@ -90,8 +98,25 @@ pub async fn do_compile(compilation_request: CompilationRequest) -> Result<Json<
         dirs: vec![
             contracts_path.to_str().unwrap(),
             artifacts_path.to_str().unwrap(),
+            &user_files_path_str,
         ],
     };
+
+    // write the hardhat config file
+    let hardhat_config_content = HardhatConfigBuilder::new()
+        .zksolc_version(&version)
+        .solidity_version(DEFAULT_SOLIDITY_VERSION)
+        .build()
+        .to_string_config();
+
+    // create parent directories
+    tokio::fs::create_dir_all(hardhat_config_path.parent().unwrap())
+        .await
+        .map_err(ApiError::FailedToWriteFile)?;
+
+    tokio::fs::write(hardhat_config_path, hardhat_config_content)
+        .await
+        .map_err(ApiError::FailedToWriteFile)?;
 
     for contract in compilation_request.contracts.iter() {
         let file_path_str = format!(
@@ -130,7 +155,12 @@ pub async fn do_compile(compilation_request: CompilationRequest) -> Result<Json<
             "{}:/root/.cache/hardhat-nodejs/",
             HARDHAT_CACHE_PATH
         ))
-        .arg(format!("hardhat_env:{}", version))
+        .arg("-v")
+        .arg(format!(
+            "{}/hardhat.config.ts:/app/hardhat.config.ts",
+            user_files_path_str
+        ))
+        .arg(HARDHAT_ENV_DOCKER_IMAGE)
         .arg("npx")
         .arg("hardhat")
         .arg("compile")

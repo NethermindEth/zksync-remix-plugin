@@ -1,3 +1,4 @@
+use crate::handlers::types::{CompilationConfig, CompilationRequest, CompiledFile};
 use crate::types::{ApiError, Result};
 use rocket::tokio::fs;
 use solang_parser::diagnostics::{Diagnostic, ErrorType, Level};
@@ -5,7 +6,6 @@ use solang_parser::pt::Loc;
 use std::path::{Path, PathBuf};
 use uuid::Uuid;
 use walkdir::WalkDir;
-use crate::handlers::types::{CompilationConfig, CompilationRequest, CompiledFile};
 
 pub const SOL_ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/", "hardhat_env/contracts/");
 pub const ZK_CACHE_ROOT: &str = concat!(
@@ -15,7 +15,8 @@ pub const ZK_CACHE_ROOT: &str = concat!(
 );
 pub const HARDHAT_ENV_ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/", "hardhat_env/");
 
-pub const HARDHAT_CACHE_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/", "hardhat_env/hardhat-cache");
+pub const HARDHAT_CACHE_PATH: &str =
+    concat!(env!("CARGO_MANIFEST_DIR"), "/", "hardhat_env/hardhat-cache");
 
 pub const ARTIFACTS_ROOT: &str =
     concat!(env!("CARGO_MANIFEST_DIR"), "/", "hardhat_env/artifacts-zk");
@@ -25,6 +26,12 @@ pub const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
 pub const DURATION_TO_PURGE: u64 = 60 * 5; // 5 minutes
 
 pub const ZKSOLC_VERSIONS: [&str; 1] = ["1.4.1"];
+
+pub const HARDHAT_ENV_DOCKER_IMAGE: &str = "hardhat_env:5";
+
+pub const DEFAULT_SOLIDITY_VERSION: &str = "0.8.24";
+
+pub const DEFAULT_ZKSOLC_VERSION: &str = "1.4.1";
 
 #[allow(dead_code)]
 pub const TEMP_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/", "temp/");
@@ -191,14 +198,15 @@ pub fn list_files_in_directory<P: AsRef<Path>>(path: P) -> Vec<String> {
 
 pub fn generate_mock_compile_request() -> CompilationRequest {
     CompilationRequest {
-        config: CompilationConfig { version: "1.4.1".to_string(), user_libraries: vec![] },
-        contracts: vec![
-            CompiledFile {
-                file_name: "SimpleStorage.sol".to_string(),
-                file_content: generate_mock_solidity_file_content(),
-                is_contract: false,
-            },
-        ],
+        config: CompilationConfig {
+            version: "1.4.1".to_string(),
+            user_libraries: vec![],
+        },
+        contracts: vec![CompiledFile {
+            file_name: "SimpleStorage.sol".to_string(),
+            file_content: generate_mock_solidity_file_content(),
+            is_contract: false,
+        }],
     }
 }
 
@@ -218,5 +226,5 @@ pub fn generate_mock_solidity_file_content() -> String {
         }
     }
     "#
-        .to_string()
+    .to_string()
 }

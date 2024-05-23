@@ -1,5 +1,5 @@
-use std::path::Path;
 use rocket::tokio;
+use std::path::Path;
 
 pub struct AutoCleanUp<'a> {
     pub(crate) dirs: Vec<&'a str>,
@@ -41,5 +41,4 @@ impl AutoCleanUp<'_> {
             }
         }
     }
-
 }
