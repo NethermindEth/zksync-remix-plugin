@@ -23,7 +23,7 @@ pub async fn verify(
     verification_request_json: Json<VerificationRequest>,
     _rate_limited: RateLimited,
 ) -> Json<VerifyResponse> {
-    info!("/verify",);
+    info!("/verify");
 
     do_verify(verification_request_json.0)
         .await
@@ -61,12 +61,17 @@ pub async fn get_verify_result(process_id: String, engine: &State<WorkerEngine>)
 }
 
 pub async fn do_verify(verification_request: VerificationRequest) -> Result<Json<VerifyResponse>> {
-    let version = verification_request.config.version;
+    let zksolc_version = verification_request.config.zksolc_version;
 
     // check if the version is supported
-    if !ZKSOLC_VERSIONS.contains(&version.as_str()) {
-        return Err(ApiError::VersionNotSupported(version));
+    if !ZKSOLC_VERSIONS.contains(&zksolc_version.as_str()) {
+        return Err(ApiError::VersionNotSupported(zksolc_version));
     }
+
+    let solc_version = verification_request
+        .config
+        .solc_version
+        .unwrap_or(DEFAULT_SOLIDITY_VERSION.to_string());
 
     let network = verification_request.config.network;
 
@@ -109,8 +114,8 @@ pub async fn do_verify(verification_request: VerificationRequest) -> Result<Json
 
     // write the hardhat config file
     let hardhat_config_content = HardhatConfigBuilder::new()
-        .zksolc_version(&version)
-        .solidity_version(DEFAULT_SOLIDITY_VERSION)
+        .zksolc_version(&zksolc_version)
+        .solidity_version(&solc_version)
         .build()
         .to_string_config();
 
@@ -130,29 +135,34 @@ pub async fn do_verify(verification_request: VerificationRequest) -> Result<Json
         .arg("run")
         .arg("--rm")
         .args([
-            "-v".to_string(),
-            format!("{}:/app/contracts", contracts_path.to_str().unwrap()),
+            "-v",
+            &format!("{}:/app/contracts", contracts_path.to_str().unwrap()),
         ])
         .args([
-            "-v".to_string(),
-            format!("{}:/app/artifacts-zk", artifacts_path.to_str().unwrap()),
+            "-v",
+            &format!("{}:/app/artifacts-zk", artifacts_path.to_str().unwrap()),
         ])
         .args([
-            "-v".to_string(),
-            format!("{}:/root/.cache/hardhat-nodejs/", HARDHAT_CACHE_PATH),
+            "-v",
+            &format!("{}:/root/.cache/hardhat-nodejs/", HARDHAT_CACHE_PATH),
         ])
         .args([
-            "-v".to_string(),
-            format!(
+            "-v",
+            &format!(
                 "{}/hardhat.config.ts:/app/hardhat.config.ts",
                 user_files_path_str
             ),
         ])
         .arg(HARDHAT_ENV_DOCKER_IMAGE)
-        .arg("npx")
-        .arg("hardhat")
-        .arg("verify")
-        .args(["--network", &network])
+        .args(["npx", "hardhat", "verify"])
+        .args([
+            "--network",
+            if network == "sepolia" {
+                "zkSyncTestnet"
+            } else {
+                "zkSyncMainnet"
+            },
+        ])
         .arg(verification_request.config.contract_address)
         .args(verification_request.config.inputs)
         .stdout(Stdio::piped())
@@ -169,7 +179,7 @@ pub async fn do_verify(verification_request: VerificationRequest) -> Result<Json
     if !status.success() {
         return Ok(Json(VerifyResponse {
             status: "Error".to_string(),
-            message,
+            message: String::from_utf8_lossy(&output.stderr).to_string(),
         }));
     }
 

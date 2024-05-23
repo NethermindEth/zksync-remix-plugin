@@ -63,11 +63,11 @@ pub async fn get_compile_result(process_id: String, engine: &State<WorkerEngine>
 }
 
 pub async fn do_compile(compilation_request: CompilationRequest) -> Result<Json<CompileResponse>> {
-    let version = compilation_request.config.version;
+    let zksolc_version = compilation_request.config.version;
 
     // check if the version is supported
-    if !ZKSOLC_VERSIONS.contains(&version.as_str()) {
-        return Err(ApiError::VersionNotSupported(version));
+    if !ZKSOLC_VERSIONS.contains(&zksolc_version.as_str()) {
+        return Err(ApiError::VersionNotSupported(zksolc_version));
     }
 
     let namespace = generate_folder_name();
@@ -104,7 +104,7 @@ pub async fn do_compile(compilation_request: CompilationRequest) -> Result<Json<
 
     // write the hardhat config file
     let hardhat_config_content = HardhatConfigBuilder::new()
-        .zksolc_version(&version)
+        .zksolc_version(&zksolc_version)
         .solidity_version(DEFAULT_SOLIDITY_VERSION)
         .build()
         .to_string_config();
@@ -124,30 +124,27 @@ pub async fn do_compile(compilation_request: CompilationRequest) -> Result<Json<
     let command = Command::new("docker")
         .arg("run")
         .arg("--rm")
-        .arg("-v")
-        .arg(format!(
-            "{}:/app/contracts",
-            contracts_path.to_str().unwrap()
-        ))
-        .arg("-v")
-        .arg(format!(
-            "{}:/app/artifacts-zk",
-            artifacts_path.to_str().unwrap()
-        ))
-        .arg("-v")
-        .arg(format!(
-            "{}:/root/.cache/hardhat-nodejs/",
-            HARDHAT_CACHE_PATH
-        ))
-        .arg("-v")
-        .arg(format!(
-            "{}/hardhat.config.ts:/app/hardhat.config.ts",
-            user_files_path_str
-        ))
+        .args([
+            "-v",
+            &format!("{}:/app/contracts", contracts_path.to_str().unwrap()),
+        ])
+        .args([
+            "-v",
+            &format!("{}:/app/artifacts-zk", artifacts_path.to_str().unwrap()),
+        ])
+        .args([
+            "-v",
+            &format!("{}:/root/.cache/hardhat-nodejs/", HARDHAT_CACHE_PATH),
+        ])
+        .args([
+            "-v",
+            &format!(
+                "{}/hardhat.config.ts:/app/hardhat.config.ts",
+                user_files_path_str
+            ),
+        ])
         .arg(HARDHAT_ENV_DOCKER_IMAGE)
-        .arg("npx")
-        .arg("hardhat")
-        .arg("compile")
+        .args(["npx", "hardhat", "compile"])
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn();

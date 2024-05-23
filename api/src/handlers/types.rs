@@ -45,7 +45,8 @@ pub struct CompilationRequest {
 #[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
 #[serde(crate = "rocket::serde")]
 pub struct VerifyConfig {
-    pub version: String,
+    pub zksolc_version: String,
+    pub solc_version: Option<String>,
     pub network: String,
     pub contract_address: String,
     pub inputs: Vec<String>,
