@@ -5,7 +5,7 @@ use crate::types::{ApiError, Result};
 use crate::utils::hardhat_config::HardhatConfigBuilder;
 use crate::utils::lib::{
     check_file_ext, clean_up, get_file_path, path_buf_to_string, status_code_to_message,
-    ZKSOLC_VERSIONS, ARTIFACTS_ROOT, CARGO_MANIFEST_DIR, SOL_ROOT,
+    ARTIFACTS_ROOT, CARGO_MANIFEST_DIR, SOL_ROOT, ZKSOLC_VERSIONS,
 };
 use crate::worker::WorkerEngine;
 use rocket::serde::{json, json::Json, Deserialize};

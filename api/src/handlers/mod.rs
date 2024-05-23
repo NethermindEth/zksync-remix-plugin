@@ -6,18 +6,14 @@ pub mod service_version;
 pub mod types;
 pub mod verify;
 
+use crate::handlers::compile::do_compile;
 use crate::handlers::compiler_version::do_compiler_version;
 use crate::handlers::types::{ApiCommand, ApiCommandResult, HealthCheckResponse};
 use crate::handlers::verify::do_verify;
 use crate::types::ApiError;
-use crate::utils::lib::{get_file_path, init_parent_directories, ARTIFACTS_ROOT, generate_mock_compile_request};
-use rocket::tokio;
-use std::path::PathBuf;
-use std::str::FromStr;
+use crate::utils::lib::generate_mock_compile_request;
 use tracing::info;
 use tracing::instrument;
-use uuid::Uuid;
-use crate::handlers::compile::do_compile;
 
 #[instrument]
 #[get("/health")]

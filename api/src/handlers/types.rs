@@ -18,7 +18,7 @@ pub struct CompiledFile {
     pub file_name: String,
     pub file_content: String,
     #[serde(default)]
-    pub is_contract: bool
+    pub is_contract: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -40,7 +40,7 @@ pub struct CompilationConfig {
 #[serde(crate = "rocket::serde")]
 pub struct CompilationRequest {
     pub config: CompilationConfig,
-    pub contracts: Vec<CompiledFile>
+    pub contracts: Vec<CompiledFile>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
