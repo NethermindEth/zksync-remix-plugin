@@ -10,8 +10,8 @@ const config: HardhatUserConfig = {
             optimizer: {
                 enabled: true,
             },
-            compilerPath: '/usr/local/bin/zksolc'
-        }
+        },
+        version: '1.4.1',
     },
     defaultNetwork: 'dockerizedNode',
     networks: {

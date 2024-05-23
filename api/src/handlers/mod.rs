@@ -1,4 +1,3 @@
-pub mod compile;
 pub mod compile_multiple;
 pub mod compiler_version;
 pub mod process;
@@ -7,7 +6,6 @@ pub mod service_version;
 pub mod types;
 pub mod verify;
 
-use crate::handlers::compile::do_compile;
 use crate::handlers::compiler_version::do_compiler_version;
 use crate::handlers::types::{ApiCommand, ApiCommandResult, HealthCheckResponse};
 use crate::handlers::verify::do_verify;
@@ -19,6 +17,7 @@ use std::str::FromStr;
 use tracing::info;
 use tracing::instrument;
 use uuid::Uuid;
+use crate::handlers::compile_multiple::do_compile;
 
 #[instrument]
 #[get("/health")]
@@ -102,10 +101,7 @@ pub async fn dispatch_command(command: ApiCommand) -> Result<ApiCommandResult, A
             Ok(result) => Ok(ApiCommandResult::CompilerVersion(result)),
             Err(e) => Err(e),
         },
-        ApiCommand::Compile {
-            path: remix_file_path,
-            version,
-        } => match do_compile(version, remix_file_path).await {
+        ApiCommand::Compile(request) => match do_compile(request).await {
             Ok(compile_response) => Ok(ApiCommandResult::Compile(compile_response.into_inner())),
             Err(e) => Err(e),
         },

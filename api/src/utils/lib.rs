@@ -3,6 +3,8 @@ use rocket::tokio::fs;
 use solang_parser::diagnostics::{Diagnostic, ErrorType, Level};
 use solang_parser::pt::Loc;
 use std::path::{Path, PathBuf};
+use uuid::Uuid;
+use walkdir::WalkDir;
 
 pub const SOL_ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/", "hardhat_env/contracts/");
 pub const ZK_CACHE_ROOT: &str = concat!(
@@ -159,4 +161,26 @@ pub async fn clean_up(paths: Vec<String>) {
     }
 
     let _ = fs::remove_dir_all(ZK_CACHE_ROOT).await;
+}
+
+pub fn generate_folder_name() -> String {
+    let uuid = Uuid::new_v4();
+    uuid.to_string()
+}
+
+pub fn list_files_in_directory<P: AsRef<Path>>(path: P) -> Vec<String> {
+    let mut file_paths = Vec::new();
+
+    for entry in WalkDir::new(path) {
+        match entry {
+            Ok(entry) => {
+                if entry.file_type().is_file() {
+                    file_paths.push(entry.path().display().to_string());
+                }
+            }
+            Err(e) => println!("Error reading directory: {}", e),
+        }
+    }
+
+    file_paths
 }

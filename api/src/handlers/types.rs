@@ -9,7 +9,7 @@ use std::path::PathBuf;
 pub struct CompileResponse {
     pub status: String,
     pub message: String,
-    pub file_content: Vec<SolFile>,
+    pub file_content: Vec<CompiledFile>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -21,9 +21,27 @@ pub struct VerifyResponse {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(crate = "rocket::serde")]
-pub struct SolFile {
+pub struct CompiledFile {
     pub file_name: String,
     pub file_content: String,
+    #[serde(default)]
+    pub is_contract: bool
+}
+
+
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
+#[serde(crate = "rocket::serde")]
+pub struct CompilationConfig {
+    pub version: String,
+    #[serde(default)]
+    pub user_libraries: Vec<String>,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
+#[serde(crate = "rocket::serde")]
+pub struct CompilationRequest {
+    pub config: CompilationConfig,
+    pub contracts: Vec<CompiledFile>
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -32,20 +50,10 @@ pub struct FileContentMap {
     pub file_content: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ScarbCompileResponse {
-    pub status: String,
-    pub message: String,
-    pub file_content_map_array: Vec<FileContentMap>,
-}
-
 #[derive(Debug)]
 pub enum ApiCommand {
     CompilerVersion,
-    Compile {
-        version: String,
-        path: PathBuf,
-    },
+    Compile(CompilationRequest),
     Verify {
         version: String,
         network: String,
