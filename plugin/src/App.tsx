@@ -6,9 +6,9 @@ import { Provider } from 'jotai'
 
 const App: React.FC = () => {
   return (
-    <div className='shell bg-primary'>
+    <div className="shell bg-primary">
       {
-        <Provider store={ remixClientStore }>
+        <Provider store={remixClientStore}>
           <Plugin />
         </Provider>
       }
