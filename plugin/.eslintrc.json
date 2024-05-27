@@ -3,24 +3,22 @@
     "browser": true,
     "es2021": true
   },
-  "extends": [
-    "plugin:react/recommended",
-    "standard-with-typescript"
-  ],
+  "extends": ["plugin:react/recommended", "standard-with-typescript"],
   "overrides": [],
   "parserOptions": {
     "ecmaVersion": "latest",
     "sourceType": "module",
     "project": "./tsconfig.json"
   },
-  "plugins": [
-    "react",
-    "react-hooks"
-  ],
+  "plugins": ["react", "react-hooks"],
   "rules": {
     "semi": [2, "never"],
     "react-hooks/rules-of-hooks": "error", // Checks rules of Hooks
-    "react-hooks/exhaustive-deps": "warn" // Checks effect dependencies
+    "react-hooks/exhaustive-deps": "warn", // Checks effect dependencies
+    "multiline-ternary": "off",
+    "@typescript-eslint/explicit-function-return-type": "off",
+    "no-multiple-empty-lines": ["error", { "max": 3 }],
+    "@typescript-eslint/space-before-function-paren": "off"
   },
   "settings": {
     "react": {

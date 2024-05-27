@@ -1,3 +1,4 @@
+/* eslint-disable no-multiple-empty-lines */
 import React, { useEffect, useState } from 'react'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import { BsChevronDown } from 'react-icons/bs'
@@ -15,9 +16,7 @@ import * as Dropdown from '@/ui_components/Dropdown'
 import { envAtom } from '@/atoms/environment'
 import { remixClientAtom } from '@/stores/remixClient'
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-
-const DeployedContracts: React.FC = () => {
+const DeployedContracts = () => {
   const contracts = useAtomValue(deployedContractsAtom)
   const [selectedContract, setSelectedContract] = useAtom(
     deployedSelectedContractAtom
