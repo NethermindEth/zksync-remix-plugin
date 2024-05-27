@@ -14,7 +14,7 @@
     "sourceType": "module",
     "project": "./tsconfig.json"
   },
-  "plugins": ["@typescript-eslint", "react", "react-hooks", "prettier"],
+  "plugins": ["@typescript-eslint", "prettier", "react", "react-hooks"],
   "rules": {
     "semi": [2, "never"],
     "react-hooks/rules-of-hooks": "error", // Checks rules of Hooks
