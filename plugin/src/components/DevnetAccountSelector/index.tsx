@@ -1,26 +1,25 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Provider, Wallet } from 'zksync-ethers'
 import { MdCopyAll, MdRefresh } from 'react-icons/md'
 import copy from 'copy-to-clipboard'
 import { useAtom, useAtomValue } from 'jotai'
 import { FaCheck } from 'react-icons/fa'
 import { BsCheck, BsChevronDown } from 'react-icons/bs'
-
 import { getRoundedNumber, getShortenedHash, weiToEth } from '@/utils/utils'
 import { getAccounts, updateBalances } from '@/utils/network'
-import './devnetAccountSelector.css'
 import { accountAtom, providerAtom } from '@/atoms/connection'
 import {
   availableDevnetAccountsAtom,
   devnetAtom,
-  envAtom,
   isDevnetAliveAtom,
   selectedDevnetAccountAtom
 } from '@/atoms/environment'
-import { transactionsAtom } from '@/atoms/transaction'
-import * as D from '@/ui_components/Dropdown'
+import * as Dropdown from '@/ui_components/Dropdown'
 import { remixClientAtom } from '@/stores/remixClient'
 import useInterval from '@/hooks/useInterval'
+import useAsync from '@/hooks/useAsync'
+import './devnetAccountSelector.css'
+import useAsyncFn from '@/hooks/useAsyncFn'
 
 const DEVNET_POLL_INTERVAL = 1_000
 
@@ -29,7 +28,6 @@ const DevnetAccountSelector: React.FC = () => {
   const [account, setAccount] = useAtom(accountAtom)
   const [provider, setProvider] = useAtom(providerAtom)
 
-  const env = useAtomValue(envAtom)
   const devnet = useAtomValue(devnetAtom)
   const [isDevnetAlive, setIsDevnetAlive] = useAtom(isDevnetAliveAtom)
   const [selectedDevnetAccount, setSelectedDevnetAccount] = useAtom(
@@ -38,50 +36,9 @@ const DevnetAccountSelector: React.FC = () => {
   const [availableDevnetAccounts, setAvailableDevnetAccounts] = useAtom(
     availableDevnetAccountsAtom
   )
-
-  const transactions = useAtomValue(transactionsAtom)
   const [accountRefreshing, setAccountRefreshing] = useState(false)
   const [showCopied, setCopied] = useState(false)
-
   const [accountIdx, setAccountIdx] = useState(0)
-
-  // devnet live status
-  // useEffect(() => {
-  //   let isSubscribed = true
-  //   const interval = setInterval(() => {
-  //     ;(async () => {
-  //       try {
-  //         const response = await fetch(`${devnet.url}`, {
-  //           method: 'POST',
-  //           headers: {
-  //             'Content-Type': 'application/json'
-  //           },
-  //           body: JSON.stringify({
-  //             jsonrpc: '2.0',
-  //             method: 'eth_blockNumber',
-  //             params: [],
-  //             id: 1
-  //           })
-  //         })
-
-  //         const isAlive =
-  //           isSubscribed &&
-  //           response.status === 200 &&
-  //           (await response.json()).result != null
-  //         setIsDevnetAlive(isAlive)
-  //       } catch (error) {
-  //         if (isSubscribed) {
-  //           setIsDevnetAlive(false)
-  //         }
-  //       }
-  //     })().catch(console.error)
-  //   }, 10000)
-
-  //   return () => {
-  //     clearInterval(interval)
-  //     isSubscribed = false
-  //   }
-  // }, [devnet.url])
 
   useInterval(
     () => {
@@ -99,8 +56,11 @@ const DevnetAccountSelector: React.FC = () => {
       })
         .then(async (res) => await res.json())
         .then((res) => {
-          console.log('res', res)
-          setIsDevnetAlive(true)
+          if (res.result) {
+            setIsDevnetAlive(true)
+          } else {
+            setIsDevnetAlive(false)
+          }
         })
         .catch(() => {
           setIsDevnetAlive(false)
@@ -108,20 +68,6 @@ const DevnetAccountSelector: React.FC = () => {
     },
     devnet.url.length > 0 ? DEVNET_POLL_INTERVAL : null
   )
-
-  const updateAccountBalances = useCallback(async (): Promise<void> => {
-    const updatedAccounts = await updateBalances(
-      availableDevnetAccounts,
-      devnet.url
-    )
-    setAvailableDevnetAccounts(updatedAccounts)
-  }, [availableDevnetAccounts, devnet, setAvailableDevnetAccounts])
-
-  useEffect(() => {
-    updateAccountBalances().catch((e) => {
-      console.error(e)
-    })
-  }, [transactions, updateAccountBalances])
 
   useEffect(() => {
     if (!isDevnetAlive) {
@@ -137,33 +83,31 @@ const DevnetAccountSelector: React.FC = () => {
     }
   }, [isDevnetAlive, remixClient, devnet])
 
-  const refreshDevnetAccounts = async (): Promise<void> => {
-    setAccountRefreshing(true)
+  useAsync(async () => {
+    const updatedAccounts = await updateBalances(
+      availableDevnetAccounts,
+      devnet.url
+    )
+    setAvailableDevnetAccounts(updatedAccounts)
+  }, [devnet, availableDevnetAccounts, setAvailableDevnetAccounts])
+
+  const [, refreshDevnetAccounts] = useAsyncFn(async () => {
     try {
+      setAccountRefreshing(true)
       const accounts = await getAccounts(`${devnet.url}`)
       if (
         JSON.stringify(accounts) !== JSON.stringify(availableDevnetAccounts)
       ) {
         setAvailableDevnetAccounts(accounts)
       }
-    } catch (e) {
+    } catch (error) {
       await remixClient.terminal.log({
         type: 'error',
         value: `Failed to get accounts information from ${devnet.url}`
       })
     }
     setAccountRefreshing(false)
-  }
-
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    setTimeout(async () => {
-      // if (!isDevnetAlive) {
-      //   return
-      // }
-      await refreshDevnetAccounts()
-    }, 1)
-  }, [devnet])
+  }, [remixClient, devnet, availableDevnetAccounts, setAvailableDevnetAccounts])
 
   useEffect(() => {
     if (
@@ -175,7 +119,12 @@ const DevnetAccountSelector: React.FC = () => {
     ) {
       setSelectedDevnetAccount(availableDevnetAccounts[0])
     }
-  }, [availableDevnetAccounts, devnet])
+  }, [
+    availableDevnetAccounts,
+    devnet,
+    selectedDevnetAccount,
+    setSelectedDevnetAccount
+  ])
 
   useEffect(() => {
     const newProvider = new Provider(devnet.url)
@@ -183,7 +132,7 @@ const DevnetAccountSelector: React.FC = () => {
       setAccount(new Wallet(selectedDevnetAccount.private_key, newProvider))
     }
     setProvider(newProvider)
-  }, [devnet])
+  }, [devnet, selectedDevnetAccount, setAccount, setProvider])
 
   function handleAccountChange(index: number): void {
     if (index === -1) {
@@ -211,13 +160,13 @@ const DevnetAccountSelector: React.FC = () => {
     <div className="mt-2">
       <label className="">Devnet account selection</label>
       <div className="devnet-account-selector-wrapper">
-        <D.Root
+        <Dropdown.Root
           open={dropdownControl}
           onOpenChange={(e) => {
             setDropdownControl(e)
           }}
         >
-          <D.Trigger>
+          <Dropdown.Trigger>
             <div className="flex flex-row justify-content-space-between align-items-center p-2 br-1 devnet-account-selector-trigger">
               <label className="text-light text-sm m-0">
                 {availableDevnetAccounts.length !== 0 &&
@@ -236,13 +185,13 @@ const DevnetAccountSelector: React.FC = () => {
                 }}
               />{' '}
             </div>
-          </D.Trigger>
-          <D.Portal>
-            <D.Content>
+          </Dropdown.Trigger>
+          <Dropdown.Portal>
+            <Dropdown.Content>
               {isDevnetAlive && availableDevnetAccounts.length > 0
                 ? availableDevnetAccounts.map((account, index) => {
                     return (
-                      <D.Item
+                      <Dropdown.Item
                         onClick={() => {
                           handleAccountChange(index)
                         }}
@@ -257,22 +206,22 @@ const DevnetAccountSelector: React.FC = () => {
                           weiToEth(account.initial_balance),
                           2
                         )} ether)`}
-                      </D.Item>
+                      </Dropdown.Item>
                     )
                   })
                 : ([
-                    <D.Item
+                    <Dropdown.Item
                       onClick={() => {
                         handleAccountChange(-1)
                       }}
                       key={-1}
                     >
                       No accounts found
-                    </D.Item>
+                    </Dropdown.Item>
                   ] as JSX.Element[])}
-            </D.Content>
-          </D.Portal>
-        </D.Root>
+            </Dropdown.Content>
+          </Dropdown.Portal>
+        </Dropdown.Root>
         <div className="position-relative">
           <button
             className="btn"
@@ -289,7 +238,6 @@ const DevnetAccountSelector: React.FC = () => {
         </div>
         <button
           className="btn refresh"
-          // eslint-disable-next-line @typescript-eslint/no-misused-promises
           onClick={refreshDevnetAccounts}
           title="Refresh devnet accounts"
           data-loading={accountRefreshing ? 'loading' : 'loaded'}
