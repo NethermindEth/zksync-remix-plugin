@@ -1,4 +1,3 @@
-/* eslint-disable no-multiple-empty-lines */
 import React, { useEffect, useState } from 'react'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import { BsChevronDown } from 'react-icons/bs'

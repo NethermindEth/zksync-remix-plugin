@@ -18,7 +18,7 @@ const pluginVersion =
 
 const DEFAULT_DELAY = 5_000
 
-const SolidityVersion: React.FC = () => {
+export const SolidityVersion: React.FC = () => {
   const remixClient = useAtomValue(remixClientAtom)
   const [solidityVersion, setSolidityVersion] = useAtom(solidityVersionAtom)
   const [versions, setVersions] = useAtom(versionsAtom)
@@ -153,5 +153,3 @@ const SolidityVersion: React.FC = () => {
     </div>
   )
 }
-
-export default SolidityVersion

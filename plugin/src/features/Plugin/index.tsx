@@ -1,33 +1,36 @@
 import React, { useEffect, useState } from 'react'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import { ethers } from 'ethers'
-import { Environment } from '../Environment'
-import './styles.css'
-import Compilation from '../Compilation'
-import Deployment from '../Deployment'
-import Interaction from '../Interaction'
+import {
+  Environment,
+  Compilation,
+  Deployment,
+  Interaction,
+  TransactionHistory,
+  SolidityVersion as CompilerVersion
+} from '@/features'
+// import Compilation from '@/features/Compilation'
 import Accordian, {
   AccordianItem,
   AccordionContent,
   AccordionTrigger
-} from '../../ui_components/Accordian'
-import TransactionHistory from '../TransactionHistory'
-import CompilerVersion from '../CompilerVersion'
-import StateAction from '../../components/StateAction'
-import BackgroundNotices from '../../components/BackgroundNotices'
+} from '@/ui_components/Accordian'
+import StateAction from '@/components/StateAction'
+import BackgroundNotices from '@/components/BackgroundNotices'
 
 import {
   isCompilingAtom,
   statusAtom as compilationStatusAtom,
   hashDirAtom
-} from '../../atoms/compilation'
-import { deploymentAtom } from '../../atoms/deployment'
+} from '@/atoms/compilation'
+import { deploymentAtom } from '@/atoms/deployment'
 import {
   initializeRemixClient,
   isLoadedAtom,
   remixClientAtom
-} from '../../stores/remixClient'
-import storage from '../../utils/storage'
+} from '@/stores/remixClient'
+import storage from '@/utils/storage'
+import './styles.css'
 
 export type AccordianTabs =
   | 'compile'
@@ -36,8 +39,7 @@ export type AccordianTabs =
   | 'transactions'
   | ''
 
-const Plugin: React.FC = () => {
-  console.log('satyam:plugin mounted')
+export const Plugin: React.FC = () => {
   // Compilation Context state variables
   const compilationStatus = useAtomValue(compilationStatusAtom)
   const isCompiling = useAtomValue(isCompilingAtom)
@@ -118,10 +120,10 @@ const Plugin: React.FC = () => {
                         isCompiling
                           ? 'loading'
                           : compilationStatus === 'done'
-                          ? 'success'
-                          : compilationStatus === 'failed'
-                          ? 'error'
-                          : ''
+                            ? 'success'
+                            : compilationStatus === 'failed'
+                              ? 'error'
+                              : ''
                       }
                     />
                   </span>
@@ -146,10 +148,10 @@ const Plugin: React.FC = () => {
                         isDeploying
                           ? 'loading'
                           : deployStatus === 'error'
-                          ? 'error'
-                          : deployStatus === 'done'
-                          ? 'success'
-                          : ''
+                            ? 'error'
+                            : deployStatus === 'done'
+                              ? 'success'
+                              : ''
                       }
                     />
                   </span>
@@ -210,5 +212,3 @@ const Plugin: React.FC = () => {
     )
   )
 }
-
-export default Plugin

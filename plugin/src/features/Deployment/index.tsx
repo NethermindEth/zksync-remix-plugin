@@ -1,22 +1,19 @@
-/* eslint-disable @typescript-eslint/restrict-plus-operands */
-/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import React, { useEffect, useState } from 'react'
+import { type Contract } from 'ethers'
+import { useWalletClient } from 'wagmi'
+import * as zksync from 'zksync-ethers'
+import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 
-import CompiledContracts from '../../components/CompiledContracts'
+import CompiledContracts from '@/components/CompiledContracts'
 import './styles.css'
 import Container from '../../ui_components/Container'
-
 import { type AccordianTabs } from '../Plugin'
-import * as zksync from 'zksync-ethers'
 import ConstructorInput from '../../components/ConstructorInput'
 import {
   type VerificationResult,
   type DeployedContract
 } from '../../types/contracts'
 import { mockManualChain, type Transaction } from '../../types/transaction'
-import { type Contract } from 'ethers'
-import { useWalletClient } from 'wagmi'
-import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import { transactionsAtom } from '../../atoms/transaction'
 import {
   contractsAtom,
@@ -44,7 +41,7 @@ interface DeploymentProps {
   setActiveTab: (tab: AccordianTabs) => void
 }
 
-const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
+export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const { data: walletClient } = useWalletClient()
 
   const [transactions, setTransactions] = useAtom(transactionsAtom)
@@ -431,5 +428,3 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     </>
   )
 }
-
-export default Deployment
