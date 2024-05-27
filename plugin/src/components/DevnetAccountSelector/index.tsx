@@ -21,9 +21,9 @@ import useAsync from '@/hooks/useAsync'
 import './devnetAccountSelector.css'
 import useAsyncFn from '@/hooks/useAsyncFn'
 
-const DEVNET_POLL_INTERVAL = 1_000
+const DEVNET_POLL_INTERVAL = 10_000
 
-const DevnetAccountSelector: React.FC = () => {
+const DevnetAccountSelector = () => {
   const remixClient = useAtomValue(remixClientAtom)
   const [account, setAccount] = useAtom(accountAtom)
   const [provider, setProvider] = useAtom(providerAtom)
@@ -89,7 +89,7 @@ const DevnetAccountSelector: React.FC = () => {
       devnet.url
     )
     setAvailableDevnetAccounts(updatedAccounts)
-  }, [devnet, availableDevnetAccounts, setAvailableDevnetAccounts])
+  }, [devnet])
 
   const [, refreshDevnetAccounts] = useAsyncFn(async () => {
     try {
@@ -107,7 +107,11 @@ const DevnetAccountSelector: React.FC = () => {
       })
     }
     setAccountRefreshing(false)
-  }, [remixClient, devnet, availableDevnetAccounts, setAvailableDevnetAccounts])
+  }, [remixClient, devnet])
+
+  useEffect(() => {
+    refreshDevnetAccounts()
+  }, [refreshDevnetAccounts])
 
   useEffect(() => {
     if (

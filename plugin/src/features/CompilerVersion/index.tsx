@@ -109,7 +109,6 @@ export const SolidityVersion: React.FC = () => {
 
   useEffect(() => {
     if (versions.length > 0) {
-      console.log('cancelling reftech')
       cancelRefetchVersions()
     }
   }, [versions, cancelRefetchVersions])
