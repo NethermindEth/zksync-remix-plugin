@@ -1,110 +1,142 @@
-import { getRoundedNumber, getShortenedHash, weiToEth } from '../../utils/utils'
-import { getAccounts, updateBalances } from '../../utils/network'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { Provider, Wallet } from 'zksync-ethers'
 import { MdCopyAll, MdRefresh } from 'react-icons/md'
-import './devnetAccountSelector.css'
 import copy from 'copy-to-clipboard'
 import { useAtom, useAtomValue } from 'jotai'
-import { accountAtom, providerAtom } from '../../atoms/connection'
+import { FaCheck } from 'react-icons/fa'
+import { BsCheck, BsChevronDown } from 'react-icons/bs'
+
+import { getRoundedNumber, getShortenedHash, weiToEth } from '@/utils/utils'
+import { getAccounts, updateBalances } from '@/utils/network'
+import './devnetAccountSelector.css'
+import { accountAtom, providerAtom } from '@/atoms/connection'
 import {
   availableDevnetAccountsAtom,
   devnetAtom,
   envAtom,
   isDevnetAliveAtom,
   selectedDevnetAccountAtom
-} from '../../atoms/environment'
-import { transactionsAtom } from '../../atoms/transaction'
-import { BsCheck, BsChevronDown } from 'react-icons/bs'
-import * as D from '../../ui_components/Dropdown'
-import { FaCheck } from 'react-icons/fa'
-import { remixClientAtom } from '../../stores/remixClient'
+} from '@/atoms/environment'
+import { transactionsAtom } from '@/atoms/transaction'
+import * as D from '@/ui_components/Dropdown'
+import { remixClientAtom } from '@/stores/remixClient'
+import useInterval from '@/hooks/useInterval'
+
+const DEVNET_POLL_INTERVAL = 1_000
 
 const DevnetAccountSelector: React.FC = () => {
   const remixClient = useAtomValue(remixClientAtom)
-
   const [account, setAccount] = useAtom(accountAtom)
   const [provider, setProvider] = useAtom(providerAtom)
 
   const env = useAtomValue(envAtom)
   const devnet = useAtomValue(devnetAtom)
   const [isDevnetAlive, setIsDevnetAlive] = useAtom(isDevnetAliveAtom)
-  const [selectedDevnetAccount, setSelectedDevnetAccount] = useAtom(selectedDevnetAccountAtom)
-  const [availableDevnetAccounts, setAvailableDevnetAccounts] = useAtom(availableDevnetAccountsAtom)
+  const [selectedDevnetAccount, setSelectedDevnetAccount] = useAtom(
+    selectedDevnetAccountAtom
+  )
+  const [availableDevnetAccounts, setAvailableDevnetAccounts] = useAtom(
+    availableDevnetAccountsAtom
+  )
 
   const transactions = useAtomValue(transactionsAtom)
-
   const [accountRefreshing, setAccountRefreshing] = useState(false)
   const [showCopied, setCopied] = useState(false)
 
   const [accountIdx, setAccountIdx] = useState(0)
 
   // devnet live status
-  useEffect(() => {
-    let isSubscribed = true
+  // useEffect(() => {
+  //   let isSubscribed = true
+  //   const interval = setInterval(() => {
+  //     ;(async () => {
+  //       try {
+  //         const response = await fetch(`${devnet.url}`, {
+  //           method: 'POST',
+  //           headers: {
+  //             'Content-Type': 'application/json'
+  //           },
+  //           body: JSON.stringify({
+  //             jsonrpc: '2.0',
+  //             method: 'eth_blockNumber',
+  //             params: [],
+  //             id: 1
+  //           })
+  //         })
 
-    const interval = setInterval(() => {
-      (async () => {
-        try {
-          const response = await fetch(`${devnet.url}`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              jsonrpc: '2.0',
-              method: 'eth_blockNumber',
-              params: [],
-              id: 1
-            })
-          })
+  //         const isAlive =
+  //           isSubscribed &&
+  //           response.status === 200 &&
+  //           (await response.json()).result != null
+  //         setIsDevnetAlive(isAlive)
+  //       } catch (error) {
+  //         if (isSubscribed) {
+  //           setIsDevnetAlive(false)
+  //         }
+  //       }
+  //     })().catch(console.error)
+  //   }, 10000)
 
-          const isAlive = isSubscribed && response.status === 200 && (await response.json()).result != null
-          setIsDevnetAlive(isAlive)
-        } catch (error) {
-          if (isSubscribed) {
-            setIsDevnetAlive(false)
-          }
-        }
-      })().catch(console.error)
-    }, 10000)
+  //   return () => {
+  //     clearInterval(interval)
+  //     isSubscribed = false
+  //   }
+  // }, [devnet.url])
 
-    return () => {
-      clearInterval(interval)
-      isSubscribed = false
-    }
-  }, [devnet.url])
+  useInterval(
+    () => {
+      fetch(`${devnet.url}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          method: 'eth_blockNumber',
+          params: [],
+          id: 1
+        })
+      })
+        .then(async (res) => await res.json())
+        .then((res) => {
+          console.log('res', res)
+          setIsDevnetAlive(true)
+        })
+        .catch(() => {
+          setIsDevnetAlive(false)
+        })
+    },
+    devnet.url.length > 0 ? DEVNET_POLL_INTERVAL : null
+  )
 
-  const notifyDevnetStatus = async (): Promise<void> => {
-    try {
-      await remixClient.call(
-        'notification' as any,
-        'toast',
-        `❗️ Server ${devnet.name} - ${devnet.url} is not healthy or not reachable at the moment`
-      )
-    } catch (e) {
-      console.error(e)
-    }
-  }
+  const updateAccountBalances = useCallback(async (): Promise<void> => {
+    const updatedAccounts = await updateBalances(
+      availableDevnetAccounts,
+      devnet.url
+    )
+    setAvailableDevnetAccounts(updatedAccounts)
+  }, [availableDevnetAccounts, devnet, setAvailableDevnetAccounts])
 
   useEffect(() => {
     updateAccountBalances().catch((e) => {
       console.error(e)
     })
-  }, [transactions])
+  }, [transactions, updateAccountBalances])
 
   useEffect(() => {
     if (!isDevnetAlive) {
-      notifyDevnetStatus().catch((e) => {
-        console.error(e)
-      })
+      remixClient
+        .call(
+          'notification' as any,
+          'toast',
+          `❗️ Server ${devnet.name} - ${devnet.url} is not healthy or not reachable at the moment`
+        )
+        .catch((e) => {
+          console.error(e)
+        })
     }
-  }, [isDevnetAlive])
+  }, [isDevnetAlive, remixClient, devnet])
 
-  const updateAccountBalances = async (): Promise<void> => {
-    const updatedAccounts = await updateBalances(availableDevnetAccounts, devnet.url)
-    setAvailableDevnetAccounts(updatedAccounts)
-  }
   const refreshDevnetAccounts = async (): Promise<void> => {
     setAccountRefreshing(true)
     try {
@@ -148,17 +180,12 @@ const DevnetAccountSelector: React.FC = () => {
   useEffect(() => {
     const newProvider = new Provider(devnet.url)
     if (selectedDevnetAccount != null) {
-      setAccount(
-        new Wallet(
-          selectedDevnetAccount.private_key,
-          newProvider
-        )
-      )
+      setAccount(new Wallet(selectedDevnetAccount.private_key, newProvider))
     }
     setProvider(newProvider)
-  }, [devnet, selectedDevnetAccount])
+  }, [devnet])
 
-  function handleAccountChange (index: number): void {
+  function handleAccountChange(index: number): void {
     if (index === -1) {
       return
     }
@@ -178,48 +205,70 @@ const DevnetAccountSelector: React.FC = () => {
 
   useEffect(() => {
     setAccountIdx(0)
-  }, [env])
+  }, [])
+
   return (
-    <div className='mt-2'>
+    <div className="mt-2">
       <label className="">Devnet account selection</label>
       <div className="devnet-account-selector-wrapper">
-        <D.Root open={dropdownControl} onOpenChange={(e) => { setDropdownControl(e) }}>
-          <D.Trigger >
-            <div className='flex flex-row justify-content-space-between align-items-center p-2 br-1 devnet-account-selector-trigger'>
-              <label className='text-light text-sm m-0'>{(availableDevnetAccounts.length !== 0 && (availableDevnetAccounts[accountIdx]?.address) !== undefined)
-                ? getShortenedHash(
-                  availableDevnetAccounts[accountIdx]?.address,
-                  6,
-                  4
-                )
-                : 'No accounts found'}</label>
-              <BsChevronDown style={{
-                transform: dropdownControl ? 'rotate(180deg)' : 'none',
-                transition: 'all 0.3s ease'
-              }} />            </div>
+        <D.Root
+          open={dropdownControl}
+          onOpenChange={(e) => {
+            setDropdownControl(e)
+          }}
+        >
+          <D.Trigger>
+            <div className="flex flex-row justify-content-space-between align-items-center p-2 br-1 devnet-account-selector-trigger">
+              <label className="text-light text-sm m-0">
+                {availableDevnetAccounts.length !== 0 &&
+                availableDevnetAccounts[accountIdx]?.address !== undefined
+                  ? getShortenedHash(
+                      availableDevnetAccounts[accountIdx]?.address,
+                      6,
+                      4
+                    )
+                  : 'No accounts found'}
+              </label>
+              <BsChevronDown
+                style={{
+                  transform: dropdownControl ? 'rotate(180deg)' : 'none',
+                  transition: 'all 0.3s ease'
+                }}
+              />{' '}
+            </div>
           </D.Trigger>
           <D.Portal>
             <D.Content>
               {isDevnetAlive && availableDevnetAccounts.length > 0
                 ? availableDevnetAccounts.map((account, index) => {
-                  return (
-                    <D.Item onClick={() => { handleAccountChange(index) }} key={index}>
-                      {accountIdx === index && <BsCheck size={18} />}
-                      {`${getShortenedHash(
-                        account.address ?? '',
-                        6,
-                        4
-                      )} (${getRoundedNumber(
-                        weiToEth(account.initial_balance),
-                        2
-                      )} ether)`}
-                    </D.Item>
-                  )
-                })
+                    return (
+                      <D.Item
+                        onClick={() => {
+                          handleAccountChange(index)
+                        }}
+                        key={index}
+                      >
+                        {accountIdx === index && <BsCheck size={18} />}
+                        {`${getShortenedHash(
+                          account.address ?? '',
+                          6,
+                          4
+                        )} (${getRoundedNumber(
+                          weiToEth(account.initial_balance),
+                          2
+                        )} ether)`}
+                      </D.Item>
+                    )
+                  })
                 : ([
-                  <D.Item onClick={() => { handleAccountChange(-1) }} key={-1}>
-                    No accounts found
-                  </D.Item>
+                    <D.Item
+                      onClick={() => {
+                        handleAccountChange(-1)
+                      }}
+                      key={-1}
+                    >
+                      No accounts found
+                    </D.Item>
                   ] as JSX.Element[])}
             </D.Content>
           </D.Portal>

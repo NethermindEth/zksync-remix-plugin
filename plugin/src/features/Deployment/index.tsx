@@ -9,22 +9,35 @@ import Container from '../../ui_components/Container'
 import { type AccordianTabs } from '../Plugin'
 import * as zksync from 'zksync-ethers'
 import ConstructorInput from '../../components/ConstructorInput'
-import { type VerificationResult, type DeployedContract } from '../../types/contracts'
+import {
+  type VerificationResult,
+  type DeployedContract
+} from '../../types/contracts'
 import { mockManualChain, type Transaction } from '../../types/transaction'
 import { type Contract } from 'ethers'
 import { useWalletClient } from 'wagmi'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import { transactionsAtom } from '../../atoms/transaction'
-import { contractsAtom, selectedContractAtom } from '../../atoms/compiledContracts'
+import {
+  contractsAtom,
+  selectedContractAtom
+} from '../../atoms/compiledContracts'
 import { accountAtom, providerAtom } from '../../atoms/connection'
-import { deployedContractsAtom, deployedSelectedContractAtom } from '../../atoms/deployedContracts'
+import {
+  deployedContractsAtom,
+  deployedSelectedContractAtom
+} from '../../atoms/deployedContracts'
 import { envAtom } from '../../atoms/environment'
 import { isVerifyingAtom, verificationAtom } from '../../atoms/verification'
 import { asyncPost } from '../../api/asyncRequests'
 import { solidityVersionAtom } from '../../atoms/version'
 import { deployStatusAtom } from '../../atoms/deployment'
 import { saveCode } from '../../api/saveCode'
-import { currentFilenameAtom, isValidSolidityAtom, remixClientAtom } from '../../stores/remixClient'
+import {
+  currentFilenameAtom,
+  isValidSolidityAtom,
+  remixClientAtom
+} from '../../stores/remixClient'
 import { hashDirAtom } from '../../atoms/compilation'
 
 interface DeploymentProps {
@@ -38,10 +51,13 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const contracts = useAtomValue(contractsAtom)
   const selectedContract = useAtomValue(selectedContractAtom)
   const account = useAtomValue(accountAtom)
-  const [deployedContracts, setDeployedContracts] = useAtom(deployedContractsAtom)
+  const [deployedContracts, setDeployedContracts] = useAtom(
+    deployedContractsAtom
+  )
   const setDeployedSelectedContract = useSetAtom(deployedSelectedContractAtom)
   const [inputs, setInputs] = useState<string[]>([])
-  const [shouldRunVerification, setShouldRunVerification] = useState<boolean>(false)
+  const [shouldRunVerification, setShouldRunVerification] =
+    useState<boolean>(false)
 
   const { isVerifying } = useAtomValue(verificationAtom)
   const isValidSolidity = useAtomValue(isValidSolidityAtom)
@@ -52,7 +68,9 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 
   const setIsVerifying = useSetAtom(isVerifyingAtom)
 
-  const [selectedChainName, setSelectedChainName] = React.useState<string | undefined>()
+  const [selectedChainName, setSelectedChainName] = React.useState<
+    string | undefined
+  >()
 
   const solidityVersion = useAtomValue(solidityVersionAtom)
   const env = useAtomValue(envAtom)
@@ -80,7 +98,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     setSelectedChainName(name)
   }, [provider, env])
 
-  async function verify (contract: DeployedContract | null): Promise<void> {
+  async function verify(contract: DeployedContract | null): Promise<void> {
     if (!contract) {
       throw new Error('Not able to retrieve deployed contract for verification')
     }
@@ -97,10 +115,19 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       )
 
       setStatus('Getting solidity file content...')
-      const currentFileContent = await remixClient.call('fileManager', 'readFile', currentFilePath)
+      const currentFileContent = await remixClient.call(
+        'fileManager',
+        'readFile',
+        currentFilePath
+      )
 
       setStatus('Parsing solidity code...')
-      await saveCode(solidityVersion, hashDir, currentFilePath, currentFileContent)
+      await saveCode(
+        solidityVersion,
+        hashDir,
+        currentFilePath,
+        currentFileContent
+      )
 
       setStatus('Verifying...')
 
@@ -117,7 +144,9 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       }
 
       // get Json body from response
-      const verificationResult = JSON.parse(await response.text()) as VerificationResult
+      const verificationResult = JSON.parse(
+        await response.text()
+      ) as VerificationResult
 
       if (verificationResult.status !== 'Success') {
         setStatus('Reporting Errors...')
@@ -167,12 +196,18 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         })
 
         // trim sierra message to get last line
-        const lastLine = verificationResult.message.trim().split('\n').pop()?.trim()
+        const lastLine = verificationResult.message
+          .trim()
+          .split('\n')
+          .pop()
+          ?.trim()
 
         remixClient.emit('statusChanged', {
           key: 'failed',
           type: 'error',
-          title: (lastLine ?? '').startsWith('Error') ? lastLine : 'Verification Failed'
+          title: (lastLine ?? '').startsWith('Error')
+            ? lastLine
+            : 'Verification Failed'
         })
         throw new Error(
           'Solidity Verification Failed, logs can be read in the terminal log'
@@ -210,7 +245,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     }
   }
 
-  async function deploy (): Promise<void> {
+  async function deploy(): Promise<void> {
     //   Deploy contract
     if (selectedContract == null) {
       await remixClient.call(
@@ -274,7 +309,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 
       const contractOutputTx = tx.deployTransaction
 
-      contractOutputTx.data = contractOutputTx.data.slice(0, contractOutputTx.data.length / 3) + '...'
+      contractOutputTx.data =
+        contractOutputTx.data.slice(0, contractOutputTx.data.length / 3) + '...'
 
       // @ts-expect-error: customData is returned properly but the type is not defined
       contractOutputTx.customData.factoryDeps = '[ <...> ]'
@@ -306,7 +342,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         type: 'deploy',
         txId: txHash,
         env,
-        chain: (env !== 'manual' ? walletClient?.chain : mockManualChain),
+        chain: env !== 'manual' ? walletClient?.chain : mockManualChain,
         provider,
         value: undefined
       }
@@ -336,43 +372,61 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   return (
     <>
       <Container>
-        {contracts.length > 0
-          ? (
-            <div>
-              <CompiledContracts show={'contract'}></CompiledContracts>
-              {
-                (selectedContract != null)
-                  ? <div>
-                    <ConstructorInput inputs={inputs} setInputs={setInputs}></ConstructorInput>
+        {contracts.length > 0 ? (
+          <div>
+            <CompiledContracts show={'contract'}></CompiledContracts>
+            {selectedContract != null ? (
+              <div>
+                <ConstructorInput
+                  inputs={inputs}
+                  setInputs={setInputs}
+                ></ConstructorInput>
 
-                    <button
-                      className='deploy-btn btn btn-primary btn-warning w-100 text-break mb-1 mt-2 px-0'
-                      onClick={() => {
-                        deploy().catch((err) => { console.error(err) })
-                      }}
-                    >
-                      Deploy { shouldRunVerification ? ' and Verify' : '' }
-                    </button>
+                <button
+                  className="deploy-btn btn btn-primary btn-warning w-100 text-break mb-1 mt-2 px-0"
+                  onClick={() => {
+                    deploy().catch((err) => {
+                      console.error(err)
+                    })
+                  }}
+                >
+                  Deploy {shouldRunVerification ? ' and Verify' : ''}
+                </button>
 
-                    <input
-                      id='shouldRunVerificationChk'
-                      name='shouldRunVerificationChk'
-                      type='checkbox'
-                      checked={shouldRunVerification}
-                      onChange={(e) => { setShouldRunVerification(e.target.checked) }}
-                      disabled={!isValidSolidity || !currentFilename || isVerifying || !selectedChainName}
-                      aria-disabled={!isValidSolidity || !currentFilename || isVerifying || !selectedChainName}
-                    />
-                    <label className='ml-1' htmlFor='shouldRunVerificationChk'>Verify Contract</label>
-                  </div>
-                  : <>
-                  </>
-              }
-            </div>
-            )
-          : (
-            <p>No contracts ready for deployment yet, compile a solidity contract</p>
+                <input
+                  id="shouldRunVerificationChk"
+                  name="shouldRunVerificationChk"
+                  type="checkbox"
+                  checked={shouldRunVerification}
+                  onChange={(e) => {
+                    setShouldRunVerification(e.target.checked)
+                  }}
+                  disabled={
+                    !isValidSolidity ||
+                    !currentFilename ||
+                    isVerifying ||
+                    !selectedChainName
+                  }
+                  aria-disabled={
+                    !isValidSolidity ||
+                    !currentFilename ||
+                    isVerifying ||
+                    !selectedChainName
+                  }
+                />
+                <label className="ml-1" htmlFor="shouldRunVerificationChk">
+                  Verify Contract
+                </label>
+              </div>
+            ) : (
+              <></>
             )}
+          </div>
+        ) : (
+          <p>
+            No contracts ready for deployment yet, compile a solidity contract
+          </p>
+        )}
       </Container>
     </>
   )
