@@ -156,6 +156,7 @@ pub async fn do_compile(compilation_request: CompilationRequest) -> Result<Json<
     let status = output.status;
     let message = String::from_utf8_lossy(&output.stdout).to_string();
 
+    info!("Output: \n{:?}", String::from_utf8_lossy(&output.stdout));
     if !status.success() {
         return Ok(Json(CompileResponse {
             file_content: vec![],

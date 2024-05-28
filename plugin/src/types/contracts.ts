@@ -31,6 +31,7 @@ interface VerificationResult {
 interface SolFile {
   file_name: string
   file_content: string
+  is_contract: boolean
 }
 
 interface Input {
