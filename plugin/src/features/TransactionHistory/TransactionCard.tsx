@@ -7,11 +7,7 @@ interface TagType {
 }
 
 const Tag: React.FC<TagType> = ({ type }) => {
-  return (
-    <span className={`p-2 tag tag-${type}`}>
-      {type === 'deployAccount' ? 'deploy account' : type}
-    </span>
-  )
+  return <span className={`p-2 tag tag-${type}`}>{type === 'deployAccount' ? 'deploy account' : type}</span>
 }
 
 interface NetworkTypeTag {
@@ -30,9 +26,7 @@ const transformTypeToText = (type: string): string => {
 }
 
 const NetworkTag: React.FC<NetworkTypeTag> = ({ type }) => {
-  return (
-    <span className={`p-2 tag tag-${type}`}>{transformTypeToText(type)}</span>
-  )
+  return <span className={`p-2 tag tag-${type}`}>{transformTypeToText(type)}</span>
 }
 
 interface TransactionCardProps {
@@ -40,9 +34,7 @@ interface TransactionCardProps {
   // explorer: keyof typeof networkExplorerUrls
 }
 
-export const TransactionCard: React.FC<TransactionCardProps> = ({
-  transaction
-}) => {
+export const TransactionCard: React.FC<TransactionCardProps> = ({ transaction }) => {
   const { account, txId, env, chain } = transaction
   const [address, setAddress] = useState<string | undefined>(undefined)
 
@@ -97,19 +89,9 @@ export const TransactionCard: React.FC<TransactionCardProps> = ({
         )}
       </div>
       <div className="txn-network">
-        {env === 'localDevnet' || env === 'remoteDevnet' ? (
-          <p>Network</p>
-        ) : (
-          <p>Chain</p>
-        )}
+        {env === 'localDevnet' || env === 'remoteDevnet' ? <p>Network</p> : <p>Chain</p>}
         <NetworkTag
-          type={
-            env === 'localDevnet' || env === 'remoteDevnet'
-              ? env
-              : chain?.name === undefined
-                ? ''
-                : chain?.name
-          }
+          type={env === 'localDevnet' || env === 'remoteDevnet' ? env : chain?.name === undefined ? '' : chain?.name}
         />
       </div>
     </div>

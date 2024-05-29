@@ -7,19 +7,14 @@ import { FaCheck } from 'react-icons/fa'
 import { getContractNameFromFullName, getShortenedHash } from '@/utils/utils'
 import FunctionalInput from '@/components/FunctionalInput'
 import './deployedContracts.css'
-import {
-  deployedContractsAtom,
-  deployedSelectedContractAtom
-} from '@/atoms/deployedContracts'
+import { deployedContractsAtom, deployedSelectedContractAtom } from '@/atoms/deployedContracts'
 import * as Dropdown from '@/ui_components/Dropdown'
 import { envAtom } from '@/atoms/environment'
 import { remixClientAtom } from '@/stores/remixClient'
 
 const DeployedContracts = () => {
   const contracts = useAtomValue(deployedContractsAtom)
-  const [selectedContract, setSelectedContract] = useAtom(
-    deployedSelectedContractAtom
-  )
+  const [selectedContract, setSelectedContract] = useAtom(deployedSelectedContractAtom)
   const remixClient = useAtomValue(remixClientAtom)
   const [dropdownControl, setDropdownControl] = useState(false)
   const setEnv = useSetAtom(envAtom)
@@ -27,13 +22,7 @@ const DeployedContracts = () => {
 
   useEffect(() => {
     if (copied) {
-      remixClient
-        .call(
-          'notification' as any,
-          'toast',
-          '📋 Copied contract address to clipboard'
-        )
-        .catch(console.error)
+      remixClient.call('notification' as any, 'toast', '📋 Copied contract address to clipboard').catch(console.error)
     }
   }, [copied, remixClient])
 

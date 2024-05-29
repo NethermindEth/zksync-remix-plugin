@@ -6,11 +6,7 @@ import EnvironmentSelector from '../../components/EnvironmentSelector'
 import Wallet from '../../components/Wallet'
 import ManualAccountComp from '../../components/ManualAccount'
 import { RxDotFilled } from 'react-icons/rx'
-import Accordian, {
-  AccordianItem,
-  AccordionContent,
-  AccordionTrigger
-} from '../../ui_components/Accordian'
+import Accordian, { AccordianItem, AccordionContent, AccordionTrigger } from '../../ui_components/Accordian'
 import { useAtom, useAtomValue } from 'jotai'
 import { envAtom, isDevnetAliveAtom } from '../../atoms/environment'
 import { type EnvType } from '../../types/transaction'
@@ -59,32 +55,16 @@ export const Environment: React.FC<EnvironmentProps> = () => {
                       <div className="flex_dot">
                         <EnvironmentSelector />
                         {env === 'wallet' ? (
-                          <RxDotFilled
-                            size={'30px'}
-                            color="rebeccapurple"
-                            title="Wallet is active"
-                          />
+                          <RxDotFilled size={'30px'} color="rebeccapurple" title="Wallet is active" />
                         ) : isDevnetAlive ? (
-                          <RxDotFilled
-                            size={'30px'}
-                            color="lime"
-                            title="Devnet is live"
-                          />
+                          <RxDotFilled size={'30px'} color="lime" title="Devnet is live" />
                         ) : (
-                          <RxDotFilled
-                            size={'30px'}
-                            color="red"
-                            title="Devnet server down"
-                          />
+                          <RxDotFilled size={'30px'} color="red" title="Devnet server down" />
                         )}
                       </div>
                     </div>
                     <div className="flex flex-column">
-                      {['localDevnet', 'remoteDevnet'].includes(env) ? (
-                        <DevnetAccountSelector />
-                      ) : (
-                        <Wallet />
-                      )}
+                      {['localDevnet', 'remoteDevnet'].includes(env) ? <DevnetAccountSelector /> : <Wallet />}
                     </div>
                   </>
                 ) : (

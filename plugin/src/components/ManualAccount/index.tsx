@@ -67,10 +67,7 @@ const ManualAccountComp: React.FC<{
           const balance = await provider.getBalance(selectedAccount.address)
           console.log('selected account balance', balance)
           setSelectedAccount((prevAccount) => {
-            if (
-              prevAccount != null &&
-              balance.toString() !== prevAccount.balance
-            ) {
+            if (prevAccount != null && balance.toString() !== prevAccount.balance) {
               return { ...prevAccount, balance: balance.toString() }
             }
             return prevAccount
@@ -115,9 +112,7 @@ const ManualAccountComp: React.FC<{
             <D.Trigger>
               <div className="flex flex-row justify-content-space-between align-items-center p-2 pb-1 br-1 compiled-contracts-wrapper">
                 <label>
-                  {selectedAccount !== null
-                    ? getShortenedHash(selectedAccount.address, 16, 4)
-                    : 'No Accounts'}
+                  {selectedAccount !== null ? getShortenedHash(selectedAccount.address, 16, 4) : 'No Accounts'}
                 </label>
                 <BsChevronDown
                   style={{
@@ -145,10 +140,7 @@ const ManualAccountComp: React.FC<{
               </D.Content>
             </D.Portal>
           </D.Root>
-          <button
-            className={'add-account-button-plus ml-2'}
-            onClick={addAccount}
-          >
+          <button className={'add-account-button-plus ml-2'} onClick={addAccount}>
             {!isClicked ? <CiSquarePlus /> : <CiSquareCheck />}
           </button>
           <button className="btn" onClick={copyAddress}>
@@ -156,10 +148,7 @@ const ManualAccountComp: React.FC<{
           </button>
         </div>
         <div className={'flex flex-row w-100 mb-0 mt-1'}>
-          <label>
-            Account Balance:{' '}
-            {formatEther(selectedAccount?.balance ?? '0').toString()} ETH
-          </label>
+          <label>Account Balance: {formatEther(selectedAccount?.balance ?? '0').toString()} ETH</label>
         </div>
         <div className={'flex flex-row w-100 mb-0 mt-2'}>
           <button

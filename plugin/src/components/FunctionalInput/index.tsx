@@ -76,7 +76,7 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
           type: 'invoke',
           txId: result.hash,
           env,
-          chain: (env !== 'manual' ? walletClient?.chain : mockManualChain),
+          chain: env !== 'manual' ? walletClient?.chain : mockManualChain,
           provider,
           value
         }
@@ -114,11 +114,7 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
         })
       }
 
-      await remixClient.call(
-        'notification' as any,
-        'toast',
-        `Error: ${String(e)}`
-      )
+      await remixClient.call('notification' as any, 'toast', `Error: ${String(e)}`)
     }
   }
 
@@ -129,39 +125,42 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
   return (
     <div>
       <button
-        onClick={() => { callContract().catch(console.error) }}
+        onClick={() => {
+          callContract().catch(console.error)
+        }}
         className={`
           btn btn-primary w-100 text-break mb-1 mt-1 px-0
           ${element.stateMutability === 'view' ? '' : 'btn-warning'}
-        `}>
-          {element.name}
+        `}
+      >
+        {element.name}
       </button>
-      {
-        element.stateMutability === 'payable'
-          ? <InputField
-              key={'value'}
-              placeholder={'Amount (ETH)'}
-              index={element.inputs.length}
-              value={ value }
-              onChange={ (_, newValue) => { setValue(newValue) } }
-            />
-          : <></>
-      }
-      {
-        element.inputs.map((input: Input, index: number) =>
-          <InputField
-            key={index}
-            placeholder={generateInputName(input)}
-            index={index}
-            value={inputs[index]}
-            onChange={(index, newValue) => {
-              const newInputs = [...inputs]
-              newInputs[index] = newValue
-              setInputs(newInputs)
-            }}
-          />
-        )
-      }
+      {element.stateMutability === 'payable' ? (
+        <InputField
+          key={'value'}
+          placeholder={'Amount (ETH)'}
+          index={element.inputs.length}
+          value={value}
+          onChange={(_, newValue) => {
+            setValue(newValue)
+          }}
+        />
+      ) : (
+        <></>
+      )}
+      {element.inputs.map((input: Input, index: number) => (
+        <InputField
+          key={index}
+          placeholder={generateInputName(input)}
+          index={index}
+          value={inputs[index]}
+          onChange={(index, newValue) => {
+            const newInputs = [...inputs]
+            newInputs[index] = newValue
+            setInputs(newInputs)
+          }}
+        />
+      ))}
     </div>
   )
 }

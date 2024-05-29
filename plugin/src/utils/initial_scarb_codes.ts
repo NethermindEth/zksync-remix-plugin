@@ -1,9 +1,9 @@
 import axios from 'axios'
 
-export async function fetchGitHubFilesRecursively (
+export async function fetchGitHubFilesRecursively(
   repository: string,
   path: string
-): Promise<Array<({ fileName: any, content: any, path: any } | null)>> {
+): Promise<Array<{ fileName: any; content: any; path: any } | null>> {
   const apiUrl = `https://api.github.com/repos/${repository}/contents/${path}`
 
   try {
@@ -33,9 +33,7 @@ export async function fetchGitHubFilesRecursively (
         })
       )
 
-      return fileContents
-        .filter((content) => content !== null)
-        .concat(...subDirectoryContents)
+      return fileContents.filter((content) => content !== null).concat(...subDirectoryContents)
     } else {
       throw new Error('Failed to fetch directory.')
     }

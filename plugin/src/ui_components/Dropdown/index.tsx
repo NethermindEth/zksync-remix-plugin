@@ -10,20 +10,14 @@ interface ITrigger {
   children?: React.ReactNode
 }
 
-const IconTrigger: React.FC<ITrigger> = ({
-  icon,
-  ...props
-}) => (
+const IconTrigger: React.FC<ITrigger> = ({ icon, ...props }) => (
   <DropdownMenuPrimitive.Trigger asChild>
-    <button className='IconButton' aria-label='Customise options' {...props}>
+    <button className="IconButton" aria-label="Customise options" {...props}>
       {icon}
     </button>
   </DropdownMenuPrimitive.Trigger>
 )
-const Trigger: React.FC<ITrigger> = ({
-  children,
-  ...props
-}) => (
+const Trigger: React.FC<ITrigger> = ({ children, ...props }) => (
   <DropdownMenuPrimitive.Trigger asChild {...props}>
     {children}
   </DropdownMenuPrimitive.Trigger>
@@ -35,11 +29,8 @@ interface IContent {
   children?: React.ReactNode
 }
 
-const Content: React.FC<IContent> = ({
-  children,
-  ...props
-}) => (
-  <DropdownMenuPrimitive.Content className='DropdownMenuContent bg-primary' {...props}>
+const Content: React.FC<IContent> = ({ children, ...props }) => (
+  <DropdownMenuPrimitive.Content className="DropdownMenuContent bg-primary" {...props}>
     {children}
   </DropdownMenuPrimitive.Content>
 )
@@ -48,11 +39,8 @@ interface IItem {
   children: React.ReactNode
 }
 
-const Item: React.FC<IItem & DropdownMenuPrimitive.DropdownMenuItemProps> = ({
-  children,
-  ...props
-}) => (
-  <DropdownMenuPrimitive.Item className='DropdownMenuItem bg-primary' {...props}>
+const Item: React.FC<IItem & DropdownMenuPrimitive.DropdownMenuItemProps> = ({ children, ...props }) => (
+  <DropdownMenuPrimitive.Item className="DropdownMenuItem bg-primary" {...props}>
     {children}
   </DropdownMenuPrimitive.Item>
 )
@@ -63,14 +51,8 @@ interface ISubContent {
   children: React.ReactNode
 }
 
-const SubContent: React.FC<ISubContent> = ({
-  children,
-  ...props
-}) => (
-  <DropdownMenuPrimitive.SubContent
-    className='DropdownMenuSubContent'
-    {...props}
-  >
+const SubContent: React.FC<ISubContent> = ({ children, ...props }) => (
+  <DropdownMenuPrimitive.SubContent className="DropdownMenuSubContent" {...props}>
     {children}
   </DropdownMenuPrimitive.SubContent>
 )
@@ -79,31 +61,12 @@ interface ISubTrigger {
   children: React.ReactNode
 }
 
-const SubTrigger: React.FC<ISubTrigger> = ({
-  children,
-  ...props
-}) => (
-  <DropdownMenuPrimitive.SubTrigger
-    className='DropdownMenuSubTrigger bg-primary'
-    {...props}
-  >
+const SubTrigger: React.FC<ISubTrigger> = ({ children, ...props }) => (
+  <DropdownMenuPrimitive.SubTrigger className="DropdownMenuSubTrigger bg-primary" {...props}>
     {children}
   </DropdownMenuPrimitive.SubTrigger>
 )
 
-const SubDivider: React.FC = () => (
-  <DropdownMenuPrimitive.Separator className='DropdownMenuSeparator bg-primary' />
-)
+const SubDivider: React.FC = () => <DropdownMenuPrimitive.Separator className="DropdownMenuSeparator bg-primary" />
 
-export {
-  Root,
-  Item,
-  Portal,
-  Content,
-  Sub,
-  SubContent,
-  SubDivider,
-  Trigger,
-  IconTrigger,
-  SubTrigger
-}
+export { Root, Item, Portal, Content, Sub, SubContent, SubDivider, Trigger, IconTrigger, SubTrigger }

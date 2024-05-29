@@ -9,35 +9,18 @@ import {
   TransactionHistory,
   SolidityVersion as CompilerVersion
 } from '@/features'
-import Accordian, {
-  AccordianItem,
-  AccordionContent,
-  AccordionTrigger
-} from '@/ui_components/Accordian'
+import Accordian, { AccordianItem, AccordionContent, AccordionTrigger } from '@/ui_components/Accordian'
 import StateAction from '@/components/StateAction'
 import BackgroundNotices from '@/components/BackgroundNotices'
 
-import {
-  isCompilingAtom,
-  statusAtom as compilationStatusAtom,
-  hashDirAtom
-} from '@/atoms/compilation'
+import { isCompilingAtom, statusAtom as compilationStatusAtom, hashDirAtom } from '@/atoms/compilation'
 import { deploymentAtom } from '@/atoms/deployment'
-import {
-  initializeRemixClient,
-  isLoadedAtom,
-  remixClientAtom
-} from '@/stores/remixClient'
+import { initializeRemixClient, isLoadedAtom, remixClientAtom } from '@/stores/remixClient'
 import storage from '@/utils/storage'
 import './styles.css'
 import useAsync from '@/hooks/useAsync'
 
-export type AccordianTabs =
-  | 'compile'
-  | 'deploy'
-  | 'interaction'
-  | 'transactions'
-  | ''
+export type AccordianTabs = 'compile' | 'deploy' | 'interaction' | 'transactions' | ''
 
 export const Plugin = () => {
   const compilationStatus = useAtomValue(compilationStatusAtom)
@@ -61,9 +44,7 @@ export const Plugin = () => {
       setHashDir(hashDir)
     } else {
       // create a random hash of length 32
-      const hashDir = ethers.utils
-        .hashMessage(ethers.utils.randomBytes(32))
-        .replace('0x', '')
+      const hashDir = ethers.utils.hashMessage(ethers.utils.randomBytes(32)).replace('0x', '')
       setHashDir(hashDir)
       storage.set('hashDir', hashDir)
     }
@@ -73,12 +54,9 @@ export const Plugin = () => {
   const { isDeploying, deployStatus } = useAtomValue(deploymentAtom)
 
   // Interaction state variables
-  const [interactionStatus] = useState<
-    'loading' | 'success' | 'error' | ''
-  >('')
+  const [interactionStatus] = useState<'loading' | 'success' | 'error' | ''>('')
 
-  const [currentAccordian, setCurrentAccordian] =
-    useState<AccordianTabs>('compile')
+  const [currentAccordian, setCurrentAccordian] = useState<AccordianTabs>('compile')
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const handleTabView = (clicked: AccordianTabs) => {
@@ -96,21 +74,14 @@ export const Plugin = () => {
         <div className="plugin-wrapper">
           <div className="plugin-main-wrapper">
             <CompilerVersion />
-            <Accordian
-              type="single"
-              value={currentAccordian}
-              defaultValue={'compile'}
-            >
+            <Accordian type="single" value={currentAccordian} defaultValue={'compile'}>
               <AccordianItem value="compile">
                 <AccordionTrigger
                   onClick={() => {
                     handleTabView('compile')
                   }}
                 >
-                  <span
-                    className="d-flex align-items-center"
-                    style={{ gap: '0.5rem' }}
-                  >
+                  <span className="d-flex align-items-center" style={{ gap: '0.5rem' }}>
                     <p style={{ all: 'unset' }}>Compile</p>
                     <StateAction
                       value={
@@ -135,10 +106,7 @@ export const Plugin = () => {
                     handleTabView('deploy')
                   }}
                 >
-                  <span
-                    className="d-flex align-items-center"
-                    style={{ gap: '0.5rem' }}
-                  >
+                  <span className="d-flex align-items-center" style={{ gap: '0.5rem' }}>
                     <p style={{ all: 'unset' }}>Deploy</p>
                     <StateAction
                       value={
@@ -163,10 +131,7 @@ export const Plugin = () => {
                     handleTabView('interaction')
                   }}
                 >
-                  <span
-                    className="d-flex align-items-center"
-                    style={{ gap: '0.5rem' }}
-                  >
+                  <span className="d-flex align-items-center" style={{ gap: '0.5rem' }}>
                     <p style={{ all: 'unset' }}>Interact</p>
                     <StateAction value={interactionStatus} />
                   </span>
@@ -183,10 +148,7 @@ export const Plugin = () => {
                     handleTabView('transactions')
                   }}
                 >
-                  <span
-                    className="d-flex align-items-center"
-                    style={{ gap: '0.5rem' }}
-                  >
+                  <span className="d-flex align-items-center" style={{ gap: '0.5rem' }}>
                     <p style={{ all: 'unset' }}> Transactions</p>
                   </span>
                 </AccordionTrigger>

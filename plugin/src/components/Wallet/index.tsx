@@ -19,10 +19,7 @@ const Wallet = () => {
         chainId: walletClient.chain.id,
         name: walletClient.chain.name
       }
-      const newProvider = new zksync.Web3Provider(
-        walletClient.transport,
-        network
-      )
+      const newProvider = new zksync.Web3Provider(walletClient.transport, network)
       const newSigner = newProvider.getSigner(walletClient.account.address)
       setAccount(newSigner)
       setProvider(newProvider)

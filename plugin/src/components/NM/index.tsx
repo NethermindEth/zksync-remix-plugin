@@ -2,9 +2,7 @@ import React from 'react'
 
 import './styles.css'
 
-const sizeToDimenstions = (
-  size: 'lg' | 'sm' | 'xs' | 'md' | 'xl'
-): { w: number; h: number } => {
+const sizeToDimenstions = (size: 'lg' | 'sm' | 'xs' | 'md' | 'xl'): { w: number; h: number } => {
   const baseW = 126
   const baseH = 63
   switch (size) {
@@ -40,19 +38,11 @@ interface INethermind {
   size?: 'lg' | 'sm' | 'xl' | 'xs' | 'md'
 }
 
-const Nethermind: React.FC<INethermind> = ({
-  size = 'xs'
-}): React.ReactElement => {
+const Nethermind: React.FC<INethermind> = ({ size = 'xs' }): React.ReactElement => {
   const sz = sizeToDimenstions(size)
   return (
     <a href={'https://nethermind.io'} target={'_blank'} rel="noreferrer">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width={sz.w}
-        height={sz.h}
-        viewBox="0 0 252 126"
-        fill="none"
-      >
+      <svg xmlns="http://www.w3.org/2000/svg" width={sz.w} height={sz.h} viewBox="0 0 252 126" fill="none">
         <path
           fill="#00aceb"
           d="m77.2 1.6-9.1 33.9c-1.6-.3-3.3-.5-5-.5-2.5 0-4.9.3-7.3.9C51.7 37 48 39 44.9 41.7L20.1 16.9c3.2-3 6.7-5.7 10.5-7.9l1.9-1.1c4.4-2.4 9.2-4.4 14.2-5.7C51.9.7 57.4 0 63 0c4.9 0 9.6.5 14.2 1.6z"

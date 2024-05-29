@@ -30,12 +30,8 @@ const DevnetAccountSelector = () => {
 
   const devnet = useAtomValue(devnetAtom)
   const [isDevnetAlive, setIsDevnetAlive] = useAtom(isDevnetAliveAtom)
-  const [selectedDevnetAccount, setSelectedDevnetAccount] = useAtom(
-    selectedDevnetAccountAtom
-  )
-  const [availableDevnetAccounts, setAvailableDevnetAccounts] = useAtom(
-    availableDevnetAccountsAtom
-  )
+  const [selectedDevnetAccount, setSelectedDevnetAccount] = useAtom(selectedDevnetAccountAtom)
+  const [availableDevnetAccounts, setAvailableDevnetAccounts] = useAtom(availableDevnetAccountsAtom)
   const [accountRefreshing, setAccountRefreshing] = useState(false)
   const [showCopied, setCopied] = useState(false)
   const [accountIdx, setAccountIdx] = useState(0)
@@ -84,10 +80,7 @@ const DevnetAccountSelector = () => {
   }, [isDevnetAlive, remixClient, devnet])
 
   useAsync(async () => {
-    const updatedAccounts = await updateBalances(
-      availableDevnetAccounts,
-      devnet.url
-    )
+    const updatedAccounts = await updateBalances(availableDevnetAccounts, devnet.url)
     setAvailableDevnetAccounts(updatedAccounts)
   }, [devnet])
 
@@ -95,9 +88,7 @@ const DevnetAccountSelector = () => {
     try {
       setAccountRefreshing(true)
       const accounts = await getAccounts(`${devnet.url}`)
-      if (
-        JSON.stringify(accounts) !== JSON.stringify(availableDevnetAccounts)
-      ) {
+      if (JSON.stringify(accounts) !== JSON.stringify(availableDevnetAccounts)) {
         setAvailableDevnetAccounts(accounts)
       }
     } catch (error) {
@@ -115,20 +106,12 @@ const DevnetAccountSelector = () => {
 
   useEffect(() => {
     if (
-      !(
-        selectedDevnetAccount !== null &&
-        availableDevnetAccounts.includes(selectedDevnetAccount)
-      ) &&
+      !(selectedDevnetAccount !== null && availableDevnetAccounts.includes(selectedDevnetAccount)) &&
       availableDevnetAccounts.length > 0
     ) {
       setSelectedDevnetAccount(availableDevnetAccounts[0])
     }
-  }, [
-    availableDevnetAccounts,
-    devnet,
-    selectedDevnetAccount,
-    setSelectedDevnetAccount
-  ])
+  }, [availableDevnetAccounts, devnet, selectedDevnetAccount, setSelectedDevnetAccount])
 
   useEffect(() => {
     const newProvider = new Provider(devnet.url)
@@ -146,12 +129,7 @@ const DevnetAccountSelector = () => {
     setSelectedDevnetAccount(availableDevnetAccounts[index])
     const newProvider = new Provider(devnet.url)
     if (provider == null) setProvider(newProvider)
-    setAccount(
-      new Wallet(
-        availableDevnetAccounts[index].private_key,
-        provider ?? newProvider
-      )
-    )
+    setAccount(new Wallet(availableDevnetAccounts[index].private_key, provider ?? newProvider))
   }
 
   const [dropdownControl, setDropdownControl] = useState(false)
@@ -173,13 +151,8 @@ const DevnetAccountSelector = () => {
           <Dropdown.Trigger>
             <div className="flex flex-row justify-content-space-between align-items-center p-2 br-1 devnet-account-selector-trigger">
               <label className="text-light text-sm m-0">
-                {availableDevnetAccounts.length !== 0 &&
-                availableDevnetAccounts[accountIdx]?.address !== undefined
-                  ? getShortenedHash(
-                      availableDevnetAccounts[accountIdx]?.address,
-                      6,
-                      4
-                    )
+                {availableDevnetAccounts.length !== 0 && availableDevnetAccounts[accountIdx]?.address !== undefined
+                  ? getShortenedHash(availableDevnetAccounts[accountIdx]?.address, 6, 4)
                   : 'No accounts found'}
               </label>
               <BsChevronDown
@@ -202,11 +175,7 @@ const DevnetAccountSelector = () => {
                         key={index}
                       >
                         {accountIdx === index && <BsCheck size={18} />}
-                        {`${getShortenedHash(
-                          account.address ?? '',
-                          6,
-                          4
-                        )} (${getRoundedNumber(
+                        {`${getShortenedHash(account.address ?? '', 6, 4)} (${getRoundedNumber(
                           weiToEth(account.initial_balance),
                           2
                         )} ether)`}

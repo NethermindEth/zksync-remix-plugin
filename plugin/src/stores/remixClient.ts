@@ -17,16 +17,11 @@ const remixClientStore = createStore()
 const remixClient = createClient(new PluginClient())
 type RemixClient = typeof remixClient
 
-async function getTomlPaths(
-  workspacePath: string,
-  currPath: string
-): Promise<string[]> {
+async function getTomlPaths(workspacePath: string, currPath: string): Promise<string[]> {
   const resTomlPaths: string[] = []
 
   try {
-    const allFiles = await remixClient.fileManager.readdir(
-      `${workspacePath}/${currPath}`
-    )
+    const allFiles = await remixClient.fileManager.readdir(`${workspacePath}/${currPath}`)
     // get keys of allFiles object
     const allFilesKeys = Object.keys(allFiles)
     // const get all values of allFiles object
@@ -49,10 +44,7 @@ async function getTomlPaths(
 
 async function handleTomlPathsChange(): Promise<void> {
   try {
-    const allTomlPaths = await getTomlPaths(
-      remixClientStore.get(currentWorkspacePathAtom),
-      ''
-    )
+    const allTomlPaths = await getTomlPaths(remixClientStore.get(currentWorkspacePathAtom), '')
     remixClientStore.set(tomlPathsAtom, allTomlPaths)
     const activeTomlPath = remixClientStore.get(activeTomlPathAtom)
     if (activeTomlPath === '' || activeTomlPath === undefined) {
@@ -87,20 +79,16 @@ async function initializeRemixClient(): Promise<RemixClient> {
   const currWorkspace = await remixClient.filePanel.getCurrentWorkspace()
   remixClientStore.set(currentWorkspacePathAtom, currWorkspace.absolutePath)
 
-  remixClient.on(
-    'fileManager',
-    'currentFileChanged',
-    async (currentFileChanged: any) => {
-      const filename = getFileNameFromPath(currentFileChanged)
-      const currentFileExtension = getFileExtension(filename)
-      const isValidSolidity = currentFileExtension === 'sol'
-      remixClientStore.set(isValidSolidityAtom, isValidSolidity)
-      remixClientStore.set(currentFilenameAtom, filename)
-      remixClientStore.set(noFileSelectedAtom, false)
+  remixClient.on('fileManager', 'currentFileChanged', async (currentFileChanged: any) => {
+    const filename = getFileNameFromPath(currentFileChanged)
+    const currentFileExtension = getFileExtension(filename)
+    const isValidSolidity = currentFileExtension === 'sol'
+    remixClientStore.set(isValidSolidityAtom, isValidSolidity)
+    remixClientStore.set(currentFilenameAtom, filename)
+    remixClientStore.set(noFileSelectedAtom, false)
 
-      await handleStatusChange()
-    }
-  )
+    await handleStatusChange()
+  })
 
   remixClient.on('fileManager', 'noFileSelected', async () => {
     remixClientStore.set(noFileSelectedAtom, true)

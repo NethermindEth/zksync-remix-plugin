@@ -3,10 +3,7 @@ import { useAtomValue } from 'jotai'
 import Container from '@/ui_components/Container'
 import './index.css'
 import DeployedContracts from '@/components/DeployedContracts'
-import {
-  deployedContractsAtom,
-  deployedSelectedContractAtom
-} from '@/atoms/deployedContracts'
+import { deployedContractsAtom, deployedSelectedContractAtom } from '@/atoms/deployedContracts'
 
 export const Interaction = () => {
   const contracts = useAtomValue(deployedContractsAtom)

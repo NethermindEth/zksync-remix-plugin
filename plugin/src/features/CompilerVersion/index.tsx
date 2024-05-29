@@ -13,8 +13,7 @@ import useAsyncFn from '@/hooks/useAsyncFn'
 import useTimeoutFn from '@/hooks/useTimeoutFn'
 
 const envViteVersion: string | undefined = import.meta.env.VITE_VERSION
-const pluginVersion =
-  envViteVersion !== undefined ? `v${envViteVersion}` : 'v0.2.5'
+const pluginVersion = envViteVersion !== undefined ? `v${envViteVersion}` : 'v0.2.5'
 
 const DEFAULT_DELAY = 5_000
 
@@ -35,11 +34,7 @@ export const SolidityVersion: React.FC = () => {
       const serviceVersion = await response.text()
 
       if (serviceVersion === 'unknown') {
-        await remixClient.call(
-          'notification' as any,
-          'toast',
-          '🔴 Failed to check for updates to the zkSync plugin'
-        )
+        await remixClient.call('notification' as any, 'toast', '🔴 Failed to check for updates to the zkSync plugin')
       } else if (semver.gt(serviceVersion, pluginVersion)) {
         await remixClient.call(
           'notification' as any,
@@ -64,11 +59,7 @@ export const SolidityVersion: React.FC = () => {
         })
       }
     } catch (error) {
-      await remixClient.call(
-        'notification' as any,
-        'toast',
-        '🔴 Failed to connect to the compilation server'
-      )
+      await remixClient.call('notification' as any, 'toast', '🔴 Failed to connect to the compilation server')
       console.error(error)
     }
   }, [remixClient])
@@ -145,9 +136,7 @@ export const SolidityVersion: React.FC = () => {
           <span style={{ marginRight: '4px' }}>Powered by </span>
           <Nethermind size="xs" />
         </label>
-        <label className="plugin-version">
-          Plugin version: {pluginVersion}
-        </label>
+        <label className="plugin-version">Plugin version: {pluginVersion}</label>
       </div>
     </div>
   )

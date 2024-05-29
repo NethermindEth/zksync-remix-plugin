@@ -20,12 +20,7 @@ export const TransactionHistory: React.FC = () => {
           <div>No transactions yet</div>
         ) : (
           transactions.map((transaction) => {
-            return (
-              <TransactionCard
-                key={transaction.txId}
-                transaction={transaction}
-              />
-            )
+            return <TransactionCard key={transaction.txId} transaction={transaction} />
           })
         )}
       </div>

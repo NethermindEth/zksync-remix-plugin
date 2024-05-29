@@ -3,10 +3,7 @@ import { useCallback, useEffect, useRef } from 'react'
 export type UseTimeoutFnReturn = [() => boolean | null, () => void, () => void]
 
 type CallbackFunction = () => void
-export default function useTimeoutFn(
-  fn: CallbackFunction,
-  ms = 0
-): UseTimeoutFnReturn {
+export default function useTimeoutFn(fn: CallbackFunction, ms = 0): UseTimeoutFnReturn {
   const ready = useRef<boolean | null>(false)
   const timeout = useRef<ReturnType<typeof setTimeout>>()
   const callback = useRef(fn)

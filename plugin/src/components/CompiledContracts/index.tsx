@@ -1,9 +1,6 @@
 // A component that reads the compiled contracts from the context and displays them in a select
 import React, { useState } from 'react'
-import {
-  contractsAtom,
-  selectedContractAtom
-} from '../../atoms/compiledContracts'
+import { contractsAtom, selectedContractAtom } from '../../atoms/compiledContracts'
 import { useAtom, useAtomValue } from 'jotai'
 import * as Dropdown from '../../ui_components/Dropdown'
 import { BsChevronDown } from 'react-icons/bs'

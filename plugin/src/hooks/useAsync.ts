@@ -4,10 +4,7 @@ import { FunctionReturningPromise } from './useAsyncFn'
 
 export { type AsyncState, type AsyncFnReturn } from './useAsyncFn'
 
-export default function useAsync<T extends FunctionReturningPromise>(
-  fn: T,
-  deps: DependencyList = []
-) {
+export default function useAsync<T extends FunctionReturningPromise>(fn: T, deps: DependencyList = []) {
   const [state, callback] = useAsyncFn(fn, deps, {
     loading: true
   })

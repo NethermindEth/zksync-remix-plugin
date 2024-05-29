@@ -9,32 +9,19 @@ import './styles.css'
 import Container from '../../ui_components/Container'
 import { type AccordianTabs } from '../Plugin'
 import ConstructorInput from '../../components/ConstructorInput'
-import {
-  type VerificationResult,
-  type DeployedContract
-} from '../../types/contracts'
+import { type VerificationResult, type DeployedContract } from '../../types/contracts'
 import { mockManualChain, type Transaction } from '../../types/transaction'
 import { transactionsAtom } from '../../atoms/transaction'
-import {
-  contractsAtom,
-  selectedContractAtom
-} from '../../atoms/compiledContracts'
+import { contractsAtom, selectedContractAtom } from '../../atoms/compiledContracts'
 import { accountAtom, providerAtom } from '../../atoms/connection'
-import {
-  deployedContractsAtom,
-  deployedSelectedContractAtom
-} from '../../atoms/deployedContracts'
+import { deployedContractsAtom, deployedSelectedContractAtom } from '../../atoms/deployedContracts'
 import { envAtom } from '../../atoms/environment'
 import { isVerifyingAtom, verificationAtom } from '../../atoms/verification'
 import { asyncPost } from '../../api/asyncRequests'
 import { solidityVersionAtom } from '../../atoms/version'
 import { deployStatusAtom } from '../../atoms/deployment'
 import { saveCode } from '../../api/saveCode'
-import {
-  currentFilenameAtom,
-  isValidSolidityAtom,
-  remixClientAtom
-} from '../../stores/remixClient'
+import { currentFilenameAtom, isValidSolidityAtom, remixClientAtom } from '../../stores/remixClient'
 import { hashDirAtom } from '../../atoms/compilation'
 
 interface DeploymentProps {
@@ -48,13 +35,10 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const contracts = useAtomValue(contractsAtom)
   const selectedContract = useAtomValue(selectedContractAtom)
   const account = useAtomValue(accountAtom)
-  const [deployedContracts, setDeployedContracts] = useAtom(
-    deployedContractsAtom
-  )
+  const [deployedContracts, setDeployedContracts] = useAtom(deployedContractsAtom)
   const setDeployedSelectedContract = useSetAtom(deployedSelectedContractAtom)
   const [inputs, setInputs] = useState<string[]>([])
-  const [shouldRunVerification, setShouldRunVerification] =
-    useState<boolean>(false)
+  const [shouldRunVerification, setShouldRunVerification] = useState<boolean>(false)
 
   const { isVerifying } = useAtomValue(verificationAtom)
   const isValidSolidity = useAtomValue(isValidSolidityAtom)
@@ -65,9 +49,7 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 
   const setIsVerifying = useSetAtom(isVerifyingAtom)
 
-  const [selectedChainName, setSelectedChainName] = React.useState<
-    string | undefined
-  >()
+  const [selectedChainName, setSelectedChainName] = React.useState<string | undefined>()
 
   const solidityVersion = useAtomValue(solidityVersionAtom)
   const env = useAtomValue(envAtom)
@@ -106,25 +88,13 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     await remixClient.editor.clearAnnotations()
     try {
       setStatus('Getting solidity file path...')
-      const currentFilePath = await remixClient.call(
-        'fileManager',
-        'getCurrentFile'
-      )
+      const currentFilePath = await remixClient.call('fileManager', 'getCurrentFile')
 
       setStatus('Getting solidity file content...')
-      const currentFileContent = await remixClient.call(
-        'fileManager',
-        'readFile',
-        currentFilePath
-      )
+      const currentFileContent = await remixClient.call('fileManager', 'readFile', currentFilePath)
 
       setStatus('Parsing solidity code...')
-      await saveCode(
-        solidityVersion,
-        hashDir,
-        currentFilePath,
-        currentFileContent
-      )
+      await saveCode(solidityVersion, hashDir, currentFilePath, currentFileContent)
 
       setStatus('Verifying...')
 
@@ -141,9 +111,7 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       }
 
       // get Json body from response
-      const verificationResult = JSON.parse(
-        await response.text()
-      ) as VerificationResult
+      const verificationResult = JSON.parse(await response.text()) as VerificationResult
 
       if (verificationResult.status !== 'Success') {
         setStatus('Reporting Errors...')
@@ -193,22 +161,14 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         })
 
         // trim sierra message to get last line
-        const lastLine = verificationResult.message
-          .trim()
-          .split('\n')
-          .pop()
-          ?.trim()
+        const lastLine = verificationResult.message.trim().split('\n').pop()?.trim()
 
         remixClient.emit('statusChanged', {
           key: 'failed',
           type: 'error',
-          title: (lastLine ?? '').startsWith('Error')
-            ? lastLine
-            : 'Verification Failed'
+          title: (lastLine ?? '').startsWith('Error') ? lastLine : 'Verification Failed'
         })
-        throw new Error(
-          'Solidity Verification Failed, logs can be read in the terminal log'
-        )
+        throw new Error('Solidity Verification Failed, logs can be read in the terminal log')
       } else {
         remixClient.emit('statusChanged', {
           key: 'succeed',
@@ -221,11 +181,7 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
           type: 'info'
         })
 
-        await remixClient.call(
-          'notification' as any,
-          'toast',
-          'Verification successful.'
-        )
+        await remixClient.call('notification' as any, 'toast', 'Verification successful.')
       }
     } catch (e) {
       setStatus('failed')
@@ -245,21 +201,13 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   async function deploy(): Promise<void> {
     //   Deploy contract
     if (selectedContract == null) {
-      await remixClient.call(
-        'notification' as any,
-        'toast',
-        'No contract selected'
-      )
+      await remixClient.call('notification' as any, 'toast', 'No contract selected')
 
       return
     }
 
     if (account == null) {
-      await remixClient.call(
-        'notification' as any,
-        'toast',
-        'No account selected'
-      )
+      await remixClient.call('notification' as any, 'toast', 'No account selected')
 
       return
     }
@@ -278,11 +226,7 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       type: 'info'
     })
 
-    const factory = new zksync.ContractFactory(
-      selectedContract.abi,
-      selectedContract.bytecode,
-      account
-    )
+    const factory = new zksync.ContractFactory(selectedContract.abi, selectedContract.bytecode, account)
 
     try {
       const contract: Contract = await factory.deploy(...inputs)
@@ -306,8 +250,7 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 
       const contractOutputTx = tx.deployTransaction
 
-      contractOutputTx.data =
-        contractOutputTx.data.slice(0, contractOutputTx.data.length / 3) + '...'
+      contractOutputTx.data = contractOutputTx.data.slice(0, contractOutputTx.data.length / 3) + '...'
 
       // @ts-expect-error: customData is returned properly but the type is not defined
       contractOutputTx.customData.factoryDeps = '[ <...> ]'
@@ -351,11 +294,7 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
           value: `Error: ${JSON.stringify(e.message)}`,
           type: 'error'
         })
-        await remixClient.call(
-          'notification' as any,
-          'toast',
-          `Error: ${JSON.stringify(e.message)}`
-        )
+        await remixClient.call('notification' as any, 'toast', `Error: ${JSON.stringify(e.message)}`)
       }
       remixClient.emit('statusChanged', {
         key: 'failed',
@@ -374,10 +313,7 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
             <CompiledContracts show={'contract'}></CompiledContracts>
             {selectedContract != null ? (
               <div>
-                <ConstructorInput
-                  inputs={inputs}
-                  setInputs={setInputs}
-                ></ConstructorInput>
+                <ConstructorInput inputs={inputs} setInputs={setInputs}></ConstructorInput>
 
                 <button
                   className="deploy-btn btn btn-primary btn-warning w-100 text-break mb-1 mt-2 px-0"
@@ -398,18 +334,8 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                   onChange={(e) => {
                     setShouldRunVerification(e.target.checked)
                   }}
-                  disabled={
-                    !isValidSolidity ||
-                    !currentFilename ||
-                    isVerifying ||
-                    !selectedChainName
-                  }
-                  aria-disabled={
-                    !isValidSolidity ||
-                    !currentFilename ||
-                    isVerifying ||
-                    !selectedChainName
-                  }
+                  disabled={!isValidSolidity || !currentFilename || isVerifying || !selectedChainName}
+                  aria-disabled={!isValidSolidity || !currentFilename || isVerifying || !selectedChainName}
                 />
                 <label className="ml-1" htmlFor="shouldRunVerificationChk">
                   Verify Contract
@@ -420,9 +346,7 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
             )}
           </div>
         ) : (
-          <p>
-            No contracts ready for deployment yet, compile a solidity contract
-          </p>
+          <p>No contracts ready for deployment yet, compile a solidity contract</p>
         )}
       </Container>
     </>

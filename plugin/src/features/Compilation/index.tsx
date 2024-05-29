@@ -5,16 +5,9 @@ import Container from '../../ui_components/Container'
 import { type AccordianTabs } from '../Plugin'
 import { type CompilationResult, type Contract } from '../../types/contracts'
 import { asyncGet } from '../../api/asyncRequests'
-import {
-  compilationAtom,
-  isCompilingAtom,
-  statusAtom
-} from '../../atoms/compilation'
+import { compilationAtom, isCompilingAtom, statusAtom } from '../../atoms/compilation'
 import { solidityVersionAtom } from '../../atoms/version'
-import {
-  contractsAtom,
-  selectedContractAtom
-} from '../../atoms/compiledContracts'
+import { contractsAtom, selectedContractAtom } from '../../atoms/compiledContracts'
 import {
   activeTomlPathAtom,
   currentFilenameAtom,
@@ -62,25 +55,13 @@ export const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     await remixClient.editor.clearAnnotations()
     try {
       setStatus('Getting solidity file path...')
-      const currentFilePath = await remixClient.call(
-        'fileManager',
-        'getCurrentFile'
-      )
+      const currentFilePath = await remixClient.call('fileManager', 'getCurrentFile')
 
       setStatus('Getting solidity file content...')
-      const currentFileContent = await remixClient.call(
-        'fileManager',
-        'readFile',
-        currentFilePath
-      )
+      const currentFileContent = await remixClient.call('fileManager', 'readFile', currentFilePath)
 
       setStatus('Parsing solidity code...')
-      await saveCode(
-        solidityVersion,
-        hashDir,
-        currentFilePath,
-        currentFileContent
-      )
+      await saveCode(solidityVersion, hashDir, currentFilePath, currentFileContent)
 
       setStatus('Compiling...')
 
@@ -91,17 +72,11 @@ export const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
       if (!response.ok) throw new Error('Solidity Compilation Request Failed')
       else {
-        await remixClient.call(
-          'notification' as any,
-          'toast',
-          'Solidity compilation request successful'
-        )
+        await remixClient.call('notification' as any, 'toast', 'Solidity compilation request successful')
       }
 
       // get Json body from response
-      const compileResult = JSON.parse(
-        await response.text()
-      ) as CompilationResult
+      const compileResult = JSON.parse(await response.text()) as CompilationResult
 
       if (compileResult.status !== 'Success') {
         setStatus('Reporting Errors...')
@@ -156,13 +131,9 @@ export const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         remixClient.emit('statusChanged', {
           key: 'failed',
           type: 'error',
-          title: (lastLine ?? '').startsWith('Error')
-            ? lastLine
-            : 'Compilation Failed'
+          title: (lastLine ?? '').startsWith('Error') ? lastLine : 'Compilation Failed'
         })
-        throw new Error(
-          'Solidity Compilation Failed, logs can be read in the terminal log'
-        )
+        throw new Error('Solidity Compilation Failed, logs can be read in the terminal log')
       }
 
       const artifacts: string[] = []
@@ -181,12 +152,7 @@ export const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         artifacts.push(artifactsPath)
 
         try {
-          await remixClient.call(
-            'fileManager',
-            'writeFile',
-            artifactsPath,
-            file.file_content
-          )
+          await remixClient.call('fileManager', 'writeFile', artifactsPath, file.file_content)
         } catch (e) {
           if (e instanceof Error) {
             await remixClient.call(
@@ -241,9 +207,7 @@ export const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         <button
           className="btn btn-primary w-100 text-break remixui_disabled mb-1 mt-1 px-0"
           style={{
-            cursor: `${
-              !validation || !currentFilename ? 'not-allowed' : 'pointer'
-            }`
+            cursor: `${!validation || !currentFilename ? 'not-allowed' : 'pointer'}`
           }}
           disabled={!validation || !currentFilename || isCompiling}
           aria-disabled={!validation || !currentFilename || isCompiling}
@@ -258,11 +222,7 @@ export const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
                   <div className="d-flex align-items-center justify-content-center">
                     {isLoading ? (
                       <>
-                        <span
-                          className="spinner-border spinner-border-sm"
-                          role="status"
-                          aria-hidden="true"
-                        >
+                        <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true">
                           {' '}
                         </span>
                         <span style={{ paddingLeft: '0.5rem' }}>{status}</span>
@@ -270,9 +230,7 @@ export const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
                     ) : (
                       <div className="text-truncate overflow-hidden text-nowrap">
                         <span>Compile</span>
-                        <span className="ml-1 text-nowrap">
-                          {currentFilename}
-                        </span>
+                        <span className="ml-1 text-nowrap">{currentFilename}</span>
                       </div>
                     )}
                   </div>
@@ -288,12 +246,7 @@ export const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   return (
     <div>
       {compilations.map((compilation) => {
-        return compilationCard(
-          compilation.validation,
-          compilation.isLoading,
-          compilation.onClick,
-          compilation.id
-        )
+        return compilationCard(compilation.validation, compilation.isLoading, compilation.onClick, compilation.id)
       })}
     </div>
   )

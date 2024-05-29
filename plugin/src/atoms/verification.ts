@@ -4,9 +4,7 @@ const statusAtom = atom<string>('Verifying...')
 
 const isVerifyingAtom = atom<boolean>(false)
 
-type VerificationKeys =
-  'status'
-  | 'isVerifying'
+type VerificationKeys = 'status' | 'isVerifying'
 
 interface SetVerificationValue {
   key: VerificationKeys
@@ -32,10 +30,4 @@ const verificationAtom = atom(
   }
 )
 
-export {
-  statusAtom,
-  isVerifyingAtom,
-  verificationAtom,
-  type SetVerificationValue,
-  type VerificationKeys
-}
+export { statusAtom, isVerifyingAtom, verificationAtom, type SetVerificationValue, type VerificationKeys }
