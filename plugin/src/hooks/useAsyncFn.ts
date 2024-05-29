@@ -1,9 +1,8 @@
 import { type DependencyList, useCallback, useRef, useState } from 'react'
 import useMountedState from './useMountedState'
 
-export type PromiseType<P extends Promise<any>> = P extends Promise<infer T>
-  ? T
-  : never
+export type PromiseType<P extends Promise<any>> =
+  P extends Promise<infer T> ? T : never
 
 export type FunctionReturningPromise = (...args: any[]) => Promise<any>
 
@@ -69,6 +68,7 @@ export default function useAsyncFn<T extends FunctionReturningPromise>(
         return error
       }
     ) as ReturnType<T>
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps)
 
   return [state, callback as unknown as T]

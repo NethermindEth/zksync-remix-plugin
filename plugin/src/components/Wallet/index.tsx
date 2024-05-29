@@ -1,12 +1,12 @@
 import React, { useEffect } from 'react'
-import './wallet.css'
 import * as zksync from 'zksync-ethers'
-import { useAccount, useWalletClient } from 'wagmi'
-import { accountAtom, providerAtom } from '../../atoms/connection'
 import { useAtomValue, useSetAtom } from 'jotai'
-import { envAtom } from '../../atoms/environment'
+import { useAccount, useWalletClient } from 'wagmi'
+import { accountAtom, providerAtom } from '@/atoms/connection'
+import { envAtom } from '@/atoms/environment'
+import './wallet.css'
 
-const Wallet: React.FC = () => {
+const Wallet = () => {
   const { data: walletClient } = useWalletClient()
   const setAccount = useSetAtom(accountAtom)
   const setProvider = useSetAtom(providerAtom)
@@ -24,7 +24,6 @@ const Wallet: React.FC = () => {
         network
       )
       const newSigner = newProvider.getSigner(walletClient.account.address)
-
       setAccount(newSigner)
       setProvider(newProvider)
     }
@@ -43,7 +42,7 @@ const Wallet: React.FC = () => {
       setAccount(null)
       setProvider(null)
     }
-  }, [isDisconnected])
+  }, [isDisconnected, setAccount, setProvider])
 
   return (
     <div

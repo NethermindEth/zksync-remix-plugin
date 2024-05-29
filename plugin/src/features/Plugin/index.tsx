@@ -9,7 +9,6 @@ import {
   TransactionHistory,
   SolidityVersion as CompilerVersion
 } from '@/features'
-// import Compilation from '@/features/Compilation'
 import Accordian, {
   AccordianItem,
   AccordionContent,
@@ -31,6 +30,7 @@ import {
 } from '@/stores/remixClient'
 import storage from '@/utils/storage'
 import './styles.css'
+import useAsync from '@/hooks/useAsync'
 
 export type AccordianTabs =
   | 'compile'
@@ -39,8 +39,7 @@ export type AccordianTabs =
   | 'transactions'
   | ''
 
-export const Plugin: React.FC = () => {
-  // Compilation Context state variables
+export const Plugin = () => {
   const compilationStatus = useAtomValue(compilationStatusAtom)
   const isCompiling = useAtomValue(isCompilingAtom)
 
@@ -49,12 +48,10 @@ export const Plugin: React.FC = () => {
 
   const setHashDir = useSetAtom(hashDirAtom)
 
-  useEffect(() => {
-    ;(async () => {
-      const client = await initializeRemixClient()
-      setRemixClient(client)
-      setIsLoaded(true)
-    })().catch(console.error)
+  useAsync(async () => {
+    const client = await initializeRemixClient()
+    setRemixClient(client)
+    setIsLoaded(true)
   }, [setIsLoaded, setRemixClient])
 
   useEffect(() => {
@@ -76,7 +73,7 @@ export const Plugin: React.FC = () => {
   const { isDeploying, deployStatus } = useAtomValue(deploymentAtom)
 
   // Interaction state variables
-  const [interactionStatus, setInteractionStatus] = useState<
+  const [interactionStatus] = useState<
     'loading' | 'success' | 'error' | ''
   >('')
 
@@ -175,7 +172,7 @@ export const Plugin: React.FC = () => {
                   </span>
                 </AccordionTrigger>
                 <AccordionContent>
-                  <Interaction setInteractionStatus={setInteractionStatus} />
+                  <Interaction />
                 </AccordionContent>
               </AccordianItem>
 
