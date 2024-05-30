@@ -9,7 +9,7 @@ import Container from '../../ui_components/Container'
 import { type AccordianTabs } from '../Plugin'
 import * as zksync from 'zksync-ethers'
 import ConstructorInput from '../../components/ConstructorInput'
-import { type VerificationResult, type DeployedContract } from '../../types/contracts'
+import { type VerificationResult, type DeployedContract, type ContractFile } from '../../types/contracts'
 import { mockManualChain, type Transaction } from '../../types/transaction'
 import { type Contract } from 'ethers'
 import { useWalletClient } from 'wagmi'
@@ -23,9 +23,7 @@ import { isVerifyingAtom, verificationAtom } from '../../atoms/verification'
 import { asyncPost } from '../../api/asyncRequests'
 import { solidityVersionAtom } from '../../atoms/version'
 import { deployStatusAtom } from '../../atoms/deployment'
-import { saveCode } from '../../api/saveCode'
-import { currentFilenameAtom, isValidSolidityAtom, remixClientAtom } from '../../stores/remixClient'
-import { hashDirAtom } from '../../atoms/compilation'
+import { currentFilenameAtom, currentWorkspacePathAtom, isValidSolidityAtom, remixClientAtom } from '../../stores/remixClient'
 
 interface DeploymentProps {
   setActiveTab: (tab: AccordianTabs) => void
@@ -46,7 +44,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const { isVerifying } = useAtomValue(verificationAtom)
   const isValidSolidity = useAtomValue(isValidSolidityAtom)
   const currentFilename = useAtomValue(currentFilenameAtom)
-  const hashDir = useAtomValue(hashDirAtom)
+  const currentWorkspacePath = useAtomValue(currentWorkspacePathAtom)
 
   const setStatus = useSetAtom(deployStatusAtom)
 
@@ -80,6 +78,25 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     setSelectedChainName(name)
   }, [provider, env])
 
+  async function getAllContractFiles (path: string): Promise<ContractFile[]> {
+    const files = [] as ContractFile[]
+    const pathFiles = await remixClient.fileManager.readdir(`${path}/`)
+    for (const [name, entry] of Object.entries<any>(pathFiles)) {
+      if (entry.isDirectory) {
+        const deps = await getAllContractFiles(`${path}/${name}`)
+        for (const dep of deps) files.push(dep)
+      } else {
+        const content = await remixClient.fileManager.readFile(name)
+        files.push({
+          file_name: name,
+          file_content: content,
+          is_contract: name.endsWith('.sol')
+        })
+      }
+    }
+    return files
+  }
+
   async function verify (contract: DeployedContract | null): Promise<void> {
     if (!contract) {
       throw new Error('Not able to retrieve deployed contract for verification')
@@ -90,27 +107,27 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     // clear current file annotations: inline syntax error reporting
     await remixClient.editor.clearAnnotations()
     try {
-      setStatus('Getting solidity file path...')
-      const currentFilePath = await remixClient.call(
-        'fileManager',
-        'getCurrentFile'
-      )
+      const workspaceContents = {
+        config: {
+          zksolc_version: solidityVersion,
+          // solc_version: ,
+          network: selectedChainName ?? 'unknown',
+          contract_address: contract.address,
+          inputs
+        },
+        contracts: [] as Array<{ file_name: string, file_content: string, is_contract: boolean }>
+      }
 
-      setStatus('Getting solidity file content...')
-      const currentFileContent = await remixClient.call('fileManager', 'readFile', currentFilePath)
+      console.log(`currentWorkspacePath: ${currentWorkspacePath}`)
+      const workspaceFiles = await remixClient.fileManager.readdir(`${currentWorkspacePath}/`)
+      console.log(`workspaceFiles: ${JSON.stringify(workspaceFiles)}`)
 
-      setStatus('Parsing solidity code...')
-      await saveCode(solidityVersion, hashDir, currentFilePath, currentFileContent)
+      setStatus('Compiling...')
+      workspaceContents.contracts = await getAllContractFiles(currentWorkspacePath)
 
       setStatus('Verifying...')
 
-      const chainName = selectedChainName ?? 'unknown'
-
-      const response = await asyncPost(
-        `verify-async/${solidityVersion}/${chainName}/${contract.address}/${hashDir}/${currentFilePath}`,
-        'verify-result',
-        inputs
-      )
+      const response = await asyncPost('verify-async', 'verify-result', workspaceContents)
 
       if (!response.ok) {
         throw new Error('Could not reach solidity verification server')
