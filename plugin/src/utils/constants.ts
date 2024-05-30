@@ -1,9 +1,6 @@
 const devnetUrl = 'http://127.0.0.1:8011'
 
-type Network =
-  | 'goerli-alpha'
-  | 'goerli-alpha-2'
-  | 'mainnet-alpha'
+type Network = 'goerli-alpha' | 'goerli-alpha-2' | 'mainnet-alpha'
 
 const networks = [
   {
@@ -50,11 +47,6 @@ const licenses = [
   'Business Source License (BSL 1.1)'
 ]
 
-export {
-  devnetUrl,
-  networks,
-  networkExplorerUrls,
-  licenses
-}
+export { devnetUrl, networks, networkExplorerUrls, licenses }
 
 export type { Network }

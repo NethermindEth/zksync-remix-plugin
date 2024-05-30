@@ -26,9 +26,7 @@ const transformTypeToText = (type: string): string => {
 }
 
 const NetworkTag: React.FC<NetworkTypeTag> = ({ type }) => {
-  return (
-    <span className={`p-2 tag tag-${type}`}>{transformTypeToText(type)}</span>
-  )
+  return <span className={`p-2 tag tag-${type}`}>{transformTypeToText(type)}</span>
 }
 
 interface TransactionCardProps {
@@ -36,16 +34,8 @@ interface TransactionCardProps {
   // explorer: keyof typeof networkExplorerUrls
 }
 
-const TransactionCard: React.FC<TransactionCardProps> = ({
-  transaction
-}) => {
-  const {
-    account,
-    txId,
-    env
-    ,
-    chain
-  } = transaction
+export const TransactionCard: React.FC<TransactionCardProps> = ({ transaction }) => {
+  const { account, txId, env, chain } = transaction
   const [address, setAddress] = useState<string | undefined>(undefined)
 
   useEffect(() => {
@@ -60,45 +50,50 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
   const cardRef = useRef<HTMLDivElement>(null)
 
   return (
-    <div className='maincard' ref={cardRef}>
-      <div className='tag-wrapper'>
+    <div className="maincard" ref={cardRef}>
+      <div className="tag-wrapper">
         <Tag type={transaction.type} />
       </div>
-      <div className='account-wrapper'>
+      <div className="account-wrapper">
         <p>From: </p>
-        {(env === 'localDevnet' || env === 'remoteDevnet')
-          ? <a
-            title={address}
-            target='_blank' rel='noreferrer'
-          >
+        {env === 'localDevnet' || env === 'remoteDevnet' ? (
+          <a title={address} target="_blank" rel="noreferrer">
             {address}
           </a>
-          : <a
+        ) : (
+          <a
             title={address}
             href={`${String(chain?.blockExplorers?.default.url)}/address/${address ?? ''}`}
-            target='_blank' rel='noreferrer'
+            target="_blank"
+            rel="noreferrer"
           >
             {address}
-          </a>}
+          </a>
+        )}
       </div>
-      <div className='txn-wrapper'>
+      <div className="txn-wrapper">
         <p>Transaction ID</p>
-        {(env === 'localDevnet' || env === 'remoteDevnet')
-          ? <a target='_blank' title={txId} rel='noreferrer'>
+        {env === 'localDevnet' || env === 'remoteDevnet' ? (
+          <a target="_blank" title={txId} rel="noreferrer">
             {txId}
           </a>
-          : <a href={`${String(chain?.blockExplorers?.default.url)}/tx/${txId}`} target='_blank' title={txId}
-               rel='noreferrer'>
+        ) : (
+          <a
+            href={`${String(chain?.blockExplorers?.default.url)}/tx/${txId}`}
+            target="_blank"
+            title={txId}
+            rel="noreferrer"
+          >
             {txId}
-          </a>}
+          </a>
+        )}
       </div>
-      <div className='txn-network'>
-        {(env === 'localDevnet' || env === 'remoteDevnet') ? <p>Network</p> : <p>Chain</p>}
+      <div className="txn-network">
+        {env === 'localDevnet' || env === 'remoteDevnet' ? <p>Network</p> : <p>Chain</p>}
         <NetworkTag
-          type={(env === 'localDevnet' || env === 'remoteDevnet') ? env : (chain?.name === undefined ? '' : chain?.name)} />
+          type={env === 'localDevnet' || env === 'remoteDevnet' ? env : chain?.name === undefined ? '' : chain?.name}
+        />
       </div>
     </div>
   )
 }
-
-export default TransactionCard

@@ -6,10 +6,7 @@ const hashDirAtom = atom<string>('')
 
 const isCompilingAtom = atom<boolean>(false)
 
-type CompilationKeys =
-  'status'
-  | 'isCompiling'
-  | 'hashDir'
+type CompilationKeys = 'status' | 'isCompiling' | 'hashDir'
 
 interface SetCompilationValue {
   key: CompilationKeys
@@ -39,11 +36,4 @@ const compilationAtom = atom(
   }
 )
 
-export {
-  statusAtom,
-  isCompilingAtom,
-  hashDirAtom,
-  compilationAtom,
-  type SetCompilationValue,
-  type CompilationKeys
-}
+export { statusAtom, isCompilingAtom, hashDirAtom, compilationAtom, type SetCompilationValue, type CompilationKeys }

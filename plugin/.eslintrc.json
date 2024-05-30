@@ -1,11 +1,12 @@
 {
+  "parser": "@typescript-eslint/parser",
   "env": {
     "browser": true,
     "es2021": true
   },
   "extends": [
-    "plugin:react/recommended",
-    "standard-with-typescript"
+    "plugin:@typescript-eslint/recommended",
+    "plugin:react/recommended"
   ],
   "overrides": [],
   "parserOptions": {
@@ -13,14 +14,21 @@
     "sourceType": "module",
     "project": "./tsconfig.json"
   },
-  "plugins": [
-    "react",
-    "react-hooks"
-  ],
+  "plugins": ["@typescript-eslint", "prettier", "react", "react-hooks"],
   "rules": {
     "semi": [2, "never"],
     "react-hooks/rules-of-hooks": "error", // Checks rules of Hooks
-    "react-hooks/exhaustive-deps": "warn" // Checks effect dependencies
+    "react-hooks/exhaustive-deps": [
+      "warn",
+      {
+        "additionalHooks": ""
+      }
+    ], // Checks effect dependencies
+    "multiline-ternary": "off",
+    "@typescript-eslint/explicit-function-return-type": "off",
+    "no-multiple-empty-lines": ["error", { "max": 3 }],
+    "@typescript-eslint/space-before-function-paren": "off",
+    "@typescript-eslint/no-explicit-any": "off"
   },
   "settings": {
     "react": {

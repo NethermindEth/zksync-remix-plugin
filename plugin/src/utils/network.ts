@@ -67,10 +67,7 @@ const getAccounts = async (customDevnetUrl: string): Promise<DevnetAccount[]> =>
   return await Promise.all(accountPromises)
 }
 
-const updateBalances = async (
-  accounts: DevnetAccount[],
-  customDevnetUrl: string
-): Promise<DevnetAccount[]> => {
+const updateBalances = async (accounts: DevnetAccount[], customDevnetUrl: string): Promise<DevnetAccount[]> => {
   const accountPromises: Array<Promise<DevnetAccount>> = accounts.map(async (account: DevnetAccount) => {
     try {
       const initialBalance = await getAccountBalance(account.address, customDevnetUrl)
@@ -98,10 +95,7 @@ const updateBalances = async (
   return await Promise.all(accountPromises)
 }
 
-const getAccountBalance = async (
-  address: string,
-  customDevnetUrl: string
-): Promise<number> => {
+const getAccountBalance = async (address: string, customDevnetUrl: string): Promise<number> => {
   const response = await fetch(`${customDevnetUrl}`, {
     method: 'POST',
     headers: {

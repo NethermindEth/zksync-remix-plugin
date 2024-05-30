@@ -1,18 +1,11 @@
-/* eslint-disable @typescript-eslint/restrict-plus-operands */
-/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import React from 'react'
-import { artifactFolder } from '../../utils/utils'
-import './styles.css'
+import { useAtom, useAtomValue, useSetAtom } from 'jotai'
+import { artifactFolder } from '@/utils/utils'
 import Container from '../../ui_components/Container'
 import { type AccordianTabs } from '../Plugin'
 import { type ContractFile, type CompilationResult, type Contract } from '../../types/contracts'
 import { asyncPost } from '../../api/asyncRequests'
-import {
-  compilationAtom,
-  isCompilingAtom,
-  statusAtom
-} from '../../atoms/compilation'
-import { useAtom, useAtomValue, useSetAtom } from 'jotai'
+import { compilationAtom, isCompilingAtom, statusAtom } from '../../atoms/compilation'
 import { solidityVersionAtom } from '../../atoms/version'
 import { contractsAtom, selectedContractAtom } from '../../atoms/compiledContracts'
 import {
@@ -23,13 +16,13 @@ import {
   remixClientAtom,
   tomlPathsAtom
 } from '../../stores/remixClient'
+import './styles.css'
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface CompilationProps {
   setAccordian: React.Dispatch<React.SetStateAction<AccordianTabs>>
 }
 
-const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
+export const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   const remixClient = useAtomValue(remixClientAtom)
   const isValidSolidity = useAtomValue(isValidSolidityAtom)
   const currentFilename = useAtomValue(currentFilenameAtom)
@@ -40,10 +33,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   const [contracts, setContracts] = useAtom(contractsAtom)
   const setSelectedContract = useSetAtom(selectedContractAtom)
 
-  const {
-    status,
-    isCompiling
-  } = useAtomValue(compilationAtom)
+  const { status, isCompiling } = useAtomValue(compilationAtom)
 
   const setStatus = useSetAtom(statusAtom)
   const setIsCompiling = useSetAtom(isCompilingAtom)
@@ -54,11 +44,12 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     {
       validation: isValidSolidity,
       isLoading: isCompiling,
-      onClick: compile
+      onClick: compile,
+      id: 1
     }
   ]
 
-  async function getAllContractFiles (path: string): Promise<ContractFile[]> {
+  async function getAllContractFiles(path: string): Promise<ContractFile[]> {
     const files = [] as ContractFile[]
     const pathFiles = await remixClient.fileManager.readdir(`${path}/`)
     for (const [name, entry] of Object.entries<any>(pathFiles)) {
@@ -77,7 +68,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     return files
   }
 
-  async function compile (): Promise<void> {
+  async function compile(): Promise<void> {
     setIsCompiling(true)
     setStatus('Compiling...')
     // clear current file annotations: inline syntax error reporting
@@ -88,7 +79,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           version: solidityVersion,
           user_libraries: []
         },
-        contracts: [] as Array<{ file_name: string, file_content: string, is_contract: boolean }>
+        contracts: [] as Array<{ file_name: string; file_content: string; is_contract: boolean }>
       }
 
       console.log(`currentWorkspacePath: ${currentWorkspacePath}`)
@@ -101,11 +92,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
       if (!response.ok) throw new Error('Solidity Compilation Request Failed')
       else {
-        await remixClient.call(
-          'notification' as any,
-          'toast',
-          'Solidity compilation request successful'
-        )
+        await remixClient.call('notification' as any, 'toast', 'Solidity compilation request successful')
       }
 
       // get Json body from response
@@ -166,9 +153,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           type: 'error',
           title: (lastLine ?? '').startsWith('Error') ? lastLine : 'Compilation Failed'
         })
-        throw new Error(
-          'Solidity Compilation Failed, logs can be read in the terminal log'
-        )
+        throw new Error('Solidity Compilation Failed, logs can be read in the terminal log')
       }
 
       const artifacts: string[] = []
@@ -188,20 +173,13 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         artifacts.push(artifactsPath)
 
         try {
-          await remixClient.call(
-            'fileManager',
-            'writeFile',
-            artifactsPath,
-            file.file_content
-          )
+          await remixClient.call('fileManager', 'writeFile', artifactsPath, file.file_content)
         } catch (e) {
           if (e instanceof Error) {
             await remixClient.call(
               'notification' as any,
               'toast',
-              e.message +
-              ' try deleting the files: ' +
-              artifactsPath
+              e.message + ' try deleting the files: ' + artifactsPath
             )
           }
           remixClient.emit('statusChanged', {
@@ -237,59 +215,48 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   const compilationCard = (
     validation: boolean,
     isLoading: boolean,
-    onClick: () => unknown
+    onClick: () => unknown,
+    id: number
   ): React.ReactElement => {
     return (
-      <Container>
+      <Container key={id}>
         {activeTomlPath && tomlPaths?.length > 0 && (
-          <div className='project-dropdown-wrapper d-flex flex-column mb-3'>
-            <div className='mx-auto'>Compile a single Solidity file:</div>
+          <div className="project-dropdown-wrapper d-flex flex-column mb-3">
+            <div className="mx-auto">Compile a single Solidity file:</div>
           </div>
         )}
         <button
-          className='btn btn-primary w-100 text-break remixui_disabled mb-1 mt-1 px-0'
+          className="btn btn-primary w-100 text-break remixui_disabled mb-1 mt-1 px-0"
           style={{
-            cursor: `${
-              !validation || !currentFilename ? 'not-allowed' : 'pointer'
-            }`
+            cursor: `${!validation || !currentFilename ? 'not-allowed' : 'pointer'}`
           }}
           disabled={!validation || !currentFilename || isCompiling}
           aria-disabled={!validation || !currentFilename || isCompiling}
           onClick={onClick}
         >
-          <div className='d-flex align-items-center justify-content-center'>
-            <div className='text-truncate overflow-hidden text-nowrap'>
-              {!validation
-                ? (
-                  <span>Select a valid solidity file</span>
-                  )
-                : (
-                  <>
-                    <div className='d-flex align-items-center justify-content-center'>
-                      {isLoading
-                        ? (
-                          <>
-                        <span
-                          className='spinner-border spinner-border-sm'
-                          role='status'
-                          aria-hidden='true'
-                        >
+          <div className="d-flex align-items-center justify-content-center">
+            <div className="text-truncate overflow-hidden text-nowrap">
+              {!validation ? (
+                <span>Select a valid solidity file</span>
+              ) : (
+                <>
+                  <div className="d-flex align-items-center justify-content-center">
+                    {isLoading ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true">
                           {' '}
                         </span>
-                            <span style={{ paddingLeft: '0.5rem' }}>{status}</span>
-                          </>
-                          )
-                        : (
-                          <div className='text-truncate overflow-hidden text-nowrap'>
-                            <span>Compile</span>
-                            <span className='ml-1 text-nowrap'>
-                          {currentFilename}
-                        </span>
-                          </div>
-                          )}
-                    </div>
-                  </>
-                  )}
+                        <span style={{ paddingLeft: '0.5rem' }}>{status}</span>
+                      </>
+                    ) : (
+                      <div className="text-truncate overflow-hidden text-nowrap">
+                        <span>Compile</span>
+                        <span className="ml-1 text-nowrap">{currentFilename}</span>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </button>
@@ -300,14 +267,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   return (
     <div>
       {compilations.map((compilation) => {
-        return compilationCard(
-          compilation.validation,
-          compilation.isLoading,
-          compilation.onClick
-        )
+        return compilationCard(compilation.validation, compilation.isLoading, compilation.onClick, compilation.id)
       })}
     </div>
   )
 }
-
-export default Compilation

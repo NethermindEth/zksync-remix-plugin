@@ -13,10 +13,7 @@ interface ConstructorContractsProps {
   setInputs: (input: string[]) => void
 }
 
-const ConstructorInput: React.FC<ConstructorContractsProps> = ({
-  inputs,
-  setInputs
-}: ConstructorContractsProps) => {
+const ConstructorInput: React.FC<ConstructorContractsProps> = ({ inputs, setInputs }: ConstructorContractsProps) => {
   const selectedContract = useAtomValue(selectedContractAtom)
 
   const [constructor, setConstructor] = useState<AbiElement | undefined>(undefined)
@@ -31,19 +28,21 @@ const ConstructorInput: React.FC<ConstructorContractsProps> = ({
 
   return (
     <>
-      {
-        constructor?.inputs.map((input: Input, index: number) => {
-          return (
-              <InputField name={generateInputName(input)} index={index} value={inputs[index]}
-                          onChange={(index, newValue) => {
-                            const newInputs = [...inputs]
-                            newInputs[index] = newValue
-                            setInputs(newInputs)
-                          }} key={index} />
-          )
-        }
+      {constructor?.inputs.map((input: Input, index: number) => {
+        return (
+          <InputField
+            name={generateInputName(input)}
+            index={index}
+            value={inputs[index]}
+            onChange={(index, newValue) => {
+              const newInputs = [...inputs]
+              newInputs[index] = newValue
+              setInputs(newInputs)
+            }}
+            key={index}
+          />
         )
-      }
+      })}
     </>
   )
 }

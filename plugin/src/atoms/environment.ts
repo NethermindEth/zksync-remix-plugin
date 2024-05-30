@@ -12,10 +12,4 @@ const selectedDevnetAccountAtom = atom<null | DevnetAccount>(null)
 
 const availableDevnetAccountsAtom = atom<DevnetAccount[]>([])
 
-export {
-  devnetAtom,
-  envAtom,
-  isDevnetAliveAtom,
-  selectedDevnetAccountAtom,
-  availableDevnetAccountsAtom
-}
+export { devnetAtom, envAtom, isDevnetAliveAtom, selectedDevnetAccountAtom, availableDevnetAccountsAtom }

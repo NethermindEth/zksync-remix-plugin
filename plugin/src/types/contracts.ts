@@ -54,8 +54,7 @@ interface AbiElement {
   type: string
 }
 
-interface Abi extends Array<AbiElement> {
-}
+type Abi = Array<AbiElement>
 
 type Output = Input
 

@@ -1,18 +1,17 @@
-/* eslint-disable multiline-ternary */
-/* eslint-disable @typescript-eslint/no-misused-promises */
 import React, { useEffect } from 'react'
-import './wallet.css'
 import * as zksync from 'zksync-ethers'
-import { useAccount, useWalletClient } from 'wagmi'
-import { accountAtom, providerAtom } from '../../atoms/connection'
 import { useAtomValue, useSetAtom } from 'jotai'
-import { envAtom } from '../../atoms/environment'
+import { useAccount, useWalletClient } from 'wagmi'
+import { accountAtom, providerAtom } from '@/atoms/connection'
+import { envAtom } from '@/atoms/environment'
+import './wallet.css'
 
-const Wallet: React.FC = () => {
+const Wallet = () => {
   const { data: walletClient } = useWalletClient()
   const setAccount = useSetAtom(accountAtom)
   const setProvider = useSetAtom(providerAtom)
   const env = useAtomValue(envAtom)
+  const { isDisconnected } = useAccount()
 
   useEffect((): void => {
     if (walletClient != null && !isDisconnected) {
@@ -22,24 +21,29 @@ const Wallet: React.FC = () => {
       }
       const newProvider = new zksync.Web3Provider(walletClient.transport, network)
       const newSigner = newProvider.getSigner(walletClient.account.address)
-
       setAccount(newSigner)
       setProvider(newProvider)
     }
-  }, [walletClient?.account.address, walletClient?.chain.id, env])
-
-  const { isDisconnected } = useAccount()
+  }, [
+    walletClient?.account.address,
+    walletClient?.chain.id,
+    env,
+    setAccount,
+    walletClient,
+    isDisconnected,
+    setProvider
+  ])
 
   useEffect(() => {
     if (isDisconnected) {
       setAccount(null)
       setProvider(null)
     }
-  }, [isDisconnected])
+  }, [isDisconnected, setAccount, setProvider])
 
   return (
     <div
-      className='flex'
+      className="flex"
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -47,7 +51,7 @@ const Wallet: React.FC = () => {
         padding: '1rem 0rem'
       }}
     >
-      <div className='wallet-actions'>
+      <div className="wallet-actions">
         <w3m-button />
       </div>
     </div>

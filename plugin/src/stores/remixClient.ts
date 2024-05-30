@@ -1,7 +1,7 @@
 import { PluginClient } from '@remixproject/plugin'
 import { createClient } from '@remixproject/plugin-webview'
 import { atom, createStore } from 'jotai'
-import { getFileExtension, getFileNameFromPath } from '../utils/utils'
+import { getFileExtension, getFileNameFromPath } from '@/utils/utils'
 
 const remixClientAtom = atom({} as unknown as RemixClient)
 const noFileSelectedAtom = atom(false)
@@ -17,7 +17,7 @@ const remixClientStore = createStore()
 const remixClient = createClient(new PluginClient())
 type RemixClient = typeof remixClient
 
-async function getTomlPaths (workspacePath: string, currPath: string): Promise<string[]> {
+async function getTomlPaths(workspacePath: string, currPath: string): Promise<string[]> {
   const resTomlPaths: string[] = []
 
   try {
@@ -42,7 +42,7 @@ async function getTomlPaths (workspacePath: string, currPath: string): Promise<s
   return resTomlPaths
 }
 
-async function handleTomlPathsChange (): Promise<void> {
+async function handleTomlPathsChange(): Promise<void> {
   try {
     const allTomlPaths = await getTomlPaths(remixClientStore.get(currentWorkspacePathAtom), '')
     remixClientStore.set(tomlPathsAtom, allTomlPaths)
@@ -55,7 +55,7 @@ async function handleTomlPathsChange (): Promise<void> {
   }
 }
 
-async function handleStatusChange (): Promise<void> {
+async function handleStatusChange(): Promise<void> {
   const isValidSolidity = remixClientStore.get(isValidSolidityAtom)
   const currentFilename = remixClientStore.get(currentFilenameAtom)
   if (isValidSolidity) {
@@ -73,7 +73,7 @@ async function handleStatusChange (): Promise<void> {
   }
 }
 
-async function initializeRemixClient (): Promise<RemixClient> {
+async function initializeRemixClient(): Promise<RemixClient> {
   await remixClient.onload()
 
   const currWorkspace = await remixClient.filePanel.getCurrentWorkspace()
@@ -98,23 +98,23 @@ async function initializeRemixClient (): Promise<RemixClient> {
     await handleStatusChange()
   })
 
-  remixClient.on('fileManager', 'fileAdded', async (_: any) => {
+  remixClient.on('fileManager', 'fileAdded', async () => {
     await handleTomlPathsChange()
   })
 
-  remixClient.on('fileManager', 'folderAdded', async (_: any) => {
+  remixClient.on('fileManager', 'folderAdded', async () => {
     await handleTomlPathsChange()
   })
 
-  remixClient.on('fileManager', 'fileRemoved', async (_: any) => {
+  remixClient.on('fileManager', 'fileRemoved', async () => {
     await handleTomlPathsChange()
   })
 
-  remixClient.on('filePanel', 'workspaceCreated', async (_: any) => {
+  remixClient.on('filePanel', 'workspaceCreated', async () => {
     await handleTomlPathsChange()
   })
 
-  remixClient.on('filePanel', 'workspaceRenamed', async (_: any) => {
+  remixClient.on('filePanel', 'workspaceRenamed', async () => {
     await handleTomlPathsChange()
   })
 
