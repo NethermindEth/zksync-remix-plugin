@@ -5,7 +5,7 @@ import { artifactFolder } from '../../utils/utils'
 import './styles.css'
 import Container from '../../ui_components/Container'
 import { type AccordianTabs } from '../Plugin'
-import { type CompilationResult, type Contract } from '../../types/contracts'
+import { type ContractFile, type CompilationResult, type Contract } from '../../types/contracts'
 import { asyncPost } from '../../api/asyncRequests'
 import {
   compilationAtom,
@@ -27,12 +27,6 @@ import {
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface CompilationProps {
   setAccordian: React.Dispatch<React.SetStateAction<AccordianTabs>>
-}
-
-interface ContractFile {
-  file_name: string
-  file_content: string
-  is_contract: boolean
 }
 
 const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
