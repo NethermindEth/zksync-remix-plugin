@@ -11,6 +11,12 @@ interface Contract {
   factoryDeps: Record<string, unknown>
 }
 
+interface ContractFile {
+  file_name: string
+  file_content: string
+  is_contract: boolean
+}
+
 interface DeployedContract extends Contract {
   address: string
   transactionHash: string
@@ -31,6 +37,7 @@ interface VerificationResult {
 interface SolFile {
   file_name: string
   file_content: string
+  is_contract: boolean
 }
 
 interface Input {
@@ -55,6 +62,7 @@ export type {
   Abi,
   AbiElement,
   Contract,
+  ContractFile,
   Input,
   Output,
   DeployedContract,

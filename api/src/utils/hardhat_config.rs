@@ -1,14 +1,10 @@
-use crate::utils::lib::timestamp;
-use rand::Rng;
+use crate::utils::lib::{DEFAULT_SOLIDITY_VERSION, DEFAULT_ZKSOLC_VERSION};
 use rocket::serde::json::serde_json;
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
 pub struct HardhatConfig {
-    #[serde(skip)]
-    pub name: String,
     pub zksolc: ZksolcConfig,
     pub solidity: SolidityConfig,
-    pub paths: PathsConfig,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, Debug, Default)]
@@ -22,12 +18,6 @@ pub struct SolidityConfig {
     pub version: String,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Clone, Debug, Default)]
-pub struct PathsConfig {
-    pub sources: String,
-    pub artifacts: String,
-}
-
 #[derive(Default)]
 pub struct HardhatConfigBuilder {
     config: HardhatConfig,
@@ -36,17 +26,12 @@ pub struct HardhatConfigBuilder {
 impl Default for HardhatConfig {
     fn default() -> Self {
         Self {
-            name: Self::generate_random_name(),
             zksolc: ZksolcConfig {
-                version: "latest".to_string(),
+                version: DEFAULT_ZKSOLC_VERSION.to_string(),
                 settings: serde_json::json!({}),
             },
             solidity: SolidityConfig {
-                version: "0.8.24".to_string(),
-            },
-            paths: PathsConfig {
-                sources: "./contracts".to_string(),
-                artifacts: "./artifacts".to_string(),
+                version: DEFAULT_SOLIDITY_VERSION.to_string(),
             },
         }
     }
@@ -61,7 +46,6 @@ impl HardhatConfig {
         let config_prefix_js = r#"
 import { HardhatUserConfig } from "hardhat/config";
 
-import "@matterlabs/hardhat-zksync-deploy";
 import "@matterlabs/hardhat-zksync-solc";
 import "@matterlabs/hardhat-zksync-verify";
 
@@ -102,34 +86,16 @@ const config: HardhatUserConfig = {{
     zkSyncMainnet,
   }},
   solidity: {{
-    version: "0.8.24",
-  }},
-  // path to the directory with contracts
-  paths: {{
-    sources: "{}",
-    artifacts: "{}",
+    version: "{}",
   }},
 }};
 
 export default config;
 "#,
-            config_prefix_js, self.zksolc.version, self.paths.sources, self.paths.artifacts
+            config_prefix_js, self.zksolc.version, self.solidity.version
         );
 
         config
-    }
-
-    pub fn generate_random_name() -> String {
-        let mut rng = rand::thread_rng();
-        let rand_string: Vec<u8> = std::iter::repeat(())
-            .map(|()| rng.sample(rand::distributions::Alphanumeric))
-            .take(10)
-            .collect();
-        format!(
-            "hardhat-{}-{}.config.ts",
-            timestamp(),
-            String::from_utf8(rand_string).unwrap_or("".to_string())
-        )
     }
 }
 
@@ -148,31 +114,7 @@ impl HardhatConfigBuilder {
         self
     }
 
-    pub fn sources_path(&mut self, path: &str) -> &mut Self {
-        self.config.paths.sources = path.to_string();
-        self
-    }
-
-    pub fn artifacts_path(&mut self, path: &str) -> &mut Self {
-        self.config.paths.artifacts = path.to_string();
-        self
-    }
-
     pub fn build(&self) -> HardhatConfig {
         self.config.clone()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    pub fn test_random_name() {
-        for _ in 1..100 {
-            let name = HardhatConfig::generate_random_name();
-
-            println!("Random name: {}", name);
-        }
     }
 }

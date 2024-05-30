@@ -3,19 +3,19 @@ import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import { artifactFolder } from '@/utils/utils'
 import Container from '../../ui_components/Container'
 import { type AccordianTabs } from '../Plugin'
-import { type CompilationResult, type Contract } from '../../types/contracts'
-import { asyncGet } from '../../api/asyncRequests'
+import { type ContractFile, type CompilationResult, type Contract } from '../../types/contracts'
+import { asyncPost } from '../../api/asyncRequests'
 import { compilationAtom, isCompilingAtom, statusAtom } from '../../atoms/compilation'
 import { solidityVersionAtom } from '../../atoms/version'
 import { contractsAtom, selectedContractAtom } from '../../atoms/compiledContracts'
 import {
   activeTomlPathAtom,
   currentFilenameAtom,
+  currentWorkspacePathAtom,
   isValidSolidityAtom,
   remixClientAtom,
   tomlPathsAtom
 } from '../../stores/remixClient'
-import { saveCode } from '../../api/saveCode'
 import './styles.css'
 
 interface CompilationProps {
@@ -28,11 +28,12 @@ export const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   const currentFilename = useAtomValue(currentFilenameAtom)
   const tomlPaths = useAtomValue(tomlPathsAtom)
   const activeTomlPath = useAtomValue(activeTomlPathAtom)
+  const currentWorkspacePath = useAtomValue(currentWorkspacePathAtom)
 
   const [contracts, setContracts] = useAtom(contractsAtom)
   const setSelectedContract = useSetAtom(selectedContractAtom)
 
-  const { status, isCompiling, hashDir } = useAtomValue(compilationAtom)
+  const { status, isCompiling } = useAtomValue(compilationAtom)
 
   const setStatus = useSetAtom(statusAtom)
   const setIsCompiling = useSetAtom(isCompilingAtom)
@@ -48,27 +49,46 @@ export const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     }
   ]
 
+  async function getAllContractFiles(path: string): Promise<ContractFile[]> {
+    const files = [] as ContractFile[]
+    const pathFiles = await remixClient.fileManager.readdir(`${path}/`)
+    for (const [name, entry] of Object.entries<any>(pathFiles)) {
+      if (entry.isDirectory) {
+        const deps = await getAllContractFiles(`${path}/${name}`)
+        for (const dep of deps) files.push(dep)
+      } else {
+        const content = await remixClient.fileManager.readFile(name)
+        files.push({
+          file_name: name,
+          file_content: content,
+          is_contract: name.endsWith('.sol')
+        })
+      }
+    }
+    return files
+  }
+
   async function compile(): Promise<void> {
     setIsCompiling(true)
     setStatus('Compiling...')
     // clear current file annotations: inline syntax error reporting
     await remixClient.editor.clearAnnotations()
     try {
-      setStatus('Getting solidity file path...')
-      const currentFilePath = await remixClient.call('fileManager', 'getCurrentFile')
+      const workspaceContents = {
+        config: {
+          version: solidityVersion,
+          user_libraries: []
+        },
+        contracts: [] as Array<{ file_name: string; file_content: string; is_contract: boolean }>
+      }
 
-      setStatus('Getting solidity file content...')
-      const currentFileContent = await remixClient.call('fileManager', 'readFile', currentFilePath)
-
-      setStatus('Parsing solidity code...')
-      await saveCode(solidityVersion, hashDir, currentFilePath, currentFileContent)
+      console.log(`currentWorkspacePath: ${currentWorkspacePath}`)
+      const workspaceFiles = await remixClient.fileManager.readdir(`${currentWorkspacePath}/`)
+      console.log(`workspaceFiles: ${JSON.stringify(workspaceFiles)}`)
 
       setStatus('Compiling...')
-
-      const response = await asyncGet(
-        `compile-async/${solidityVersion}/${hashDir}/${currentFilePath}`,
-        'compile-result'
-      )
+      workspaceContents.contracts = await getAllContractFiles(currentWorkspacePath)
+      const response = await asyncPost('compile-async', 'compile-result', workspaceContents)
 
       if (!response.ok) throw new Error('Solidity Compilation Request Failed')
       else {
@@ -140,6 +160,7 @@ export const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
       const contractsToAdd: Contract[] = []
       for (const file of compileResult.file_content) {
+        if (!file.is_contract) continue
         const contract = JSON.parse(file.file_content) as Contract
         contractsToAdd.push(contract)
       }
@@ -148,7 +169,7 @@ export const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       setSelectedContract(contractsToAdd[0])
 
       for (const file of compileResult.file_content) {
-        const artifactsPath = `${artifactFolder(currentFilePath)}/${file.file_name}`
+        const artifactsPath = `${artifactFolder(currentWorkspacePath)}/${file.file_name}`
         artifacts.push(artifactsPath)
 
         try {

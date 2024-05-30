@@ -1,8 +1,12 @@
+use crate::handlers::types::{CompilationConfig, CompilationRequest, CompiledFile};
 use crate::types::{ApiError, Result};
+use rocket::tokio;
 use rocket::tokio::fs;
 use solang_parser::diagnostics::{Diagnostic, ErrorType, Level};
 use solang_parser::pt::Loc;
 use std::path::{Path, PathBuf};
+use uuid::Uuid;
+use walkdir::WalkDir;
 
 pub const SOL_ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/", "hardhat_env/contracts/");
 pub const ZK_CACHE_ROOT: &str = concat!(
@@ -11,6 +15,10 @@ pub const ZK_CACHE_ROOT: &str = concat!(
     "hardhat_env/contracts/cache-zk/"
 );
 pub const HARDHAT_ENV_ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/", "hardhat_env/");
+
+pub const HARDHAT_CACHE_PATH: &str =
+    concat!(env!("CARGO_MANIFEST_DIR"), "/", "hardhat_env/hardhat-cache");
+
 pub const ARTIFACTS_ROOT: &str =
     concat!(env!("CARGO_MANIFEST_DIR"), "/", "hardhat_env/artifacts-zk");
 
@@ -18,7 +26,15 @@ pub const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
 
 pub const DURATION_TO_PURGE: u64 = 60 * 5; // 5 minutes
 
-pub const ALLOWED_VERSIONS: [&str; 1] = ["latest"];
+pub const ZKSOLC_VERSIONS: [&str; 2] = ["1.4.1", "1.4.0"];
+
+pub const HARDHAT_ENV_DOCKER_IMAGE: &str = env!("HARDHAT_ENV_DOCKER_IMAGE");
+
+pub const DEFAULT_SOLIDITY_VERSION: &str = "0.8.24";
+
+pub const DEFAULT_ZKSOLC_VERSION: &str = "1.4.1";
+
+pub const ALLOWED_NETWORKS: [&str; 2] = ["sepolia", "mainnet"];
 
 #[allow(dead_code)]
 pub const TEMP_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/", "temp/");
@@ -159,4 +175,78 @@ pub async fn clean_up(paths: Vec<String>) {
     }
 
     let _ = fs::remove_dir_all(ZK_CACHE_ROOT).await;
+}
+
+pub fn generate_folder_name() -> String {
+    let uuid = Uuid::new_v4();
+    uuid.to_string()
+}
+
+pub fn list_files_in_directory<P: AsRef<Path>>(path: P) -> Vec<String> {
+    let mut file_paths = Vec::new();
+
+    for entry in WalkDir::new(path) {
+        match entry {
+            Ok(entry) => {
+                if entry.file_type().is_file() {
+                    file_paths.push(entry.path().display().to_string());
+                }
+            }
+            Err(e) => println!("Error reading directory: {}", e),
+        }
+    }
+
+    file_paths
+}
+
+pub fn generate_mock_compile_request() -> CompilationRequest {
+    CompilationRequest {
+        config: CompilationConfig {
+            version: "1.4.1".to_string(),
+            user_libraries: vec![],
+        },
+        contracts: vec![CompiledFile {
+            file_name: "SimpleStorage.sol".to_string(),
+            file_content: generate_mock_solidity_file_content(),
+            is_contract: false,
+        }],
+    }
+}
+
+pub fn generate_mock_solidity_file_content() -> String {
+    r#"
+    pragma solidity ^0.8.0;
+
+    contract SimpleStorage {
+        uint256 storedData;
+
+        function set(uint256 x) public {
+            storedData = x;
+        }
+
+        function get() public view returns (uint256) {
+            return storedData;
+        }
+    }
+    "#
+    .to_string()
+}
+
+pub async fn initialize_files(files: Vec<CompiledFile>, file_path: &Path) -> Result<()> {
+    for file in files {
+        let file_path_str = format!("{}/{}", file_path.to_str().unwrap(), file.file_name);
+        let file_path = Path::new(&file_path_str);
+
+        // create parent directories
+        tokio::fs::create_dir_all(file_path.parent().unwrap())
+            .await
+            .map_err(ApiError::FailedToWriteFile)?;
+
+        // write file
+        tokio::fs::write(file_path, file.file_content.clone())
+            .await
+            .map_err(ApiError::FailedToWriteFile)?;
+    }
+
+    Ok(())
 }

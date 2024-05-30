@@ -18,14 +18,15 @@ async function handleAsyncApiResponse(response: Response, getterMethod: string):
   }
 }
 
-export async function asyncPost(method: string, getterMethod: string, data: string[]): Promise<Response> {
+export async function asyncPost(method: string, getterMethod: string, data: any): Promise<Response> {
   const response = await fetch(`${apiUrl}/${method}`, {
     method: 'POST',
     redirect: 'follow',
     headers: {
-      'Content-Type': 'application/octet-stream'
+      Accept: 'application/json',
+      'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ inputs: data })
+    body: JSON.stringify({ ...data })
   })
 
   return await handleAsyncApiResponse(response, getterMethod)
