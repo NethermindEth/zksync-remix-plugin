@@ -176,6 +176,7 @@ pub async fn do_verify(verification_request: VerificationRequest) -> Result<Json
     let status = output.status;
     let message = String::from_utf8_lossy(&output.stdout).to_string();
 
+    info!("Output: \n{:?}", String::from_utf8_lossy(&output.stdout));
     if !status.success() {
         return Ok(Json(VerifyResponse {
             status: "Error".to_string(),

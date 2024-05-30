@@ -180,7 +180,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         contractsToAdd.push(contract)
       }
 
-      setContracts([...contractsToAdd, ...contracts])
+      setContracts(contractsToAdd)
       setSelectedContract(contractsToAdd[0])
 
       for (const file of compileResult.file_content) {
