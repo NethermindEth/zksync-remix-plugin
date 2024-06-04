@@ -8,16 +8,13 @@ use std::path::{Path, PathBuf};
 use uuid::Uuid;
 use walkdir::WalkDir;
 
-pub const SOL_ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/", "hardhat_env/contracts/");
+pub const SOL_ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/", "hardhat_env/workspaces/");
 pub const ZK_CACHE_ROOT: &str = concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/",
-    "hardhat_env/contracts/cache-zk/"
+    "hardhat_env/workspaces/cache-zk/"
 );
 pub const HARDHAT_ENV_ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/", "hardhat_env/");
-
-pub const HARDHAT_CACHE_PATH: &str =
-    concat!(env!("CARGO_MANIFEST_DIR"), "/", "hardhat_env/hardhat-cache");
 
 pub const ARTIFACTS_ROOT: &str =
     concat!(env!("CARGO_MANIFEST_DIR"), "/", "hardhat_env/artifacts-zk");
@@ -27,8 +24,6 @@ pub const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
 pub const DURATION_TO_PURGE: u64 = 60 * 5; // 5 minutes
 
 pub const ZKSOLC_VERSIONS: [&str; 2] = ["1.4.1", "1.4.0"];
-
-pub const HARDHAT_ENV_DOCKER_IMAGE: &str = env!("HARDHAT_ENV_DOCKER_IMAGE");
 
 pub const DEFAULT_SOLIDITY_VERSION: &str = "0.8.24";
 
