@@ -5,8 +5,8 @@ use crate::types::{ApiError, Result};
 use crate::utils::cleaner::AutoCleanUp;
 use crate::utils::hardhat_config::HardhatConfigBuilder;
 use crate::utils::lib::{
-    generate_folder_name, initialize_files, ALLOWED_NETWORKS,
-    DEFAULT_SOLIDITY_VERSION, SOL_ROOT, ZKSOLC_VERSIONS
+    generate_folder_name, initialize_files, ALLOWED_NETWORKS, DEFAULT_SOLIDITY_VERSION, SOL_ROOT,
+    ZKSOLC_VERSIONS,
 };
 use crate::worker::WorkerEngine;
 use rocket::serde::{json, json::Json};
@@ -127,22 +127,22 @@ pub async fn do_verify(verification_request: VerificationRequest) -> Result<Json
     initialize_files(verification_request.contracts.clone(), workspace_path).await?;
 
     let command = Command::new("npx")
-    .arg("hardhat")
-    .arg("verify")
-    .current_dir(workspace_path)
-    .args([
-        "--network",
-        if network == "sepolia" {
-            "zkSyncTestnet"
-        } else {
-            "zkSyncMainnet"
-        },
-    ])
-    .arg(verification_request.config.contract_address)
-    .args(verification_request.config.inputs)
-    .stdout(Stdio::piped())
-    .stderr(Stdio::piped())
-    .spawn();
+        .arg("hardhat")
+        .arg("verify")
+        .current_dir(workspace_path)
+        .args([
+            "--network",
+            if network == "sepolia" {
+                "zkSyncTestnet"
+            } else {
+                "zkSyncMainnet"
+            },
+        ])
+        .arg(verification_request.config.contract_address)
+        .args(verification_request.config.inputs)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn();
 
     let process = command.map_err(ApiError::FailedToExecuteCommand)?;
     let output = process
