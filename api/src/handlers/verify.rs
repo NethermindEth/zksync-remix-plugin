@@ -5,9 +5,8 @@ use crate::types::{ApiError, Result};
 use crate::utils::cleaner::AutoCleanUp;
 use crate::utils::hardhat_config::HardhatConfigBuilder;
 use crate::utils::lib::{
-    generate_folder_name, initialize_files, ALLOWED_NETWORKS, ARTIFACTS_ROOT,
-    DEFAULT_SOLIDITY_VERSION, HARDHAT_CACHE_PATH, HARDHAT_ENV_DOCKER_IMAGE, HARDHAT_ENV_ROOT,
-    SOL_ROOT, ZKSOLC_VERSIONS,
+    generate_folder_name, initialize_files, ALLOWED_NETWORKS, DEFAULT_SOLIDITY_VERSION, SOL_ROOT,
+    ZKSOLC_VERSIONS,
 };
 use crate::worker::WorkerEngine;
 use rocket::serde::{json, json::Json};
@@ -83,19 +82,19 @@ pub async fn do_verify(verification_request: VerificationRequest) -> Result<Json
     let namespace = generate_folder_name();
 
     // root directory for the contracts
-    let contracts_path_str = format!("{}/{}", SOL_ROOT, namespace);
-    let contracts_path = Path::new(&contracts_path_str);
+    let workspace_path_str = format!("{}/{}", SOL_ROOT, namespace);
+    let workspace_path = Path::new(&workspace_path_str);
 
     // root directory for the artifacts
-    let artifacts_path_str = format!("{}/{}", ARTIFACTS_ROOT, namespace);
+    let artifacts_path_str = format!("{}/{}", workspace_path_str, "artifacts-zk");
     let artifacts_path = Path::new(&artifacts_path_str);
 
     // root directory for user files (hardhat config, etc)
-    let user_files_path_str = format!("{}/user-{}", HARDHAT_ENV_ROOT, namespace);
+    let user_files_path_str = workspace_path_str.clone();
     let hardhat_config_path = Path::new(&user_files_path_str).join("hardhat.config.ts");
 
     // instantly create the directories
-    tokio::fs::create_dir_all(contracts_path)
+    tokio::fs::create_dir_all(workspace_path)
         .await
         .map_err(ApiError::FailedToWriteFile)?;
     tokio::fs::create_dir_all(artifacts_path)
@@ -105,11 +104,7 @@ pub async fn do_verify(verification_request: VerificationRequest) -> Result<Json
     // when the compilation is done, clean up the directories
     // it will be called when the AutoCleanUp struct is dropped
     let auto_clean_up = AutoCleanUp {
-        dirs: vec![
-            contracts_path.to_str().unwrap(),
-            artifacts_path.to_str().unwrap(),
-            &user_files_path_str,
-        ],
+        dirs: vec![workspace_path.to_str().unwrap()],
     };
 
     // write the hardhat config file
@@ -129,32 +124,12 @@ pub async fn do_verify(verification_request: VerificationRequest) -> Result<Json
         .map_err(ApiError::FailedToWriteFile)?;
 
     // initialize the files
-    initialize_files(verification_request.contracts.clone(), contracts_path).await?;
+    initialize_files(verification_request.contracts.clone(), workspace_path).await?;
 
-    let command = Command::new("docker")
-        .arg("run")
-        .arg("--rm")
-        .args([
-            "-v",
-            &format!("{}:/app/contracts", contracts_path.to_str().unwrap()),
-        ])
-        .args([
-            "-v",
-            &format!("{}:/app/artifacts-zk", artifacts_path.to_str().unwrap()),
-        ])
-        .args([
-            "-v",
-            &format!("{}:/root/.cache/hardhat-nodejs/", HARDHAT_CACHE_PATH),
-        ])
-        .args([
-            "-v",
-            &format!(
-                "{}/hardhat.config.ts:/app/hardhat.config.ts",
-                user_files_path_str
-            ),
-        ])
-        .arg(HARDHAT_ENV_DOCKER_IMAGE)
-        .args(["npx", "hardhat", "verify"])
+    let command = Command::new("npx")
+        .arg("hardhat")
+        .arg("verify")
+        .current_dir(workspace_path)
         .args([
             "--network",
             if network == "sepolia" {
