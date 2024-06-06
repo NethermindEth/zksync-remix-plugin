@@ -15,7 +15,7 @@ const isLoadedAtom = atom(false)
 const remixClientStore = createStore()
 
 const remixClient = createClient(new PluginClient())
-type RemixClient = typeof remixClient
+export type RemixClient = typeof remixClient
 
 async function getTomlPaths(workspacePath: string, currPath: string): Promise<string[]> {
   const resTomlPaths: string[] = []

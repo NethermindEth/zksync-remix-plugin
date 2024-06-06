@@ -22,6 +22,7 @@ import {
   tomlPathsAtom
 } from '@/stores/remixClient'
 import './styles.css'
+import { getAllContractFiles } from '@/utils/remix_storage'
 
 interface CompilationProps {
   setAccordian: React.Dispatch<React.SetStateAction<AccordianTabs>>
@@ -54,25 +55,6 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
     }
   ]
 
-  async function getAllContractFiles(path: string): Promise<ContractFile[]> {
-    const files = [] as ContractFile[]
-    const pathFiles = await remixClient.fileManager.readdir(`${path}/`)
-    for (const [name, entry] of Object.entries<any>(pathFiles)) {
-      if (entry.isDirectory) {
-        const deps = await getAllContractFiles(`${path}/${name}`)
-        for (const dep of deps) files.push(dep)
-      } else {
-        const content = await remixClient.fileManager.readFile(name)
-        files.push({
-          file_name: name,
-          file_content: content,
-          is_contract: name.endsWith('.sol')
-        })
-      }
-    }
-    return files
-  }
-
   async function compile(): Promise<void> {
     setIsCompiling(true)
     setCompileStatus('Compiling...')
@@ -92,7 +74,7 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
       console.log(`workspaceFiles: ${JSON.stringify(workspaceFiles)}`)
 
       setCompileStatus('Compiling...')
-      workspaceContents.contracts = await getAllContractFiles(currentWorkspacePath)
+      workspaceContents.contracts = await getAllContractFiles(remixClient, currentWorkspacePath)
       const response = await asyncPost('compile-async', 'compile-result', workspaceContents)
 
       if (!response.ok) throw new Error('Solidity Compilation Request Failed')
@@ -100,7 +82,6 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
         await remixClient.call('notification' as any, 'toast', 'Solidity compilation request successful')
       }
 
-      // get Json body from response
       const compileResult = JSON.parse(await response.text()) as CompilationResult
 
       if (compileResult.status !== 'Success') {
