@@ -5,9 +5,14 @@ import Container from '@/ui_components/Container'
 import { type AccordianTabs } from '@/types/common'
 import { type ContractFile, type CompilationResult, type Contract } from '@/types/contracts'
 import { asyncPost } from '@/api/asyncRequests'
-import { compilationAtom, isCompilingAtom, compileStatusAtom } from '@/atoms/compilation'
-import { solidityVersionAtom } from '@/atoms/version'
-import { contractsAtom, selectedContractAtom } from '@/atoms/compiledContracts'
+import {
+  compilationAtom,
+  isCompilingAtom,
+  compileStatusAtom,
+  solidityVersionAtom,
+  contractsAtom,
+  selectedContractAtom
+} from '@/atoms'
 import {
   activeTomlPathAtom,
   currentFilenameAtom,
@@ -195,7 +200,7 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
           })
         }
       }
-
+      setCompileStatus('done')
       setAccordian('deploy')
     } catch (e) {
       setCompileStatus('failed')
