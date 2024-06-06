@@ -68,7 +68,7 @@ export const Plugin = () => {
   }
 
   return (
-    // add a button for selecting the solidity version
+    //TODO: add a button for selecting the solidity version
     isLoaded ? (
       <>
         <div className="plugin-wrapper">
@@ -84,15 +84,7 @@ export const Plugin = () => {
                   <span className="d-flex align-items-center" style={{ gap: '0.5rem' }}>
                     <p style={{ all: 'unset' }}>Compile</p>
                     <StateAction
-                      value={
-                        isCompiling
-                          ? 'loading'
-                          : compilationStatus === 'done'
-                            ? 'success'
-                            : compilationStatus === 'failed'
-                              ? 'error'
-                              : ''
-                      }
+                      value={compilationStatus === 'done' ? 'success' : compilationStatus === 'failed' ? 'error' : ''}
                     />
                   </span>
                 </AccordionTrigger>
