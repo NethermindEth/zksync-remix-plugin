@@ -12,23 +12,20 @@ import {
 import Accordian, { AccordianItem, AccordionContent, AccordionTrigger } from '@/ui_components/Accordian'
 import StateAction from '@/components/StateAction'
 import BackgroundNotices from '@/components/BackgroundNotices'
-
-import { isCompilingAtom, statusAtom as compilationStatusAtom, hashDirAtom } from '@/atoms/compilation'
+import { isCompilingAtom, compileStatusAtom, hashDirAtom } from '@/atoms/compilation'
 import { deploymentAtom } from '@/atoms/deployment'
 import { initializeRemixClient, isLoadedAtom, remixClientAtom } from '@/stores/remixClient'
 import storage from '@/utils/storage'
 import './styles.css'
 import useAsync from '@/hooks/useAsync'
-
-export type AccordianTabs = 'compile' | 'deploy' | 'interaction' | 'transactions' | ''
+import { type AccordianTabs } from '@/types/common'
 
 export const Plugin = () => {
-  const compilationStatus = useAtomValue(compilationStatusAtom)
+  const compileStatus = useAtomValue(compileStatusAtom)
   const isCompiling = useAtomValue(isCompilingAtom)
 
   const [isLoaded, setIsLoaded] = useAtom(isLoadedAtom)
   const setRemixClient = useSetAtom(remixClientAtom)
-
   const setHashDir = useSetAtom(hashDirAtom)
 
   useAsync(async () => {
@@ -66,7 +63,7 @@ export const Plugin = () => {
       setCurrentAccordian(clicked)
     }
   }
-
+  console.log('compilation status', compileStatus)
   return (
     //TODO: add a button for selecting the solidity version
     isLoaded ? (
@@ -84,7 +81,7 @@ export const Plugin = () => {
                   <span className="d-flex align-items-center" style={{ gap: '0.5rem' }}>
                     <p style={{ all: 'unset' }}>Compile</p>
                     <StateAction
-                      value={compilationStatus === 'done' ? 'success' : compilationStatus === 'failed' ? 'error' : ''}
+                      value={compileStatus === 'done' ? 'success' : compileStatus === 'failed' ? 'error' : ''}
                     />
                   </span>
                 </AccordionTrigger>

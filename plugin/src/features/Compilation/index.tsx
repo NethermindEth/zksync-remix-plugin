@@ -1,13 +1,13 @@
 import React from 'react'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import { artifactFolder } from '@/utils/utils'
-import Container from '../../ui_components/Container'
-import { type AccordianTabs } from '../Plugin'
-import { type ContractFile, type CompilationResult, type Contract } from '../../types/contracts'
-import { asyncPost } from '../../api/asyncRequests'
-import { compilationAtom, isCompilingAtom, statusAtom } from '../../atoms/compilation'
-import { solidityVersionAtom } from '../../atoms/version'
-import { contractsAtom, selectedContractAtom } from '../../atoms/compiledContracts'
+import Container from '@/ui_components/Container'
+import { type AccordianTabs } from '@/types/common'
+import { type ContractFile, type CompilationResult, type Contract } from '@/types/contracts'
+import { asyncPost } from '@/api/asyncRequests'
+import { compilationAtom, isCompilingAtom, compileStatusAtom } from '@/atoms/compilation'
+import { solidityVersionAtom } from '@/atoms/version'
+import { contractsAtom, selectedContractAtom } from '@/atoms/compiledContracts'
 import {
   activeTomlPathAtom,
   currentFilenameAtom,
@@ -15,14 +15,14 @@ import {
   isValidSolidityAtom,
   remixClientAtom,
   tomlPathsAtom
-} from '../../stores/remixClient'
+} from '@/stores/remixClient'
 import './styles.css'
 
 interface CompilationProps {
   setAccordian: React.Dispatch<React.SetStateAction<AccordianTabs>>
 }
 
-export const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
+export const Compilation = ({ setAccordian }: CompilationProps) => {
   const remixClient = useAtomValue(remixClientAtom)
   const isValidSolidity = useAtomValue(isValidSolidityAtom)
   const currentFilename = useAtomValue(currentFilenameAtom)
@@ -35,7 +35,7 @@ export const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
   const { status, isCompiling } = useAtomValue(compilationAtom)
 
-  const setStatus = useSetAtom(statusAtom)
+  const setCompileStatus = useSetAtom(compileStatusAtom)
   const setIsCompiling = useSetAtom(isCompilingAtom)
 
   const solidityVersion = useAtomValue(solidityVersionAtom)
@@ -70,7 +70,7 @@ export const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
   async function compile(): Promise<void> {
     setIsCompiling(true)
-    setStatus('Compiling...')
+    setCompileStatus('Compiling...')
     // clear current file annotations: inline syntax error reporting
     await remixClient.editor.clearAnnotations()
     try {
@@ -86,7 +86,7 @@ export const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       const workspaceFiles = await remixClient.fileManager.readdir(`${currentWorkspacePath}/`)
       console.log(`workspaceFiles: ${JSON.stringify(workspaceFiles)}`)
 
-      setStatus('Compiling...')
+      setCompileStatus('Compiling...')
       workspaceContents.contracts = await getAllContractFiles(currentWorkspacePath)
       const response = await asyncPost('compile-async', 'compile-result', workspaceContents)
 
@@ -99,7 +99,7 @@ export const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       const compileResult = JSON.parse(await response.text()) as CompilationResult
 
       if (compileResult.status !== 'Success') {
-        setStatus('Reporting Errors...')
+        setCompileStatus('Reporting Errors...')
         await remixClient.terminal.log({
           value: compileResult.message,
           type: 'error'
@@ -198,7 +198,7 @@ export const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
       setAccordian('deploy')
     } catch (e) {
-      setStatus('failed')
+      setCompileStatus('failed')
       if (e instanceof Error) {
         await remixClient.call('notification' as any, 'alert', {
           id: 'zksyncRemixPluginAlert',

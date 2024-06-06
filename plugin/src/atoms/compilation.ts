@@ -1,11 +1,8 @@
 import { atom } from 'jotai'
 
-const statusAtom = atom<string>('Compiling....')
-
+const compileStatusAtom = atom<string>('Compiling....')
 const hashDirAtom = atom<string>('')
-
 const isCompilingAtom = atom<boolean>(false)
-
 type CompilationKeys = 'status' | 'isCompiling' | 'hashDir'
 
 interface SetCompilationValue {
@@ -16,7 +13,7 @@ interface SetCompilationValue {
 const compilationAtom = atom(
   (get) => {
     return {
-      status: get(statusAtom),
+      status: get(compileStatusAtom),
       isCompiling: get(isCompilingAtom),
       hashDir: get(hashDirAtom)
     }
@@ -24,7 +21,7 @@ const compilationAtom = atom(
   (_get, set, newValue: SetCompilationValue) => {
     switch (newValue?.key) {
       case 'status':
-        typeof newValue?.value === 'string' && set(statusAtom, newValue?.value)
+        typeof newValue?.value === 'string' && set(compileStatusAtom, newValue?.value)
         break
       case 'isCompiling':
         typeof newValue?.value === 'boolean' && set(isCompilingAtom, newValue?.value)
@@ -36,4 +33,11 @@ const compilationAtom = atom(
   }
 )
 
-export { statusAtom, isCompilingAtom, hashDirAtom, compilationAtom, type SetCompilationValue, type CompilationKeys }
+export {
+  compileStatusAtom,
+  isCompilingAtom,
+  hashDirAtom,
+  compilationAtom,
+  type SetCompilationValue,
+  type CompilationKeys
+}
