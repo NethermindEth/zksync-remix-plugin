@@ -1,3 +1,4 @@
+
 .plugin-wrapper {
     height: 100%;
     display: grid;
@@ -10,4 +11,8 @@
 .plugin-main-wrapper {
     overflow-y: scroll;
     height: 100%;
+}
+
+.max-w-300 {
+    max-width: 300px;
 }

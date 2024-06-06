@@ -3,7 +3,7 @@ import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import { artifactFolder } from '@/utils/utils'
 import Container from '@/ui_components/Container'
 import { type AccordianTabs } from '@/types/common'
-import { type ContractFile, type CompilationResult, type Contract } from '@/types/contracts'
+import { type CompilationResult, type Contract } from '@/types/contracts'
 import { asyncPost } from '@/api/asyncRequests'
 import {
   compilationAtom,
@@ -11,7 +11,8 @@ import {
   compileStatusAtom,
   solidityVersionAtom,
   contractsAtom,
-  selectedContractAtom
+  selectedContractAtom,
+  compileErrorMessagesAtom
 } from '@/atoms'
 import {
   activeTomlPathAtom,
@@ -43,6 +44,7 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
 
   const setCompileStatus = useSetAtom(compileStatusAtom)
   const setIsCompiling = useSetAtom(isCompilingAtom)
+  const setCompileErrorMessages = useSetAtom(compileErrorMessagesAtom)
 
   const solidityVersion = useAtomValue(solidityVersionAtom)
 
@@ -58,6 +60,7 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
   async function compile(): Promise<void> {
     setIsCompiling(true)
     setCompileStatus('Compiling...')
+    setCompileErrorMessages([])
     // clear current file annotations: inline syntax error reporting
     await remixClient.editor.clearAnnotations()
     try {
@@ -92,7 +95,7 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
         })
 
         const errorLets = compileResult.message.trim().split('\n')
-
+        console.log('error Lets', errorLets)
         // remove last element if it's starts with `Error:`
         if (errorLets[errorLets.length - 1].startsWith('Error:')) {
           errorLets.pop()
@@ -110,7 +113,7 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
           },
           [['errors diagnostic:']]
         )
-
+        console.log('error lets array', errorLetsArray)
         // remove the first array
         errorLetsArray.shift()
 
@@ -139,6 +142,7 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
           type: 'error',
           title: (lastLine ?? '').startsWith('Error') ? lastLine : 'Compilation Failed'
         })
+        setCompileErrorMessages(errorLets)
         throw new Error('Solidity Compilation Failed, logs can be read in the terminal log')
       }
 

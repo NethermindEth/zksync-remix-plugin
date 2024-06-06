@@ -3,6 +3,7 @@ export {
   compileStatusAtom,
   hashDirAtom,
   isCompilingAtom,
+  compileErrorMessagesAtom,
   type CompilationKeys,
   type SetCompilationValue
 } from './compilation'

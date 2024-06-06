@@ -12,7 +12,7 @@ import {
 import Accordian, { AccordianItem, AccordionContent, AccordionTrigger } from '@/ui_components/Accordian'
 import StateAction from '@/components/StateAction'
 import BackgroundNotices from '@/components/BackgroundNotices'
-import { isCompilingAtom, compileStatusAtom, hashDirAtom } from '@/atoms/compilation'
+import { hashDirAtom, compilationAtom } from '@/atoms'
 import { deploymentAtom } from '@/atoms/deployment'
 import { initializeRemixClient, isLoadedAtom, remixClientAtom } from '@/stores/remixClient'
 import storage from '@/utils/storage'
@@ -21,9 +21,7 @@ import useAsync from '@/hooks/useAsync'
 import { type AccordianTabs } from '@/types/common'
 
 export const Plugin = () => {
-  const compileStatus = useAtomValue(compileStatusAtom)
-  const isCompiling = useAtomValue(isCompilingAtom)
-
+  const { status: compileStatus, errorMessages: compileErrorMessages } = useAtomValue(compilationAtom)
   const [isLoaded, setIsLoaded] = useAtom(isLoadedAtom)
   const setRemixClient = useSetAtom(remixClientAtom)
   const setHashDir = useSetAtom(hashDirAtom)
@@ -82,6 +80,11 @@ export const Plugin = () => {
                     <p style={{ all: 'unset' }}>Compile</p>
                     <StateAction
                       value={compileStatus === 'done' ? 'success' : compileStatus === 'failed' ? 'error' : ''}
+                      errorTooltipText={
+                        compileErrorMessages.length > 0
+                          ? `${compileErrorMessages[0]} ${compileErrorMessages[1] ?? ''}. check terminal logs for more info.`
+                          : ''
+                      }
                     />
                   </span>
                 </AccordionTrigger>
