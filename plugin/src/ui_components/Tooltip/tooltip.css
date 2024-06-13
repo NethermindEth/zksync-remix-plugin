@@ -4,6 +4,8 @@ button {
 }
 
 .TooltipContent {
+    z-index: 1060;
+    width: 800px;
     border-radius: 4px;
     padding: 4px 8px;
     font-size: var(--font-sm);

@@ -24,6 +24,7 @@ import {
 } from '@/stores/remixClient'
 import './styles.css'
 import { getAllContractFiles } from '@/utils/remix_storage'
+import { Tooltip } from '@/ui_components'
 
 interface CompilationProps {
   setAccordian: React.Dispatch<React.SetStateAction<AccordianTabs>>
@@ -216,7 +217,7 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
           </div>
         )}
         <button
-          className="btn btn-primary w-100 text-break remixui_disabled mb-1 mt-1 px-0"
+          className="btn btn-primary w-100 text-break remixui_disabled mb-1 mt-1 px-2"
           style={{
             cursor: `${!validation || !currentFilename ? 'not-allowed' : 'pointer'}`
           }}
@@ -224,30 +225,33 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
           aria-disabled={!validation || !currentFilename || isCompiling}
           onClick={onClick}
         >
-          <div className="d-flex align-items-center justify-content-center">
-            <div className="text-truncate overflow-hidden text-nowrap">
-              {!validation ? (
-                <span>Select a valid solidity file</span>
-              ) : (
-                <>
-                  <div className="d-flex align-items-center justify-content-center">
-                    {isLoading ? (
-                      <>
-                        <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true">
-                          {' '}
-                        </span>
-                        <span style={{ paddingLeft: '0.5rem' }}>{status}</span>
-                      </>
-                    ) : (
+          <div className="d-flex align-items-center justify-content-center w-100">
+            {!validation ? (
+              <div>Select a valid solidity file</div>
+            ) : (
+              <div className="d-flex align-items-center justify-content-center w-100">
+                {isLoading ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true">
+                      {' '}
+                    </span>
+                    <span style={{ paddingLeft: '0.5rem' }}>{status}</span>
+                  </>
+                ) : (
+                  <Tooltip
+                    icon={
                       <div className="text-truncate overflow-hidden text-nowrap">
                         <span>Compile</span>
                         <span className="ml-1 text-nowrap">{currentFilename}</span>
                       </div>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
+                    }
+                    content={<div className="p-2 overflow-visible text-center">{currentFilename}</div>}
+                    side="bottom"
+                    avoidCollisions={false}
+                  />
+                )}
+              </div>
+            )}
           </div>
         </button>
       </Container>

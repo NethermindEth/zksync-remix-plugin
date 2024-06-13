@@ -16,3 +16,18 @@
 .max-w-300 {
     max-width: 300px;
 }
+
+.width-full {
+    width: 100%;
+}
+
+.text-truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.overflow-hidden {
+    overflow: hidden;
+}
