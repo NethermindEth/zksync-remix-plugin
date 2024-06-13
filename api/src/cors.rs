@@ -33,7 +33,7 @@ impl Fairing for CORS {
             Err(_) => {
                 response.set_header(Header::new(
                     "Access-Control-Allow-Origin",
-                    "https://zksync-plugin.nethermind.dev/",
+                    "https://zksync-plugin.nethermind.io/",
                 ));
             }
         }
