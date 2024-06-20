@@ -46,6 +46,7 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const { isVerifying } = useAtomValue(verificationAtom)
   const isValidSolidity = useAtomValue(isValidSolidityAtom)
   const currentFilename = useAtomValue(currentFilenameAtom)
+  // TODO(edwin):
   const currentWorkspacePath = useAtomValue(currentWorkspacePathAtom)
 
   const setStatus = useSetAtom(deployStatusAtom)
