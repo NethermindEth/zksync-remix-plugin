@@ -1,5 +1,5 @@
 import React from 'react'
-import { useAtom, useAtomValue, useSetAtom } from 'jotai'
+import { useAtomValue, useSetAtom } from 'jotai'
 import { artifactFolder } from '@/utils/utils'
 import Container from '@/ui_components/Container'
 import { type AccordianTabs } from '@/types/common'
@@ -38,7 +38,7 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
   const activeTomlPath = useAtomValue(activeTomlPathAtom)
   const currentWorkspacePath = useAtomValue(currentWorkspacePathAtom)
 
-  const [contracts, setContracts] = useAtom(contractsAtom)
+  const setContracts = useSetAtom(contractsAtom)
   const setSelectedContract = useSetAtom(selectedContractAtom)
 
   const { status, isCompiling } = useAtomValue(compilationAtom)
@@ -156,7 +156,7 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
         contractsToAdd.push(contract)
       }
 
-      setContracts([...contractsToAdd, ...contracts])
+      setContracts(contractsToAdd)
       setSelectedContract(contractsToAdd[0])
 
       for (const file of compileResult.file_content) {
