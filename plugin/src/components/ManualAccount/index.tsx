@@ -65,7 +65,6 @@ const ManualAccountComp: React.FC<{
         if (selectedAccount) {
           const provider = new Provider('https://testnet.era.zksync.dev')
           const balance = await provider.getBalance(selectedAccount.address)
-          console.log('selected account balance', balance)
           setSelectedAccount((prevAccount) => {
             if (prevAccount != null && balance.toString() !== prevAccount.balance) {
               return { ...prevAccount, balance: balance.toString() }

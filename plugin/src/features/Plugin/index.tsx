@@ -61,7 +61,6 @@ export const Plugin = () => {
       setCurrentAccordian(clicked)
     }
   }
-  console.log('compilation status', compileStatus)
   return (
     //TODO: add a button for selecting the solidity version
     isLoaded ? (
