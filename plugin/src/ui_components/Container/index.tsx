@@ -1,12 +1,11 @@
 import React from 'react'
-
 import './container.css'
 
 interface IContainer {
   children?: React.ReactNode
 }
 
-const Container: React.FC<IContainer> = ({ children }) => {
+export const Container = ({ children }: IContainer) => {
   return <div className="p-2">{children}</div>
 }
 

@@ -1,6 +1,6 @@
 import { atom } from 'jotai'
 
-const statusAtom = atom<string>('Verifying...')
+const verificatationStatusAtom = atom<string>('Verifying...')
 
 const isVerifyingAtom = atom<boolean>(false)
 
@@ -14,14 +14,14 @@ interface SetVerificationValue {
 const verificationAtom = atom(
   (get) => {
     return {
-      status: get(statusAtom),
+      status: get(verificatationStatusAtom),
       isVerifying: get(isVerifyingAtom)
     }
   },
   (_get, set, newValue: SetVerificationValue) => {
     switch (newValue?.key) {
       case 'status':
-        typeof newValue?.value === 'string' && set(statusAtom, newValue?.value)
+        typeof newValue?.value === 'string' && set(verificatationStatusAtom, newValue?.value)
         break
       case 'isVerifying':
         typeof newValue?.value === 'boolean' && set(isVerifyingAtom, newValue?.value)
@@ -30,4 +30,4 @@ const verificationAtom = atom(
   }
 )
 
-export { statusAtom, isVerifyingAtom, verificationAtom, type SetVerificationValue, type VerificationKeys }
+export { verificatationStatusAtom, isVerifyingAtom, verificationAtom, type SetVerificationValue, type VerificationKeys }

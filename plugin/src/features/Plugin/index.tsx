@@ -12,23 +12,18 @@ import {
 import Accordian, { AccordianItem, AccordionContent, AccordionTrigger } from '@/ui_components/Accordian'
 import StateAction from '@/components/StateAction'
 import BackgroundNotices from '@/components/BackgroundNotices'
-
-import { isCompilingAtom, statusAtom as compilationStatusAtom, hashDirAtom } from '@/atoms/compilation'
+import { hashDirAtom, compilationAtom } from '@/atoms'
 import { deploymentAtom } from '@/atoms/deployment'
 import { initializeRemixClient, isLoadedAtom, remixClientAtom } from '@/stores/remixClient'
 import storage from '@/utils/storage'
 import './styles.css'
 import useAsync from '@/hooks/useAsync'
-
-export type AccordianTabs = 'compile' | 'deploy' | 'interaction' | 'transactions' | ''
+import { type AccordianTabs } from '@/types/common'
 
 export const Plugin = () => {
-  const compilationStatus = useAtomValue(compilationStatusAtom)
-  const isCompiling = useAtomValue(isCompilingAtom)
-
+  const { status: compileStatus, errorMessages: compileErrorMessages } = useAtomValue(compilationAtom)
   const [isLoaded, setIsLoaded] = useAtom(isLoadedAtom)
   const setRemixClient = useSetAtom(remixClientAtom)
-
   const setHashDir = useSetAtom(hashDirAtom)
 
   useAsync(async () => {
@@ -66,9 +61,8 @@ export const Plugin = () => {
       setCurrentAccordian(clicked)
     }
   }
-
   return (
-    // add a button for selecting the solidity version
+    //TODO: add a button for selecting the solidity version
     isLoaded ? (
       <>
         <div className="plugin-wrapper">
@@ -84,14 +78,11 @@ export const Plugin = () => {
                   <span className="d-flex align-items-center" style={{ gap: '0.5rem' }}>
                     <p style={{ all: 'unset' }}>Compile</p>
                     <StateAction
-                      value={
-                        isCompiling
-                          ? 'loading'
-                          : compilationStatus === 'done'
-                            ? 'success'
-                            : compilationStatus === 'failed'
-                              ? 'error'
-                              : ''
+                      value={compileStatus === 'done' ? 'success' : compileStatus === 'failed' ? 'error' : ''}
+                      errorTooltipText={
+                        compileErrorMessages.length > 0
+                          ? `${compileErrorMessages[0]} ${compileErrorMessages[1] ?? ''}. check terminal logs for more info.`
+                          : ''
                       }
                     />
                   </span>
