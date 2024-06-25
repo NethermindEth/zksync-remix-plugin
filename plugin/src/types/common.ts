@@ -1,1 +1,1 @@
-export type AccordianTabs = 'compile' | 'deploy' | 'interaction' | 'transactions' | ''
+export type AccordianTabs = 'compile' | 'deploy' | 'interaction' | 'transactions' | 'notices' | ''
