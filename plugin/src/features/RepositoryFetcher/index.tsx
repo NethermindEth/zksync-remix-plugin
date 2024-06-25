@@ -2,13 +2,14 @@ import React, { useState } from 'react'
 import Container from '@/ui_components/Container'
 import InputField from '@/components/InputField'
 import axios from 'axios'
-import { RemixClient, remixClientAtom } from '@/stores/remixClient'
+import { remixClientAtom } from '@/stores/remixClient'
 import { useAtomValue } from 'jotai'
+import { RemixClient } from '@/PluginClient'
 
 interface GithubRepoQuery {
   owner: string
   repo: string
-  path: string[]
+  path: string
 }
 
 interface Workspace {
@@ -49,22 +50,15 @@ function extractEntriesFromData(rawData: any): GithubEntry[] {
 }
 
 async function fetchRepo(client: RemixClient, query: GithubRepoQuery): Promise<void> {
-  // TODO(edwin): verify path empty?
   const { owner, repo, path } = query
 
   // Create new workspace for repo
   await client.filePanel.createWorkspace(query.repo, true)
 
-  // sets to just created one
-  // console.log(await client.filePanel.getCurrentWorkspace())
-
   try {
     const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`
     const content = await axios.get(apiUrl)
-    console.log(content.data)
-    // Exception
     const entries = extractEntriesFromData(content.data)
-    // Exception
     await addRepoData(client, entries)
   } catch (err) {
     console.log('Some error', err)
@@ -85,8 +79,6 @@ async function addRepoData(client: RemixClient, entries: GithubEntry[]) {
 
       case EntryType.File: {
         const content = await client.contentImport.resolve(entry.htmlUrl)
-        console.log('EntryType.File', content.content)
-
         await client.fileManager.writeFile(entry.path, content.content)
       }
     }
@@ -95,11 +87,12 @@ async function addRepoData(client: RemixClient, entries: GithubEntry[]) {
 
 function parseGithubUrl(candidateUrl: string): GithubRepoQuery {
   const url = new URL(candidateUrl)
-  const [owner, repo, ...path] = url.pathname.split('/').filter(Boolean)
+  const [owner, repo, ...pathArray] = url.pathname.split('/').filter(Boolean)
   if (!owner || !repo) {
     throw Error('Invalid github url')
   }
 
+  const path = pathArray.join('/')
   return { owner, repo, path }
 }
 

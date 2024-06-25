@@ -71,20 +71,20 @@ export const Plugin = () => {
             <Accordian type="single" value={currentAccordian} defaultValue={'addRepository'}>
               <AccordianItem value="addRepository">
                 <AccordionTrigger
-                    onClick={() => {
-                      handleTabView('addRepository')
-                    }}
+                  onClick={() => {
+                    handleTabView('addRepository')
+                  }}
                 >
                   <span className="d-flex align-items-center" style={{ gap: '0.5rem' }}>
                     <p style={{ all: 'unset' }}>Add Repository</p>
                     <StateAction
-                        // TODO(edwin): add
-                        value={''}
+                      // TODO(edwin): add
+                      value={''}
                     />
                   </span>
                 </AccordionTrigger>
                 <AccordionContent>
-                  <RepositoryFetcher/>
+                  <RepositoryFetcher />
                 </AccordionContent>
               </AccordianItem>
               <AccordianItem value="compile">
