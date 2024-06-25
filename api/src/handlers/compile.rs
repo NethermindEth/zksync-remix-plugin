@@ -1,64 +1,58 @@
 use crate::handlers::process::{do_process_command, fetch_process_result};
-use crate::handlers::types::{ApiCommand, ApiCommandResult, CompileResponse, SolFile};
+use crate::handlers::types::{
+    ApiCommand, ApiCommandResult, CompilationRequest, CompileResponse, CompiledFile,
+};
 use crate::rate_limiter::RateLimited;
 use crate::types::{ApiError, Result};
+use crate::utils::cleaner::AutoCleanUp;
 use crate::utils::hardhat_config::HardhatConfigBuilder;
 use crate::utils::lib::{
-    check_file_ext, clean_up, get_file_path, path_buf_to_string, status_code_to_message,
-    to_human_error_batch, ALLOWED_VERSIONS, ARTIFACTS_ROOT, CARGO_MANIFEST_DIR, SOL_ROOT,
+    generate_folder_name, initialize_files, list_files_in_directory, status_code_to_message,
+    DEFAULT_SOLIDITY_VERSION, SOL_ROOT, ZKSOLC_VERSIONS,
 };
 use crate::worker::WorkerEngine;
 use rocket::serde::json;
 use rocket::serde::json::Json;
-use rocket::tokio::fs;
-use rocket::State;
-use solang_parser::pt::SourceUnitPart;
-use std::path::{Path, PathBuf};
+use rocket::{tokio, State};
+use std::path::Path;
 use std::process::{Command, Stdio};
 use tracing::info;
 use tracing::instrument;
 
 #[instrument]
-#[get("/compile/<version>/<remix_file_path..>")]
+#[post("/compile", format = "json", data = "<request_json>")]
 pub async fn compile(
-    version: String,
-    remix_file_path: PathBuf,
+    request_json: Json<CompilationRequest>,
     _rate_limited: RateLimited,
 ) -> Json<CompileResponse> {
-    info!("/compile/{:?}/{:?}", version, remix_file_path);
-    do_compile(version, remix_file_path)
-        .await
-        .unwrap_or_else(|e| {
-            Json(CompileResponse {
-                file_content: vec![],
-                message: e.to_string(),
-                status: "Error".to_string(),
-            })
+    info!("/compile/{:?}", request_json.config);
+
+    do_compile(request_json.0).await.unwrap_or_else(|e| {
+        Json(CompileResponse {
+            file_content: vec![],
+            message: e.to_string(),
+            status: "Error".to_string(),
         })
+    })
 }
 
 #[instrument]
-#[get("/compile-async/<version>/<remix_file_path..>")]
+#[post("/compile-async", format = "json", data = "<request_json>")]
 pub async fn compile_async(
-    version: String,
-    remix_file_path: PathBuf,
+    request_json: Json<CompilationRequest>,
     _rate_limited: RateLimited,
     engine: &State<WorkerEngine>,
 ) -> String {
-    info!("/compile-async/{:?}/{:?}", version, remix_file_path);
-    do_process_command(
-        ApiCommand::Compile {
-            path: remix_file_path,
-            version,
-        },
-        engine,
-    )
+    info!("/compile-async/{:?}", request_json.config);
+
+    do_process_command(ApiCommand::Compile(request_json.0), engine)
 }
 
 #[instrument]
 #[get("/compile-result/<process_id>")]
 pub async fn get_compile_result(process_id: String, engine: &State<WorkerEngine>) -> String {
     info!("/compile-result/{:?}", process_id);
+
     fetch_process_result(process_id, engine, |result| match result {
         ApiCommandResult::Compile(compilation_result) => {
             json::to_string(&compilation_result).unwrap_or_default()
@@ -67,216 +61,118 @@ pub async fn get_compile_result(process_id: String, engine: &State<WorkerEngine>
     })
 }
 
-async fn wrap_error(paths: Vec<String>, error: ApiError) -> ApiError {
-    clean_up(paths).await;
-    error
-}
+pub async fn do_compile(compilation_request: CompilationRequest) -> Result<Json<CompileResponse>> {
+    let zksolc_version = compilation_request.config.version;
 
-pub async fn do_compile(
-    version: String,
-    remix_file_path: PathBuf,
-) -> Result<Json<CompileResponse>> {
-    if !ALLOWED_VERSIONS.contains(&version.as_str()) {
-        return Err(wrap_error(vec![], ApiError::VersionNotSupported(version)).await);
+    // check if the version is supported
+    if !ZKSOLC_VERSIONS.contains(&zksolc_version.as_str()) {
+        return Err(ApiError::VersionNotSupported(zksolc_version));
     }
 
-    let remix_file_path = path_buf_to_string(remix_file_path.clone())?;
+    let namespace = generate_folder_name();
 
-    check_file_ext(&remix_file_path, "sol")?;
+    // root directory for the contracts
+    let workspace_path_str = format!("{}/{}", SOL_ROOT, namespace);
+    let workspace_path = Path::new(&workspace_path_str);
 
-    let file_path = get_file_path(&version, &remix_file_path)
-        .to_str()
-        .ok_or(wrap_error(vec![], ApiError::FailedToParseString).await)?
-        .to_string();
+    // root directory for the artifacts
+    let artifacts_path_str = format!("{}/{}", workspace_path_str, "artifacts-zk");
+    let artifacts_path = Path::new(&artifacts_path_str);
 
-    let file_path_dir = Path::new(&file_path)
-        .parent()
-        .ok_or(wrap_error(vec![], ApiError::FailedToGetParentDir).await)?
-        .to_str()
-        .ok_or(ApiError::FailedToParseString)?
-        .to_string();
+    // root directory for user files (hardhat config, etc)
+    let user_files_path_str = workspace_path_str.clone();
+    let hardhat_config_path = Path::new(&user_files_path_str).join("hardhat.config.ts");
 
-    println!("file_path: {:?}", file_path);
+    // instantly create the directories
+    tokio::fs::create_dir_all(workspace_path)
+        .await
+        .map_err(ApiError::FailedToWriteFile)?;
+    tokio::fs::create_dir_all(artifacts_path)
+        .await
+        .map_err(ApiError::FailedToWriteFile)?;
 
-    let artifacts_path = ARTIFACTS_ROOT.to_string();
+    // when the compilation is done, clean up the directories
+    // it will be called when the AutoCleanUp struct is dropped
+    let auto_clean_up = AutoCleanUp {
+        dirs: vec![workspace_path.to_str().unwrap()],
+    };
 
-    let result_path_prefix = Path::new(&artifacts_path)
-        .join(&version)
-        .join(remix_file_path.clone());
-    let result_path_filename = result_path_prefix
-        .file_name()
-        .ok_or(wrap_error(vec![], ApiError::FailedToParseString).await)?
-        .to_str()
-        .ok_or(wrap_error(vec![], ApiError::FailedToParseString).await)?;
+    // write the hardhat config file
+    let hardhat_config_content = HardhatConfigBuilder::new()
+        .zksolc_version(&zksolc_version)
+        .solidity_version(DEFAULT_SOLIDITY_VERSION)
+        .build()
+        .to_string_config();
 
-    let result_path_filename_without_ext = result_path_filename.trim_end_matches(".sol");
+    // create parent directories
+    tokio::fs::create_dir_all(hardhat_config_path.parent().unwrap())
+        .await
+        .map_err(ApiError::FailedToWriteFile)?;
 
-    let result_path_prefix = result_path_prefix
-        .parent()
-        .ok_or(wrap_error(vec![], ApiError::FailedToGetParentDir).await)?
-        .join(result_path_filename_without_ext)
-        .join(result_path_filename)
-        .to_str()
-        .ok_or(wrap_error(vec![], ApiError::FailedToParseString).await)?
-        .to_string();
+    tokio::fs::write(hardhat_config_path, hardhat_config_content)
+        .await
+        .map_err(ApiError::FailedToWriteFile)?;
 
-    let hardhat_config = HardhatConfigBuilder::new()
-        .zksolc_version(&version)
-        .sources_path(&file_path_dir)
-        .artifacts_path(&artifacts_path)
-        .build();
+    // initialize the files
+    initialize_files(compilation_request.contracts, workspace_path).await?;
 
-    // save temporary hardhat config to file
-    let hardhat_config_path = Path::new(SOL_ROOT).join(hardhat_config.name.clone());
-
-    let result = fs::write(
-        hardhat_config_path.clone(),
-        hardhat_config.to_string_config(),
-    )
-    .await;
-
-    if let Err(err) = result {
-        return Err(wrap_error(vec![file_path_dir], ApiError::FailedToWriteFile(err)).await);
-    }
-
-    let compile_result = Command::new("npx")
+    let command = Command::new("npx")
         .arg("hardhat")
         .arg("compile")
-        .arg("--config")
-        .arg(hardhat_config_path.clone())
-        .arg("--force")
-        .current_dir(SOL_ROOT)
+        .current_dir(workspace_path)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn();
 
-    if let Err(err) = compile_result {
-        return Err(wrap_error(vec![file_path_dir], ApiError::FailedToExecuteCommand(err)).await);
-    }
+    let process = command.map_err(ApiError::FailedToExecuteCommand)?;
+    let output = process
+        .wait_with_output()
+        .map_err(ApiError::FailedToReadOutput)?;
+    let status = output.status;
+    let message = String::from_utf8_lossy(&output.stdout).to_string();
 
-    // safe to unwrap because we checked for error above
-    let compile_result = compile_result.unwrap();
-
-    let output = compile_result.wait_with_output();
-    if let Err(err) = output {
-        return Err(wrap_error(
-            vec![file_path_dir, result_path_prefix],
-            ApiError::FailedToReadOutput(err),
-        )
-        .await);
-    }
-    let output = output.unwrap();
-
-    let clean_cache = Command::new("npx")
-        .arg("hardhat")
-        .arg("clean")
-        .current_dir(SOL_ROOT)
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn();
-    if let Err(err) = clean_cache {
-        return Err(wrap_error(
-            vec![file_path_dir, result_path_prefix],
-            ApiError::FailedToExecuteCommand(err),
-        )
-        .await);
-    }
-
-    let clean_cache = clean_cache.unwrap();
-    let _ = clean_cache.wait_with_output();
-
-    // delete the hardhat config file
-    let remove_file = fs::remove_file(hardhat_config_path).await;
-    if let Err(err) = remove_file {
-        return Err(wrap_error(
-            vec![file_path_dir, result_path_prefix],
-            ApiError::FailedToRemoveFile(err),
-        )
-        .await);
-    }
-
-    let message = match String::from_utf8(output.stderr) {
-        Ok(msg) => msg,
-        Err(err) => {
-            return Err(wrap_error(
-                vec![file_path_dir, result_path_prefix],
-                ApiError::UTF8Error(err),
-            )
-            .await);
-        }
-    }
-    .replace(&file_path, &remix_file_path)
-    .replace(&result_path_prefix, &remix_file_path)
-    .replace(CARGO_MANIFEST_DIR, "");
-
-    let status = status_code_to_message(output.status.code());
-    if status != "Success" {
-        clean_up(vec![file_path_dir, result_path_prefix]).await;
-
+    info!("Output: \n{:?}", String::from_utf8_lossy(&output.stdout));
+    if !status.success() {
         return Ok(Json(CompileResponse {
-            message,
-            status,
             file_content: vec![],
+            message: format!(
+                "Failed to compile:\n{}",
+                String::from_utf8_lossy(&output.stderr)
+            ),
+            status: "Error".to_string(),
         }));
     }
 
-    let sol_file_content = match fs::read_to_string(&file_path).await {
-        Ok(content) => content,
-        Err(err) => {
-            return Err(wrap_error(
-                vec![file_path_dir, result_path_prefix],
-                ApiError::FailedToReadFile(err),
-            )
-            .await);
-        }
-    };
+    // fetch the files in the artifacts directory
+    let mut file_contents: Vec<CompiledFile> = vec![];
+    let file_paths = list_files_in_directory(artifacts_path);
 
-    let (ast, _) = match solang_parser::parse(&sol_file_content, 0) {
-        Ok(result) => result,
-        Err(err) => {
-            return Err(wrap_error(
-                vec![file_path_dir, result_path_prefix],
-                ApiError::FailedToParseSol(to_human_error_batch(err)),
-            )
-            .await);
-        }
-    };
+    for file_path in file_paths.iter() {
+        let file_content = tokio::fs::read_to_string(file_path)
+            .await
+            .map_err(ApiError::FailedToReadFile)?;
+        let full_path = Path::new(file_path);
+        let relative_path = full_path.strip_prefix(artifacts_path).unwrap_or(full_path);
+        let relative_path_str = relative_path.to_str().unwrap();
 
-    // retrieve the contract names from the AST
-    let mut compiled_contracts: Vec<SolFile> = Vec::new();
-    for part in &ast.0 {
-        if let SourceUnitPart::ContractDefinition(def) = part {
-            if let Some(ident) = &def.name {
-                let result_file_path = format!("{}/{}.json", result_path_prefix, ident);
-                let file_content = match fs::read_to_string(result_file_path).await {
-                    Ok(content) => content,
-                    Err(err) => {
-                        return Err(wrap_error(
-                            vec![file_path_dir, result_path_prefix],
-                            ApiError::FailedToReadFile(err),
-                        )
-                        .await);
-                    }
-                };
-                let file_name = format!("{}.json", ident);
+        // todo(varex83): is it the best way to check?
+        let is_contract = relative_path_str.starts_with("contracts")
+            && !relative_path_str.ends_with(".dbg.json")
+            && relative_path_str.ends_with(".json");
 
-                compiled_contracts.push(SolFile {
-                    file_name,
-                    file_content,
-                });
-            }
-        }
+        file_contents.push(CompiledFile {
+            file_name: relative_path_str.to_string(),
+            file_content,
+            is_contract,
+        });
     }
 
-    clean_up(vec![
-        file_path_dir.to_string(),
-        result_path_prefix.to_string(),
-    ])
-    .await;
+    // calling here explicitly to avoid dropping the AutoCleanUp struct
+    auto_clean_up.clean_up().await;
 
     Ok(Json(CompileResponse {
+        file_content: file_contents,
+        status: status_code_to_message(status.code()),
         message,
-        status,
-        file_content: compiled_contracts,
     }))
 }

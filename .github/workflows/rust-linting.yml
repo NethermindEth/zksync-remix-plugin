@@ -20,7 +20,8 @@ jobs:
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
-
+    env:
+      HARDHAT_ENV_DOCKER_IMAGE: 'example/hardhat-env:latest'
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1

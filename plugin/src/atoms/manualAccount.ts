@@ -7,8 +7,4 @@ const selectedAccountAtom = atom<ManualAccount | null>(null)
 
 const networkNameAtom = atom<string>('')
 
-export {
-  accountsAtom,
-  selectedAccountAtom,
-  networkNameAtom
-}
+export { accountsAtom, selectedAccountAtom, networkNameAtom }

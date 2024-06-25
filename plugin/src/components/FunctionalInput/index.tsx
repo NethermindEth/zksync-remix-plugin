@@ -57,11 +57,12 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
         title: `Executing "${element.name}" method!`
       })
 
+      const callParameters = [...inputs]
       if (element.stateMutability === 'payable') {
         const options: any = { value: ethers.utils.parseEther(value) }
-        inputs.push(options)
+        callParameters.push(options)
       }
-      const result = await method(...inputs)
+      const result = await method(...callParameters)
 
       remixClient.emit('statusChanged', {
         key: 'succeed',
@@ -75,7 +76,7 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
           type: 'invoke',
           txId: result.hash,
           env,
-          chain: (env !== 'manual' ? walletClient?.chain : mockManualChain),
+          chain: env !== 'manual' ? walletClient?.chain : mockManualChain,
           provider,
           value
         }
@@ -101,11 +102,19 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
         title: `Contract ${selectedContract.contractName} failed to deploy!`
       })
 
-      await remixClient.call(
-        'notification' as any,
-        'toast',
-        `Error: ${String(e)}`
-      )
+      if (e instanceof Error) {
+        await remixClient.terminal.log({
+          value: `Error in function invocation (message): ${JSON.stringify(e.message)}`,
+          type: 'error'
+        })
+      } else {
+        await remixClient.terminal.log({
+          value: `Error in function invocation: ${JSON.stringify(e)}`,
+          type: 'error'
+        })
+      }
+
+      await remixClient.call('notification' as any, 'toast', `Error: ${String(e)}`)
     }
   }
 
@@ -116,39 +125,42 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
   return (
     <div>
       <button
-        onClick={() => { callContract().catch(console.error) }}
+        onClick={() => {
+          callContract().catch(console.error)
+        }}
         className={`
           btn btn-primary w-100 text-break mb-1 mt-1 px-0
           ${element.stateMutability === 'view' ? '' : 'btn-warning'}
-        `}>
-          {element.name}
+        `}
+      >
+        {element.name}
       </button>
-      {
-        element.stateMutability === 'payable'
-          ? <InputField
-              key={'value'}
-              placeholder={'Amount (ETH)'}
-              index={element.inputs.length}
-              value={ value }
-              onChange={ (_, newValue) => { setValue(newValue) } }
-            />
-          : <></>
-      }
-      {
-        element.inputs.map((input: Input, index: number) =>
-          <InputField
-            key={index}
-            placeholder={generateInputName(input)}
-            index={index}
-            value={inputs[index]}
-            onChange={(index, newValue) => {
-              const newInputs = [...inputs]
-              newInputs[index] = newValue
-              setInputs(newInputs)
-            }}
-          />
-        )
-      }
+      {element.stateMutability === 'payable' ? (
+        <InputField
+          key={'value'}
+          placeholder={'Amount (ETH)'}
+          index={element.inputs.length}
+          value={value}
+          onChange={(_, newValue) => {
+            setValue(newValue)
+          }}
+        />
+      ) : (
+        <></>
+      )}
+      {element.inputs.map((input: Input, index: number) => (
+        <InputField
+          key={index}
+          placeholder={generateInputName(input)}
+          index={index}
+          value={inputs[index]}
+          onChange={(index, newValue) => {
+            const newInputs = [...inputs]
+            newInputs[index] = newValue
+            setInputs(newInputs)
+          }}
+        />
+      ))}
     </div>
   )
 }

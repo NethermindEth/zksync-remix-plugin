@@ -1,6 +1,6 @@
 import { apiUrl } from '../utils/network'
 
-async function handleAsyncApiResponse (response: Response, getterMethod: string): Promise<Response> {
+async function handleAsyncApiResponse(response: Response, getterMethod: string): Promise<Response> {
   const pid = await response.text()
 
   try {
@@ -18,20 +18,21 @@ async function handleAsyncApiResponse (response: Response, getterMethod: string)
   }
 }
 
-export async function asyncPost (method: string, getterMethod: string, data: string[]): Promise<Response> {
+export async function asyncPost(method: string, getterMethod: string, data: any): Promise<Response> {
   const response = await fetch(`${apiUrl}/${method}`, {
     method: 'POST',
     redirect: 'follow',
     headers: {
-      'Content-Type': 'application/octet-stream'
+      Accept: 'application/json',
+      'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ inputs: data })
+    body: JSON.stringify({ ...data })
   })
 
   return await handleAsyncApiResponse(response, getterMethod)
 }
 
-export async function asyncGet (method: string, getterMethod: string): Promise<Response> {
+export async function asyncGet(method: string, getterMethod: string): Promise<Response> {
   const response = await fetch(`${apiUrl}/${method}`, {
     method: 'GET',
     redirect: 'follow',
@@ -43,7 +44,7 @@ export async function asyncGet (method: string, getterMethod: string): Promise<R
   return await handleAsyncApiResponse(response, getterMethod)
 }
 
-export async function waitProcess (pid: string): Promise<string> {
+export async function waitProcess(pid: string): Promise<string> {
   const response = await fetch(`${apiUrl}/process_status/${pid}`, {
     method: 'GET',
     redirect: 'follow',
@@ -67,7 +68,7 @@ export async function waitProcess (pid: string): Promise<string> {
       break
   }
 
-  await new Promise(resolve => setTimeout(resolve, 1000))
+  await new Promise((resolve) => setTimeout(resolve, 1000))
 
   return await waitProcess(pid)
 }

@@ -1,96 +1,56 @@
 use crate::handlers::process::{do_process_command, fetch_process_result};
-use crate::handlers::types::{ApiCommand, ApiCommandResult, VerifyResponse};
+use crate::handlers::types::{ApiCommand, ApiCommandResult, VerificationRequest, VerifyResponse};
 use crate::rate_limiter::RateLimited;
 use crate::types::{ApiError, Result};
+use crate::utils::cleaner::AutoCleanUp;
 use crate::utils::hardhat_config::HardhatConfigBuilder;
 use crate::utils::lib::{
-    check_file_ext, clean_up, get_file_path, path_buf_to_string, status_code_to_message,
-    ALLOWED_VERSIONS, ARTIFACTS_ROOT, CARGO_MANIFEST_DIR, SOL_ROOT,
+    generate_folder_name, initialize_files, ALLOWED_NETWORKS, DEFAULT_SOLIDITY_VERSION, SOL_ROOT,
+    ZKSOLC_VERSIONS,
 };
 use crate::worker::WorkerEngine;
-use rocket::serde::{json, json::Json, Deserialize};
-use rocket::tokio::fs;
-use rocket::State;
-use std::path::{Path, PathBuf};
+use rocket::serde::{json, json::Json};
+use rocket::{tokio, State};
+use std::path::Path;
 use std::process::{Command, Stdio};
 use tracing::info;
 use tracing::instrument;
 
-const ALLOWED_NETWORKS: [&str; 2] = ["sepolia", "mainnet"];
-
-#[derive(Debug, Deserialize)]
-#[serde(crate = "rocket::serde")]
-struct VerifyData {
-    inputs: Vec<String>,
-}
-
 #[instrument]
-#[post(
-    "/verify/<version>/<network>/<contract_address>/<remix_file_path..>",
-    data = "<data>"
-)]
+#[post("/verify", format = "json", data = "<verification_request_json>")]
 pub async fn verify(
-    version: String,
-    network: String,
-    contract_address: String,
-    remix_file_path: PathBuf,
+    verification_request_json: Json<VerificationRequest>,
     _rate_limited: RateLimited,
-    data: Json<VerifyData>,
 ) -> Json<VerifyResponse> {
-    info!(
-        "/verify/{:?}/{:?}/{:?}/{:?} data: {:?}",
-        version, network, contract_address, remix_file_path, data.inputs,
-    );
-    do_verify(
-        version,
-        network,
-        contract_address,
-        remix_file_path,
-        data.inputs.to_vec(),
-    )
-    .await
-    .unwrap_or_else(|e| {
-        Json(VerifyResponse {
-            message: e.to_string(),
-            status: "Error".to_string(),
+    info!("/verify");
+
+    do_verify(verification_request_json.0)
+        .await
+        .unwrap_or_else(|e| {
+            Json(VerifyResponse {
+                message: e.to_string(),
+                status: "Error".to_string(),
+            })
         })
-    })
 }
 
 #[instrument]
-#[post(
-    "/verify-async/<version>/<network>/<contract_address>/<remix_file_path..>",
-    data = "<data>"
-)]
+#[post("/verify-async", format = "json", data = "<verification_request_json>")]
 pub fn verify_async(
-    version: String,
-    network: String,
-    contract_address: String,
-    remix_file_path: PathBuf,
+    verification_request_json: Json<VerificationRequest>,
     _rate_limited: RateLimited,
     engine: &State<WorkerEngine>,
-    data: Json<VerifyData>,
 ) -> String {
-    info!(
-        "/verify-async/{:?}/{:?}/{:?}/{:?} data: {:?}",
-        version, network, contract_address, remix_file_path, data.inputs
-    );
-    do_process_command(
-        ApiCommand::Verify {
-            path: remix_file_path,
-            contract_address,
-            network,
-            version,
-            inputs: data.inputs.to_vec(),
-        },
-        engine,
-    )
+    info!("/verify-async",);
+
+    do_process_command(ApiCommand::Verify(verification_request_json.0), engine)
 }
 
 #[instrument]
 #[get("/verify-result/<process_id>")]
 pub async fn get_verify_result(process_id: String, engine: &State<WorkerEngine>) -> String {
     info!("/verify-result/{:?}", process_id);
+
     fetch_process_result(process_id, engine, |result| match result {
         ApiCommandResult::Verify(verification_result) => {
             json::to_string(&verification_result).unwrap_or_default()
@@ -99,133 +59,110 @@ pub async fn get_verify_result(process_id: String, engine: &State<WorkerEngine>)
     })
 }
 
-async fn wrap_error(paths: Vec<String>, error: ApiError) -> ApiError {
-    clean_up(paths).await;
-    error
-}
+pub async fn do_verify(verification_request: VerificationRequest) -> Result<Json<VerifyResponse>> {
+    let zksolc_version = verification_request.config.zksolc_version;
 
-pub async fn do_verify(
-    version: String,
-    network: String,
-    contract_address: String,
-    remix_file_path: PathBuf,
-    inputs: Vec<String>,
-) -> Result<Json<VerifyResponse>> {
-    if !ALLOWED_VERSIONS.contains(&version.as_str()) {
-        return Err(wrap_error(vec![], ApiError::VersionNotSupported(version)).await);
+    // check if the version is supported
+    if !ZKSOLC_VERSIONS.contains(&zksolc_version.as_str()) {
+        return Err(ApiError::VersionNotSupported(zksolc_version));
     }
 
-    let remix_file_path = path_buf_to_string(remix_file_path.clone())?;
+    let solc_version = verification_request
+        .config
+        .solc_version
+        .unwrap_or(DEFAULT_SOLIDITY_VERSION.to_string());
 
-    check_file_ext(&remix_file_path, "sol")?;
+    let network = verification_request.config.network;
 
-    let file_path = get_file_path(&version, &remix_file_path)
-        .to_str()
-        .ok_or(wrap_error(vec![], ApiError::FailedToParseString).await)?
-        .to_string();
-
-    let file_path_dir = Path::new(&file_path)
-        .parent()
-        .ok_or(wrap_error(vec![], ApiError::FailedToGetParentDir).await)?
-        .to_str()
-        .ok_or(ApiError::FailedToParseString)?
-        .to_string();
-
-    println!("file_path: {:?}", file_path);
-
-    let artifacts_path = ARTIFACTS_ROOT.to_string();
-
-    let hardhat_config = HardhatConfigBuilder::new()
-        .zksolc_version(&version)
-        .sources_path(&file_path_dir)
-        .artifacts_path(&artifacts_path)
-        .build();
-
-    // save temporary hardhat config to file
-    let hardhat_config_path = Path::new(SOL_ROOT).join(hardhat_config.name.clone());
-
-    let result = fs::write(
-        hardhat_config_path.clone(),
-        hardhat_config.to_string_config(),
-    )
-    .await;
-
-    if let Err(err) = result {
-        return Err(wrap_error(vec![file_path_dir], ApiError::FailedToWriteFile(err)).await);
-    }
-
+    // check if the network is supported
     if !ALLOWED_NETWORKS.contains(&network.as_str()) {
-        return Err(wrap_error(vec![file_path_dir], ApiError::UnknownNetwork(network)).await);
+        return Err(ApiError::UnknownNetwork(network));
     }
-    let network_arg = if network == "sepolia" {
-        "zkSyncTestnet"
-    } else {
-        "zkSyncMainnet"
+
+    let namespace = generate_folder_name();
+
+    // root directory for the contracts
+    let workspace_path_str = format!("{}/{}", SOL_ROOT, namespace);
+    let workspace_path = Path::new(&workspace_path_str);
+
+    // root directory for the artifacts
+    let artifacts_path_str = format!("{}/{}", workspace_path_str, "artifacts-zk");
+    let artifacts_path = Path::new(&artifacts_path_str);
+
+    // root directory for user files (hardhat config, etc)
+    let user_files_path_str = workspace_path_str.clone();
+    let hardhat_config_path = Path::new(&user_files_path_str).join("hardhat.config.ts");
+
+    // instantly create the directories
+    tokio::fs::create_dir_all(workspace_path)
+        .await
+        .map_err(ApiError::FailedToWriteFile)?;
+    tokio::fs::create_dir_all(artifacts_path)
+        .await
+        .map_err(ApiError::FailedToWriteFile)?;
+
+    // when the compilation is done, clean up the directories
+    // it will be called when the AutoCleanUp struct is dropped
+    let auto_clean_up = AutoCleanUp {
+        dirs: vec![workspace_path.to_str().unwrap()],
     };
 
-    let verify_result = Command::new("npx")
+    // write the hardhat config file
+    let hardhat_config_content = HardhatConfigBuilder::new()
+        .zksolc_version(&zksolc_version)
+        .solidity_version(&solc_version)
+        .build()
+        .to_string_config();
+
+    // create parent directories
+    tokio::fs::create_dir_all(hardhat_config_path.parent().unwrap())
+        .await
+        .map_err(ApiError::FailedToWriteFile)?;
+
+    tokio::fs::write(hardhat_config_path, hardhat_config_content)
+        .await
+        .map_err(ApiError::FailedToWriteFile)?;
+
+    // initialize the files
+    initialize_files(verification_request.contracts.clone(), workspace_path).await?;
+
+    let command = Command::new("npx")
         .arg("hardhat")
         .arg("verify")
-        .arg("--config")
-        .arg(hardhat_config_path.clone())
-        .args(["--network", network_arg])
-        .arg(contract_address)
-        .args(inputs)
-        .current_dir(SOL_ROOT)
+        .current_dir(workspace_path)
+        .args([
+            "--network",
+            if network == "sepolia" {
+                "zkSyncTestnet"
+            } else {
+                "zkSyncMainnet"
+            },
+        ])
+        .arg(verification_request.config.contract_address)
+        .args(verification_request.config.inputs)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn();
 
-    if let Err(err) = verify_result {
-        return Err(wrap_error(vec![file_path_dir], ApiError::FailedToExecuteCommand(err)).await);
+    let process = command.map_err(ApiError::FailedToExecuteCommand)?;
+    let output = process
+        .wait_with_output()
+        .map_err(ApiError::FailedToReadOutput)?;
+    let status = output.status;
+    let message = String::from_utf8_lossy(&output.stdout).to_string();
+
+    if !status.success() {
+        return Ok(Json(VerifyResponse {
+            status: "Error".to_string(),
+            message: String::from_utf8_lossy(&output.stderr).to_string(),
+        }));
     }
 
-    // safe to unwrap because we checked for error above
-    let verify_result = verify_result.unwrap();
+    // calling here explicitly to avoid dropping the AutoCleanUp struct
+    auto_clean_up.clean_up().await;
 
-    let output = verify_result.wait_with_output();
-    if let Err(err) = output {
-        return Err(wrap_error(vec![file_path_dir], ApiError::FailedToReadOutput(err)).await);
-    }
-    let output = output.unwrap();
-
-    let clean_cache = Command::new("npx")
-        .arg("hardhat")
-        .arg("clean")
-        .current_dir(SOL_ROOT)
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn();
-    if let Err(err) = clean_cache {
-        return Err(wrap_error(vec![file_path_dir], ApiError::FailedToExecuteCommand(err)).await);
-    }
-
-    let clean_cache = clean_cache.unwrap();
-    let _ = clean_cache.wait_with_output();
-
-    // delete the hardhat config file
-    let remove_file = fs::remove_file(hardhat_config_path).await;
-    if let Err(err) = remove_file {
-        return Err(wrap_error(vec![file_path_dir], ApiError::FailedToRemoveFile(err)).await);
-    }
-
-    let message = match String::from_utf8(output.stderr) {
-        Ok(msg) => msg,
-        Err(err) => {
-            return Err(wrap_error(vec![file_path_dir], ApiError::UTF8Error(err)).await);
-        }
-    }
-    .replace(&file_path, &remix_file_path)
-    .replace(CARGO_MANIFEST_DIR, "");
-
-    let status = status_code_to_message(output.status.code());
-    if status != "Success" {
-        clean_up(vec![file_path_dir]).await;
-
-        return Ok(Json(VerifyResponse { message, status }));
-    }
-
-    clean_up(vec![file_path_dir.to_string()]).await;
-
-    Ok(Json(VerifyResponse { message, status }))
+    Ok(Json(VerifyResponse {
+        status: "Success".to_string(),
+        message,
+    }))
 }

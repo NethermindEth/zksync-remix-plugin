@@ -4,10 +4,12 @@ button {
 }
 
 .TooltipContent {
+    z-index: 1060;
+    width: 800px;
     border-radius: 4px;
-    padding: 10px 15px;
+    padding: 4px 8px;
     font-size: var(--font-sm);
-    line-height: 1;
+    line-height: 1.5;
     color: var(--text);
     background-color: var(--primary);
     border: 1px solid var(--primary);
@@ -36,7 +38,7 @@ button {
 }
 
 .TooltipArrow {
-    fill: white;
+    fill: var(--primary);
 }
 
 .TooltipIconButton {
@@ -51,9 +53,6 @@ button {
     background-color: transparent;
 }
 
-.TooltipIconButton:hover {
-    background-color: var(--primary);
-}
 
 .TooltipIconButton:focus {
     box-shadow: 0 0 0 2px var(--primary);

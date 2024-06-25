@@ -8,41 +8,21 @@ export interface IFCProps {
 }
 
 // eslint-disable-next-line react/display-name
-export const AccordionTrigger = React.forwardRef<any, any>(
-  ({
-    children,
-    className,
-    ...props
-  }, forwardedRef) => (
-    <AccordionPrimitive.Header className='AccordionHeader'>
-      <AccordionPrimitive.Trigger
-        className={'AccordionTrigger'}
-        {...props}
-        ref={forwardedRef}
-      >
-        {children}
-        <BsChevronDown className='AccordionChevron light' aria-hidden />
-      </AccordionPrimitive.Trigger>
-    </AccordionPrimitive.Header>
-  )
-)
+export const AccordionTrigger = React.forwardRef<any, any>(({ children, ...props }, forwardedRef) => (
+  <AccordionPrimitive.Header className="AccordionHeader">
+    <AccordionPrimitive.Trigger className={'AccordionTrigger'} {...props} ref={forwardedRef}>
+      {children}
+      <BsChevronDown className="AccordionChevron light" aria-hidden />
+    </AccordionPrimitive.Trigger>
+  </AccordionPrimitive.Header>
+))
 
 // eslint-disable-next-line react/display-name
-export const AccordionContent = React.forwardRef<any, any>(
-  ({
-    children,
-    className,
-    ...props
-  }, forwardedRef) => (
-    <AccordionPrimitive.Content
-      className={'AccordionContent bg-primary'}
-      {...props}
-      ref={forwardedRef}
-    >
-      <div className='AccordionContentText'>{children}</div>
-    </AccordionPrimitive.Content>
-  )
-)
+export const AccordionContent = React.forwardRef<any, any>(({ children, ...props }, forwardedRef) => (
+  <AccordionPrimitive.Content className={'AccordionContent bg-primary'} {...props} ref={forwardedRef}>
+    <div className="AccordionContentText">{children}</div>
+  </AccordionPrimitive.Content>
+))
 
 export const AccordianItem = AccordionPrimitive.Item
 
@@ -53,14 +33,9 @@ interface IAccordian {
   children: React.ReactNode
 }
 
-const Accordian: React.FC<IAccordian> = ({
-  type = 'single',
-  children,
-  defaultValue,
-  value
-}) => (
+const Accordian: React.FC<IAccordian> = ({ type = 'single', children, defaultValue, value }) => (
   <AccordionPrimitive.Root
-    className='AccordionRoot'
+    className="AccordionRoot"
     type={type}
     value={value}
     defaultValue={defaultValue}

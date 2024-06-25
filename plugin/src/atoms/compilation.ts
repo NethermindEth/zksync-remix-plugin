@@ -1,15 +1,10 @@
 import { atom } from 'jotai'
 
-const statusAtom = atom<string>('Compiling....')
-
+const compileStatusAtom = atom<string>('Compiling....')
 const hashDirAtom = atom<string>('')
-
 const isCompilingAtom = atom<boolean>(false)
-
-type CompilationKeys =
-  'status'
-  | 'isCompiling'
-  | 'hashDir'
+type CompilationKeys = 'status' | 'isCompiling' | 'hashDir' | 'errorMessages'
+const compileErrorMessagesAtom = atom<string[]>([])
 
 interface SetCompilationValue {
   key: CompilationKeys
@@ -19,15 +14,16 @@ interface SetCompilationValue {
 const compilationAtom = atom(
   (get) => {
     return {
-      status: get(statusAtom),
+      status: get(compileStatusAtom),
       isCompiling: get(isCompilingAtom),
-      hashDir: get(hashDirAtom)
+      hashDir: get(hashDirAtom),
+      errorMessages: get(compileErrorMessagesAtom)
     }
   },
   (_get, set, newValue: SetCompilationValue) => {
     switch (newValue?.key) {
       case 'status':
-        typeof newValue?.value === 'string' && set(statusAtom, newValue?.value)
+        typeof newValue?.value === 'string' && set(compileStatusAtom, newValue?.value)
         break
       case 'isCompiling':
         typeof newValue?.value === 'boolean' && set(isCompilingAtom, newValue?.value)
@@ -35,15 +31,19 @@ const compilationAtom = atom(
       case 'hashDir':
         typeof newValue?.value === 'string' && set(hashDirAtom, newValue?.value)
         break
+      case 'errorMessages':
+        Array.isArray(newValue?.value) && set(compileErrorMessagesAtom, newValue?.value)
+        break
     }
   }
 )
 
 export {
-  statusAtom,
+  compileStatusAtom,
   isCompilingAtom,
   hashDirAtom,
   compilationAtom,
+  compileErrorMessagesAtom,
   type SetCompilationValue,
   type CompilationKeys
 }
