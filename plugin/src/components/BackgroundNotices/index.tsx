@@ -18,7 +18,6 @@ const BackgroundNotices: React.FC = () => {
                 className="list-group-item d-flex justify-content-left align-items-center bg-notices-text bg-primary"
                 key={index}
               >
-                <span className="badge badge-information badge-pilled mr-2">{index + 1}</span>
                 {notice}
               </li>
             )

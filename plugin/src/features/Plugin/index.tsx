@@ -16,9 +16,9 @@ import { hashDirAtom, compilationAtom } from '@/atoms'
 import { deploymentAtom } from '@/atoms/deployment'
 import { initializeRemixClient, isLoadedAtom, remixClientAtom } from '@/stores/remixClient'
 import storage from '@/utils/storage'
-import './styles.css'
 import useAsync from '@/hooks/useAsync'
 import { type AccordianTabs } from '@/types/common'
+import './styles.css'
 
 export const Plugin = () => {
   const { status: compileStatus, errorMessages: compileErrorMessages } = useAtomValue(compilationAtom)
@@ -147,10 +147,21 @@ export const Plugin = () => {
                   <TransactionHistory />
                 </AccordionContent>
               </AccordianItem>
+              <AccordianItem value="notices">
+                <AccordionTrigger
+                  onClick={() => {
+                    handleTabView('notices')
+                  }}
+                >
+                  <span className="d-flex align-items-center" style={{ gap: '0.5rem' }}>
+                    <p style={{ all: 'unset' }}>Notices</p>
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <BackgroundNotices />
+                </AccordionContent>
+              </AccordianItem>
             </Accordian>
-            <div className="mt-5">
-              <BackgroundNotices />
-            </div>
           </div>
           <div>
             <Environment />
