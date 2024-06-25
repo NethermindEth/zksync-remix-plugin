@@ -57,10 +57,6 @@ async function initializeRemixClient(): Promise<RemixClient> {
     await handleStatusChange()
   })
 
-  // remixClient.on('fileManager', 'fileAdded', async () => {})
-  // remixClient.on('fileManager', 'folderAdded', async () => {})
-  // remixClient.on('fileManager', 'fileRemoved', async () => {})
-
   remixClient.on('filePanel', 'workspaceCreated', async (workspace) => {
     remixClientStore.set(noFileSelectedAtom, true)
     remixClientStore.set(currentFilenameAtom, '')
