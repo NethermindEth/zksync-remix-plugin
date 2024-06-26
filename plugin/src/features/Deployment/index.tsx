@@ -351,20 +351,23 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                   Deploy {shouldRunVerification ? ' and Verify' : ''}
                 </button>
 
-                <input
-                  id="shouldRunVerificationChk"
-                  name="shouldRunVerificationChk"
-                  type="checkbox"
-                  checked={shouldRunVerification}
-                  onChange={(e) => {
-                    setShouldRunVerification(e.target.checked)
-                  }}
-                  disabled={!isValidSolidity || !currentFilename || isVerifying || !selectedChainName}
-                  aria-disabled={!isValidSolidity || !currentFilename || isVerifying || !selectedChainName}
-                />
-                <label className="ml-1" htmlFor="shouldRunVerificationChk">
-                  Verify Contract
-                </label>
+                <div className="flex mt-1 custom-checkbox">
+                  <input
+                    id="shouldRunVerificationChk"
+                    name="shouldRunVerificationChk"
+                    type="checkbox"
+                    checked={shouldRunVerification}
+                    onChange={(e) => {
+                      setShouldRunVerification(e.target.checked)
+                    }}
+                    disabled={!isValidSolidity || !currentFilename || isVerifying || !selectedChainName}
+                    aria-disabled={!isValidSolidity || !currentFilename || isVerifying || !selectedChainName}
+                    className="w-4 h-4"
+                  />
+                  <label className="ml-1 mt-2" htmlFor="shouldRunVerificationChk">
+                    Verify Contract
+                  </label>
+                </div>
               </div>
             ) : (
               <></>
