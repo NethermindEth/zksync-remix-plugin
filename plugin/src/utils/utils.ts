@@ -9,8 +9,7 @@ const getFileNameFromPath = (path: string): string => path.split('/').pop() ?? '
 const getContractNameFromFullName = (fullName: string): string => fullName.split('.')[0]
 
 const artifactFolder = (path: string): string => {
-  if (path.includes('artifacts')) return path.split('/').slice(0, -1).join('/')
-  return path.split('/').slice(0, -1).join('/').concat('/artifacts')
+  return path.concat('/artifacts')
 }
 
 const artifactFilename = (ext: '.json' | '.casm', filename: string): string => filename.split('.')[0].concat(ext)

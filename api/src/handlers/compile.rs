@@ -116,6 +116,7 @@ pub async fn do_compile(compilation_request: CompilationRequest) -> Result<Json<
     // initialize the files
     initialize_files(compilation_request.contracts, workspace_path).await?;
 
+    // TODO(edwin): change to tokio
     let command = Command::new("npx")
         .arg("hardhat")
         .arg("compile")
