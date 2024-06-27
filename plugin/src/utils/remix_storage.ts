@@ -1,5 +1,5 @@
-import { RemixClient } from '@/stores/remixClient'
 import { ContractFile } from '@/types/contracts'
+import { RemixClient } from '@/PluginClient'
 
 export const getAllContractFiles = async (remixClient: RemixClient, path: string): Promise<ContractFile[]> => {
   const files = [] as ContractFile[]

@@ -88,7 +88,7 @@ And ENV variables for the plugin:
 
 - API_SERVICE_URL="http://0.0.0.0:8000" - the address of the API
 - WALLETCONNECT_PROJECT_ID=<your_walletconnect_project_id> - the project id for WalletConnect
-- STARKNET_DEVNET_URL="https://starknet-remix-devnet.nethermind.io" - the address of the StarkNet devnet
+- ZKSYNC_DEVNET_URL="https://zksync-devnet.nethermind.dev" - the address of the StarkNet devnet
 
 You need to be running both the server and the plugin in order to have a working environment.
 

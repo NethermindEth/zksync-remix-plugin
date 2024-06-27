@@ -26,7 +26,7 @@ interface DeployedContract extends Contract {
 interface CompilationResult {
   status: string
   message: string
-  file_content: SolFile[]
+  file_content: CompiledArtifact[]
 }
 
 interface VerificationResult {
@@ -34,7 +34,8 @@ interface VerificationResult {
   message: string
 }
 
-interface SolFile {
+interface CompiledArtifact {
+  // Is a relative path to a file
   file_name: string
   file_content: string
   is_contract: boolean
@@ -68,5 +69,5 @@ export type {
   DeployedContract,
   CompilationResult,
   VerificationResult,
-  SolFile
+  CompiledArtifact
 }

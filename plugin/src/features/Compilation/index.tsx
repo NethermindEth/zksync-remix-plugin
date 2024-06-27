@@ -15,12 +15,10 @@ import {
   compileErrorMessagesAtom
 } from '@/atoms'
 import {
-  activeTomlPathAtom,
   currentFilenameAtom,
   currentWorkspacePathAtom,
   isValidSolidityAtom,
-  remixClientAtom,
-  tomlPathsAtom
+  remixClientAtom
 } from '@/stores/remixClient'
 import './styles.css'
 import { getAllContractFiles } from '@/utils/remix_storage'
@@ -34,8 +32,6 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
   const remixClient = useAtomValue(remixClientAtom)
   const isValidSolidity = useAtomValue(isValidSolidityAtom)
   const currentFilename = useAtomValue(currentFilenameAtom)
-  const tomlPaths = useAtomValue(tomlPathsAtom)
-  const activeTomlPath = useAtomValue(activeTomlPathAtom)
   const currentWorkspacePath = useAtomValue(currentWorkspacePathAtom)
 
   const setContracts = useSetAtom(contractsAtom)
@@ -211,11 +207,6 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
   ): React.ReactElement => {
     return (
       <Container key={id}>
-        {activeTomlPath && tomlPaths?.length > 0 && (
-          <div className="project-dropdown-wrapper d-flex flex-column mb-3">
-            <div className="mx-auto">Compile a single Solidity file:</div>
-          </div>
-        )}
         <button
           className="btn btn-primary w-100 text-break remixui_disabled mb-1 mt-1 px-2"
           style={{
