@@ -18,7 +18,10 @@ import { initializeRemixClient, isLoadedAtom, remixClientAtom } from '@/stores/r
 import storage from '@/utils/storage'
 import useAsync from '@/hooks/useAsync'
 import { type AccordianTabs } from '@/types/common'
+import * as Tabs from '@radix-ui/react-tabs'
+
 import './styles.css'
+import { FullScreenOverlay, Loader } from '@/ui_components'
 
 export const Plugin = () => {
   const { status: compileStatus, errorMessages: compileErrorMessages } = useAtomValue(compilationAtom)
@@ -68,100 +71,99 @@ export const Plugin = () => {
         <div className="plugin-wrapper">
           <div className="plugin-main-wrapper">
             <CompilerVersion />
-            <Accordian type="single" value={currentAccordian} defaultValue={'compile'}>
-              <AccordianItem value="compile">
-                <AccordionTrigger
-                  onClick={() => {
-                    handleTabView('compile')
-                  }}
-                >
-                  <span className="d-flex align-items-center" style={{ gap: '0.5rem' }}>
-                    <p style={{ all: 'unset' }}>Compile</p>
-                    <StateAction
-                      value={compileStatus === 'done' ? 'success' : compileStatus === 'failed' ? 'error' : ''}
-                      errorTooltipText={
-                        compileErrorMessages.length > 0
-                          ? `${compileErrorMessages[0]} ${compileErrorMessages[1] ?? ''}. check terminal logs for more info.`
-                          : ''
-                      }
-                    />
-                  </span>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <Compilation setAccordian={setCurrentAccordian} />
-                </AccordionContent>
-              </AccordianItem>
-              <AccordianItem value="deploy">
-                <AccordionTrigger
-                  onClick={() => {
-                    handleTabView('deploy')
-                  }}
-                >
-                  <span className="d-flex align-items-center" style={{ gap: '0.5rem' }}>
-                    <p style={{ all: 'unset' }}>Deploy</p>
-                    <StateAction
-                      value={
-                        isDeploying
-                          ? 'loading'
-                          : deployStatus === 'error'
-                            ? 'error'
-                            : deployStatus === 'done'
-                              ? 'success'
+            <Tabs.Root defaultValue="home" className="tabs-root">
+              <Tabs.List className="flex justify-between rounded tab-list" aria-label="Manage and view plugin settings">
+                <div className="tabs-trigger" />
+                <Tabs.Trigger value="home" className="tabs-trigger">
+                  Home
+                </Tabs.Trigger>
+                <Tabs.Trigger value="transactions" className="tabs-trigger">
+                  Transactions
+                </Tabs.Trigger>
+                <Tabs.Trigger value="info" className="tabs-trigger">
+                  Info
+                </Tabs.Trigger>
+                <Tabs.Trigger value="settings" className="tabs-trigger">
+                  Settings
+                </Tabs.Trigger>
+                <div className="tabs-trigger" />
+              </Tabs.List>
+              <Tabs.Content value="home">
+                <Accordian type="single" value={currentAccordian} defaultValue={'compile'}>
+                  <AccordianItem value="compile">
+                    <AccordionTrigger
+                      onClick={() => {
+                        handleTabView('compile')
+                      }}
+                    >
+                      <span className="d-flex align-items-center" style={{ gap: '0.5rem' }}>
+                        <span className={'accordian-list-number'}>1</span>
+                        <p style={{ all: 'unset' }}>Compile</p>
+                        <StateAction
+                          value={compileStatus === 'done' ? 'success' : compileStatus === 'failed' ? 'error' : ''}
+                          errorTooltipText={
+                            compileErrorMessages.length > 0
+                              ? `${compileErrorMessages[0]} ${compileErrorMessages[1] ?? ''}. check terminal logs for more info.`
                               : ''
-                      }
-                    />
-                  </span>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <Deployment setActiveTab={setCurrentAccordian} />
-                </AccordionContent>
-              </AccordianItem>
-              <AccordianItem value="interaction">
-                <AccordionTrigger
-                  onClick={() => {
-                    handleTabView('interaction')
-                  }}
-                >
-                  <span className="d-flex align-items-center" style={{ gap: '0.5rem' }}>
-                    <p style={{ all: 'unset' }}>Interact</p>
-                    <StateAction value={interactionStatus} />
-                  </span>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <Interaction />
-                </AccordionContent>
-              </AccordianItem>
-
-              {/*  Transactions start */}
-              <AccordianItem value="transactions">
-                <AccordionTrigger
-                  onClick={() => {
-                    handleTabView('transactions')
-                  }}
-                >
-                  <span className="d-flex align-items-center" style={{ gap: '0.5rem' }}>
-                    <p style={{ all: 'unset' }}> Transactions</p>
-                  </span>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <TransactionHistory />
-                </AccordionContent>
-              </AccordianItem>
-              <AccordianItem value="notices">
-                <AccordionTrigger
-                  onClick={() => {
-                    handleTabView('notices')
-                  }}
-                >
-                  <span className="d-flex align-items-center" style={{ gap: '0.5rem' }}>
-                    <p style={{ all: 'unset' }}>Notices</p>
-                  </span>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <BackgroundNotices />
-                </AccordionContent>
-              </AccordianItem>
-            </Accordian>
+                          }
+                        />
+                      </span>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <Compilation setAccordian={setCurrentAccordian} />
+                    </AccordionContent>
+                  </AccordianItem>
+                  <AccordianItem value="deploy">
+                    <AccordionTrigger
+                      onClick={() => {
+                        handleTabView('deploy')
+                      }}
+                    >
+                      <span className="d-flex align-items-center" style={{ gap: '0.5rem' }}>
+                        <span className={'accordian-list-number'}>2</span>
+                        <p style={{ all: 'unset' }}>Deploy</p>
+                        <StateAction
+                          value={
+                            isDeploying
+                              ? 'loading'
+                              : deployStatus === 'error'
+                                ? 'error'
+                                : deployStatus === 'done'
+                                  ? 'success'
+                                  : ''
+                          }
+                        />
+                      </span>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <Deployment setActiveTab={setCurrentAccordian} />
+                    </AccordionContent>
+                  </AccordianItem>
+                  <AccordianItem value="interaction">
+                    <AccordionTrigger
+                      onClick={() => {
+                        handleTabView('interaction')
+                      }}
+                    >
+                      <span className="d-flex align-items-center" style={{ gap: '0.5rem' }}>
+                        <span className={'accordian-list-number'}>3</span>
+                        <p style={{ all: 'unset' }}>Interact</p>
+                        <StateAction value={interactionStatus} />
+                      </span>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <Interaction />
+                    </AccordionContent>
+                  </AccordianItem>
+                </Accordian>
+              </Tabs.Content>
+              <Tabs.Content value="transactions">
+                <TransactionHistory />
+              </Tabs.Content>
+              <Tabs.Content value="info">
+                <BackgroundNotices />
+              </Tabs.Content>
+            </Tabs.Root>
           </div>
           <div>
             <Environment />
@@ -169,7 +171,9 @@ export const Plugin = () => {
         </div>
       </>
     ) : (
-      <h1>Loading...</h1>
+      <FullScreenOverlay>
+        <Loader />
+      </FullScreenOverlay>
     )
   )
 }
