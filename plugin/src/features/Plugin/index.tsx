@@ -19,9 +19,8 @@ import storage from '@/utils/storage'
 import useAsync from '@/hooks/useAsync'
 import { type AccordianTabs } from '@/types/common'
 import * as Tabs from '@radix-ui/react-tabs'
-
-import './styles.css'
 import { FullScreenOverlay, Loader } from '@/ui_components'
+import './styles.css'
 
 export const Plugin = () => {
   const { status: compileStatus, errorMessages: compileErrorMessages } = useAtomValue(compilationAtom)
@@ -49,7 +48,7 @@ export const Plugin = () => {
   }, [setHashDir])
 
   // Deployment Context state variables
-  const { isDeploying, deployStatus } = useAtomValue(deploymentAtom)
+  const { deployStatus } = useAtomValue(deploymentAtom)
 
   // Interaction state variables
   const [interactionStatus] = useState<'loading' | 'success' | 'error' | ''>('')
@@ -123,15 +122,7 @@ export const Plugin = () => {
                         <span className={'accordian-list-number'}>2</span>
                         <p style={{ all: 'unset' }}>Deploy</p>
                         <StateAction
-                          value={
-                            isDeploying
-                              ? 'loading'
-                              : deployStatus === 'error'
-                                ? 'error'
-                                : deployStatus === 'done'
-                                  ? 'success'
-                                  : ''
-                          }
+                          value={deployStatus === 'ERROR' ? 'error' : deployStatus === 'DONE' ? 'success' : ''}
                         />
                       </span>
                     </AccordionTrigger>

@@ -10,13 +10,7 @@ export {
 export { contractsAtom, selectedContractAtom } from './compiledContracts'
 export { accountAtom, providerAtom } from './connection'
 export { deployedContractsAtom, deployedSelectedContractAtom } from './deployedContracts'
-export {
-  constructorInputsAtom,
-  deployStatusAtom,
-  deploymentAtom,
-  isDeployingAtom,
-  notEnoughInputsAtom
-} from './deployment'
+export { constructorInputsAtom, deployStatusAtom, deploymentAtom, notEnoughInputsAtom } from './deployment'
 export {
   availableDevnetAccountsAtom,
   devnetAtom,

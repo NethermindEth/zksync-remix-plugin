@@ -12,7 +12,8 @@ import {
   solidityVersionAtom,
   contractsAtom,
   selectedContractAtom,
-  compileErrorMessagesAtom
+  compileErrorMessagesAtom,
+  deployStatusAtom
 } from '@/atoms'
 import {
   currentFilenameAtom,
@@ -36,6 +37,7 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
 
   const setContracts = useSetAtom(contractsAtom)
   const setSelectedContract = useSetAtom(selectedContractAtom)
+  const setDeployStatus = useSetAtom(deployStatusAtom)
 
   const { status, isCompiling } = useAtomValue(compilationAtom)
 
@@ -56,6 +58,7 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
 
   async function compile(): Promise<void> {
     setIsCompiling(true)
+    setDeployStatus('IDLE')
     setCompileStatus('Compiling...')
     setCompileErrorMessages([])
     // clear current file annotations: inline syntax error reporting
