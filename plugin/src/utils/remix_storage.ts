@@ -22,7 +22,7 @@ export const getAllContractFiles = async (remixClient: RemixClient, path: string
 
 export const appendContractPrefix = (contractFiles: ContractFile[]): ContractFile[] => {
   return contractFiles.map((contractFile) => {
-    if (contractFile.file_name.endsWith('.sol') && !contractFile.file_name.startsWith('contracts/')) {
+    if (contractFile.file_name.endsWith('.sol')) {
       contractFile.file_name = `contracts/${contractFile.file_name}`
     }
     return contractFile
