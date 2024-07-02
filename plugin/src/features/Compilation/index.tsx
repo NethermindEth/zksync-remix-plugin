@@ -21,7 +21,7 @@ import {
   remixClientAtom
 } from '@/stores/remixClient'
 import './styles.css'
-import { appendContractPrefix, getAllContractFiles } from '@/utils/remix_storage'
+import { getAllContractFiles } from '@/utils/remix_storage'
 import { Tooltip } from '@/ui_components'
 
 interface CompilationProps {
@@ -74,10 +74,7 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
       console.log(`workspaceFiles: ${JSON.stringify(workspaceFiles)}`)
 
       setCompileStatus('Compiling...')
-      let contractFiles = await getAllContractFiles(remixClient, currentWorkspacePath)
-      //Append files with `contract` path if not already there
-      contractFiles = appendContractPrefix(contractFiles)
-      workspaceContents.contracts = contractFiles
+      workspaceContents.contracts = await getAllContractFiles(remixClient, currentWorkspacePath)
       const response = await asyncPost('compile-async', 'compile-result', workspaceContents)
 
       if (!response.ok) throw new Error('Solidity Compilation Request Failed')
