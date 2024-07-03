@@ -40,6 +40,7 @@ pub struct CompilationConfig {
 pub struct CompilationRequest {
     pub config: CompilationConfig,
     pub contracts: Vec<CompiledFile>,
+    pub target_path: Option<String>,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
@@ -57,6 +58,8 @@ pub struct VerifyConfig {
 pub struct VerificationRequest {
     pub config: VerifyConfig,
     pub contracts: Vec<CompiledFile>,
+    // In format: path/Some.sol:ContractName
+    pub target_contract: Option<String>,
 }
 
 #[derive(Debug)]
