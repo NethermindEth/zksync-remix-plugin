@@ -11,8 +11,15 @@ use crate::handlers::types::{ApiCommand, ApiCommandResult, HealthCheckResponse};
 use crate::handlers::verify::do_verify;
 use crate::types::ApiError;
 use crate::utils::lib::generate_mock_compile_request;
+use lazy_static::lazy_static;
+use tokio::sync::Semaphore;
 use tracing::info;
 use tracing::instrument;
+
+const PROCESS_SPAWN_LIMIT: usize = 8;
+lazy_static! {
+    static ref SPAWN_SEMAPHORE: Semaphore = Semaphore::new(PROCESS_SPAWN_LIMIT);
+}
 
 #[instrument]
 #[get("/health")]

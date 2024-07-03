@@ -45,30 +45,30 @@ export async function asyncGet(method: string, getterMethod: string): Promise<Re
 }
 
 export async function waitProcess(pid: string): Promise<string> {
-  const response = await fetch(`${apiUrl}/process_status/${pid}`, {
-    method: 'GET',
-    redirect: 'follow',
-    headers: {
-      'Content-Type': 'application/octet-stream'
+  while (true) {
+    const response = await fetch(`${apiUrl}/process_status/${pid}`, {
+      method: 'GET',
+      redirect: 'follow',
+      headers: {
+        'Content-Type': 'application/octet-stream'
+      }
+    })
+
+    if (!response.ok) {
+      throw new Error(`Error while running process with id ${pid}, error: ${response.statusText}`)
     }
-  })
 
-  if (!response.ok) {
-    throw new Error(`Error while running process with id ${pid}, error: ${response.statusText}`)
+    const status = await response.text()
+
+    switch (status.at(0)) {
+      case 'C':
+        return status
+      case 'E':
+        throw new Error(`Error while running process with id ${pid}, error: ${status}`)
+      default:
+        break
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 1000))
   }
-
-  const status = await response.text()
-
-  switch (status.at(0)) {
-    case 'C':
-      return status
-    case 'E':
-      throw new Error(`Error while running process with id ${pid}, error: ${status}`)
-    default:
-      break
-  }
-
-  await new Promise((resolve) => setTimeout(resolve, 1000))
-
-  return await waitProcess(pid)
 }
