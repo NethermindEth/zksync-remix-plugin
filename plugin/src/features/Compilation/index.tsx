@@ -210,6 +210,9 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
   ): React.ReactElement => {
     return (
       <Container key={id}>
+        <div className="align-center d-flex justify-content-center">
+          Only files in the contracts folder can be compiled.
+        </div>
         <button
           className="btn btn-primary w-100 text-break remixui_disabled mb-1 mt-1 px-2"
           style={{
