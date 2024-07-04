@@ -19,3 +19,22 @@ export const getAllContractFiles = async (remixClient: RemixClient, path: string
   }
   return files
 }
+
+export const getContractFile = async (
+  remixClient: RemixClient,
+  workspacePath: string,
+  contractFileName: string
+): Promise<ContractFile | undefined> => {
+  const allFiles = await getAllContractFiles(remixClient, workspacePath)
+  const contractFile = allFiles.find(({ file_name }) => file_name === contractFileName)
+  return contractFile
+}
+
+export const appendContractPrefix = (contractFiles: ContractFile[]): ContractFile[] => {
+  return contractFiles.map((contractFile) => {
+    if (contractFile.file_name.endsWith('.sol') && !contractFile.file_name.startsWith('contracts/')) {
+      contractFile.file_name = `contracts/${contractFile.file_name}`
+    }
+    return contractFile
+  })
+}

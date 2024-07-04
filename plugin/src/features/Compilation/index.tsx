@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { artifactFolder } from '@/utils/utils'
 import Container from '@/ui_components/Container'
@@ -22,7 +22,7 @@ import {
   remixClientAtom
 } from '@/stores/remixClient'
 import './styles.css'
-import { getAllContractFiles } from '@/utils/remix_storage'
+import { appendContractPrefix, getAllContractFiles, getContractFile } from '@/utils/remix_storage'
 import { Tooltip } from '@/ui_components'
 
 interface CompilationProps {
@@ -43,41 +43,64 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
 
   const setCompileStatus = useSetAtom(compileStatusAtom)
   const setIsCompiling = useSetAtom(isCompilingAtom)
+  const [isCompilingProject, setIsCompilingProject] = useState(false)
   const setCompileErrorMessages = useSetAtom(compileErrorMessagesAtom)
+  const [showCompileProjectBtn, setShowCompileProjectBtn] = useState(true)
 
   const solidityVersion = useAtomValue(solidityVersionAtom)
 
-  const compilations = [
-    {
-      validation: isValidSolidity,
-      isLoading: isCompiling,
-      onClick: compile,
-      id: 1
-    }
-  ]
+  useEffect(() => {
+    remixClient.fileManager.readdir(`${currentWorkspacePath}/`).then((workspaceFiles: any) => {
+      console.log('workspace files in effect', workspaceFiles)
+      if (!workspaceFiles || !workspaceFiles['contracts'] || workspaceFiles['contracts']['isDirectory'] === false) {
+        setShowCompileProjectBtn(false)
+      } else {
+        setShowCompileProjectBtn(true)
+      }
+    })
+  }, [currentWorkspacePath, remixClient])
 
-  async function compile(): Promise<void> {
-    setIsCompiling(true)
+  async function handleCompile({ type }: { type: 'PROJECT' | 'SINGLE_FILE' }): Promise<void> {
+    const workspaceContents = {
+      config: {
+        version: solidityVersion,
+        user_libraries: []
+      },
+      contracts: [] as Array<{ file_name: string; file_content: string; is_contract: boolean }>
+    }
+    console.log('selected contract', currentFilename)
     setDeployStatus('IDLE')
     setCompileStatus('Compiling...')
     setCompileErrorMessages([])
     // clear current file annotations: inline syntax error reporting
     await remixClient.editor.clearAnnotations()
+    if (type === 'PROJECT') {
+      setIsCompilingProject(true)
+    } else {
+      setIsCompiling(true)
+    }
     try {
-      const workspaceContents = {
-        config: {
-          version: solidityVersion,
-          user_libraries: []
-        },
-        contracts: [] as Array<{ file_name: string; file_content: string; is_contract: boolean }>
-      }
-
       console.log(`currentWorkspacePath: ${currentWorkspacePath}`)
       const workspaceFiles = await remixClient.fileManager.readdir(`${currentWorkspacePath}/`)
       console.log(`workspaceFiles: ${JSON.stringify(workspaceFiles)}`)
 
       setCompileStatus('Compiling...')
-      workspaceContents.contracts = await getAllContractFiles(remixClient, currentWorkspacePath)
+      //TODO: here change the logic to only send single file in case of signle file compilation
+      if (type === 'PROJECT') {
+        workspaceContents.contracts = await getAllContractFiles(remixClient, currentWorkspacePath)
+      } else {
+        const contractFile = await getContractFile(remixClient, currentWorkspacePath, currentFilename)
+        if (!contractFile) {
+          await remixClient.terminal.log({
+            value: `Failed to load ${currentFilename} From workspace. Please make sure file exists in the workspace, or try refresh once.`,
+            type: 'error'
+          })
+          return
+        }
+
+        workspaceContents.contracts = appendContractPrefix([contractFile])
+      }
+
       const response = await asyncPost('compile-async', 'compile-result', workspaceContents)
 
       if (!response.ok) throw new Error('Solidity Compilation Request Failed')
@@ -95,7 +118,6 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
         })
 
         const errorLets = compileResult.message.trim().split('\n')
-        console.log('error Lets', errorLets)
         // remove last element if it's starts with `Error:`
         if (errorLets[errorLets.length - 1].startsWith('Error:')) {
           errorLets.pop()
@@ -199,67 +221,71 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
       console.error(e)
     } finally {
       setIsCompiling(false)
+      setIsCompilingProject(false)
     }
   }
 
-  const compilationCard = (
-    validation: boolean,
-    isLoading: boolean,
-    onClick: () => unknown,
-    id: number
-  ): React.ReactElement => {
-    return (
-      <Container key={id}>
-        <div className="align-center d-flex justify-content-center">
-          Only files in the contracts folder can be compiled.
-        </div>
-        <button
-          className="btn btn-primary w-100 text-break remixui_disabled mb-1 mt-1 px-2"
-          style={{
-            cursor: `${!validation || !currentFilename ? 'not-allowed' : 'pointer'}`
-          }}
-          disabled={!validation || !currentFilename || isCompiling}
-          aria-disabled={!validation || !currentFilename || isCompiling}
-          onClick={onClick}
-        >
-          <div className="d-flex align-items-center justify-content-center w-100">
-            {!validation ? (
-              <div>Select a valid solidity file</div>
-            ) : (
-              <div className="d-flex align-items-center justify-content-center w-100">
-                {isLoading ? (
-                  <>
-                    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true">
-                      {' '}
-                    </span>
-                    <span style={{ paddingLeft: '0.5rem' }}>{status}</span>
-                  </>
-                ) : (
-                  <Tooltip
-                    icon={
-                      <div className="text-truncate overflow-hidden text-nowrap">
-                        <span>Compile</span>
-                        <span className="ml-1 text-nowrap">{currentFilename}</span>
-                      </div>
-                    }
-                    content={<div className="p-2 overflow-visible text-center">{currentFilename}</div>}
-                    side="bottom"
-                    avoidCollisions={false}
-                  />
-                )}
-              </div>
-            )}
-          </div>
-        </button>
-      </Container>
-    )
-  }
-
   return (
-    <div>
-      {compilations.map((compilation) => {
-        return compilationCard(compilation.validation, compilation.isLoading, compilation.onClick, compilation.id)
-      })}
-    </div>
+    <Container>
+      {/* <div className="align-center d-flex justify-content-center">
+        Only files in the contracts folder can be compiled.
+      </div> */}
+      {showCompileProjectBtn && (
+        <button
+          className="btn btn-warning w-100 text-break remixui_disabled mb-1 mt-1 px-2"
+          onClick={() => handleCompile({ type: 'PROJECT' })}
+          disabled={isCompilingProject}
+        >
+          {isCompilingProject ? (
+            <>
+              <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true">
+                {' '}
+              </span>
+              <span style={{ paddingLeft: '0.5rem' }}>{status}</span>
+            </>
+          ) : (
+            <span> Compile Project</span>
+          )}
+        </button>
+      )}
+      <button
+        className="btn btn-primary w-100 text-break remixui_disabled mb-1 mt-1 px-2"
+        style={{
+          cursor: `${!isValidSolidity || !currentFilename ? 'not-allowed' : 'pointer'}`
+        }}
+        disabled={!isValidSolidity || !currentFilename || isCompiling}
+        aria-disabled={!isValidSolidity || !currentFilename || isCompiling}
+        onClick={() => handleCompile({ type: 'SINGLE_FILE' })}
+      >
+        <div className="d-flex align-items-center justify-content-center w-100">
+          {!isValidSolidity ? (
+            <div>Select a valid solidity file</div>
+          ) : (
+            <div className="d-flex align-items-center justify-content-center w-100">
+              {isCompiling ? (
+                <>
+                  <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true">
+                    {' '}
+                  </span>
+                  <span style={{ paddingLeft: '0.5rem' }}>{status}</span>
+                </>
+              ) : (
+                <Tooltip
+                  icon={
+                    <div className="text-truncate overflow-hidden text-nowrap">
+                      <span>Compile</span>
+                      <span className="ml-1 text-nowrap">{currentFilename}</span>
+                    </div>
+                  }
+                  content={<div className="p-2 overflow-visible text-center">{currentFilename}</div>}
+                  side="bottom"
+                  avoidCollisions={false}
+                />
+              )}
+            </div>
+          )}
+        </div>
+      </button>
+    </Container>
   )
 }
