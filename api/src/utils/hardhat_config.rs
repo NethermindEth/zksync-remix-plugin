@@ -1,10 +1,14 @@
 use crate::utils::lib::{DEFAULT_SOLIDITY_VERSION, DEFAULT_ZKSOLC_VERSION};
 use rocket::serde::json::serde_json;
+use std::fmt::Formatter;
+
+const DEFAULT_CONTRACTS_LOCATION: &str = "./contracts";
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
 pub struct HardhatConfig {
     pub zksolc: ZksolcConfig,
     pub solidity: SolidityConfig,
+    pub paths: ProjectPathsUserConfig,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, Debug, Default)]
@@ -16,6 +20,25 @@ pub struct ZksolcConfig {
 #[derive(serde::Serialize, serde::Deserialize, Clone, Debug, Default)]
 pub struct SolidityConfig {
     pub version: String,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
+pub struct ProjectPathsUserConfig {
+    pub sources: String,
+}
+
+impl std::fmt::Display for ProjectPathsUserConfig {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, r#"{{sources: "{}",}}"#, self.sources)
+    }
+}
+
+impl Default for ProjectPathsUserConfig {
+    fn default() -> Self {
+        Self {
+            sources: DEFAULT_CONTRACTS_LOCATION.into(),
+        }
+    }
 }
 
 #[derive(Default)]
@@ -33,6 +56,7 @@ impl Default for HardhatConfig {
             solidity: SolidityConfig {
                 version: DEFAULT_SOLIDITY_VERSION.to_string(),
             },
+            paths: ProjectPathsUserConfig::default(),
         }
     }
 }
@@ -88,11 +112,12 @@ const config: HardhatUserConfig = {{
   solidity: {{
     version: "{}",
   }},
+  paths: {},
 }};
 
 export default config;
 "#,
-            config_prefix_js, self.zksolc.version, self.solidity.version
+            config_prefix_js, self.zksolc.version, self.solidity.version, self.paths
         );
 
         config
@@ -114,7 +139,25 @@ impl HardhatConfigBuilder {
         self
     }
 
+    pub fn paths_sources(&mut self, target_path: &str) -> &mut Self {
+        self.config.paths.sources = target_path.to_string();
+        self
+    }
+
     pub fn build(&self) -> HardhatConfig {
         self.config.clone()
     }
+}
+
+#[test]
+fn test_paths_user_config_display() {
+    const SOURCES: &str = "./some/folder";
+
+    let expected = format!(r#"{{sources: "{}"}}"#, SOURCES);
+    let paths = ProjectPathsUserConfig {
+        sources: SOURCES.to_string(),
+    };
+    let actual = format!("{}", paths);
+
+    assert_eq!(expected, actual);
 }
