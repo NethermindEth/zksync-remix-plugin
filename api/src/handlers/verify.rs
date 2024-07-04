@@ -58,6 +58,7 @@ pub async fn get_verify_result(process_id: String, engine: &State<WorkerEngine>)
         _ => String::from("Result not available"),
     })
 }
+
 fn extract_verify_args(request: &VerificationRequest) -> Vec<String> {
     let mut args: Vec<String> = vec!["hardhat".into(), "verify".into(), "--network".into()];
     if request.config.network == "sepolia" {
