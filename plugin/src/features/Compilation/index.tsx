@@ -51,13 +51,14 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
   const solidityVersion = useAtomValue(solidityVersionAtom)
 
   useEffect(() => {
-    remixClient.fileManager.readdir(`${currentWorkspacePath}/`).then((workspaceFiles: any) => {
-      if (!workspaceFiles || !workspaceFiles['contracts'] || workspaceFiles['contracts']['isDirectory'] === false) {
-        setIsContractsFolderAvailable(false)
-      } else {
-        setIsContractsFolderAvailable(true)
-      }
-    })
+    remixClient.fileManager
+      .readdir(`${currentWorkspacePath}/`)
+      .then((workspaceFiles: any) => {
+        setIsContractsFolderAvailable(!!workspaceFiles?.contracts?.isDirectory)
+      })
+      .catch((error) => {
+        console.error(`Failed to read current workspace ${error.message}`)
+      })
   }, [currentWorkspacePath, remixClient])
 
   async function handleCompile({ type }: { type: 'PROJECT' | 'SINGLE_FILE' }): Promise<void> {
