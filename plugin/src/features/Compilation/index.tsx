@@ -22,7 +22,7 @@ import {
   remixClientAtom
 } from '@/stores/remixClient'
 import './styles.css'
-import { appendContractPrefix, getAllContractFiles, getContractFile } from '@/utils/remix_storage'
+import { getAllContractFiles, getContractTargetPath } from '@/utils/remix_storage'
 import { Tooltip } from '@/ui_components'
 
 interface CompilationProps {
@@ -45,30 +45,28 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
   const setIsCompiling = useSetAtom(isCompilingAtom)
   const [isCompilingProject, setIsCompilingProject] = useState(false)
   const setCompileErrorMessages = useSetAtom(compileErrorMessagesAtom)
-  const [showCompileProjectBtn, setShowCompileProjectBtn] = useState(true)
+  const [isContractsFolderAvailable, setIsContractsFolderAvailable] = useState(true)
 
   const solidityVersion = useAtomValue(solidityVersionAtom)
 
   useEffect(() => {
     remixClient.fileManager.readdir(`${currentWorkspacePath}/`).then((workspaceFiles: any) => {
-      console.log('workspace files in effect', workspaceFiles)
       if (!workspaceFiles || !workspaceFiles['contracts'] || workspaceFiles['contracts']['isDirectory'] === false) {
-        setShowCompileProjectBtn(false)
+        setIsContractsFolderAvailable(false)
       } else {
-        setShowCompileProjectBtn(true)
+        setIsContractsFolderAvailable(true)
       }
     })
   }, [currentWorkspacePath, remixClient])
 
   async function handleCompile({ type }: { type: 'PROJECT' | 'SINGLE_FILE' }): Promise<void> {
-    const workspaceContents = {
+    const workspaceContents: any = {
       config: {
         version: solidityVersion,
         user_libraries: []
       },
       contracts: [] as Array<{ file_name: string; file_content: string; is_contract: boolean }>
     }
-    console.log('selected contract', currentFilename)
     setDeployStatus('IDLE')
     setCompileStatus('Compiling...')
     setCompileErrorMessages([])
@@ -80,27 +78,18 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
       setIsCompiling(true)
     }
     try {
-      console.log(`currentWorkspacePath: ${currentWorkspacePath}`)
       const workspaceFiles = await remixClient.fileManager.readdir(`${currentWorkspacePath}/`)
       console.log(`workspaceFiles: ${JSON.stringify(workspaceFiles)}`)
 
       setCompileStatus('Compiling...')
       //TODO: here change the logic to only send single file in case of signle file compilation
-      if (type === 'PROJECT') {
-        workspaceContents.contracts = await getAllContractFiles(remixClient, currentWorkspacePath)
-      } else {
-        const contractFile = await getContractFile(remixClient, currentWorkspacePath, currentFilename)
-        if (!contractFile) {
-          await remixClient.terminal.log({
-            value: `Failed to load ${currentFilename} From workspace. Please make sure file exists in the workspace, or try refresh once.`,
-            type: 'error'
-          })
-          return
-        }
+      const allContractFiles = await getAllContractFiles(remixClient, currentWorkspacePath)
+      workspaceContents.contracts = allContractFiles
 
-        workspaceContents.contracts = appendContractPrefix([contractFile])
+      if (type === 'SINGLE_FILE') {
+        const targetPath = getContractTargetPath(allContractFiles, currentFilename)
+        workspaceContents.target_path = targetPath
       }
-
       const response = await asyncPost('compile-async', 'compile-result', workspaceContents)
 
       if (!response.ok) throw new Error('Solidity Compilation Request Failed')
@@ -171,19 +160,25 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
       const artifacts: string[] = []
 
       const contractsToAdd: Contract[] = []
-      for (const file of compileResult.file_content) {
-        if (!file.is_contract) continue
-        const contract = JSON.parse(file.file_content) as Contract
-        contractsToAdd.push(contract)
+      if (type === 'PROJECT') {
+        for (const file of compileResult.file_content) {
+          if (!file.is_contract) continue
+          const contract = JSON.parse(file.file_content) as Contract
+          contractsToAdd.push(contract)
+        }
+      } else {
+        for (const file of compileResult.file_content) {
+          if (!file.is_contract || !file.file_name.includes(currentFilename)) continue
+          const contract = JSON.parse(file.file_content) as Contract
+          contractsToAdd.push(contract)
+        }
       }
-
       setContracts(contractsToAdd)
       setSelectedContract(contractsToAdd[0])
 
       for (const file of compileResult.file_content) {
         const artifactsPath = `${artifactFolder(currentWorkspacePath)}/${file.file_name}`
         artifacts.push(artifactsPath)
-
         try {
           await remixClient.call('fileManager', 'writeFile', artifactsPath, file.file_content)
         } catch (e) {
@@ -230,24 +225,39 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
       {/* <div className="align-center d-flex justify-content-center">
         Only files in the contracts folder can be compiled.
       </div> */}
-      {showCompileProjectBtn && (
-        <button
-          className="btn btn-warning w-100 text-break remixui_disabled mb-1 mt-1 px-2"
-          onClick={() => handleCompile({ type: 'PROJECT' })}
-          disabled={isCompilingProject}
-        >
-          {isCompilingProject ? (
-            <>
-              <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true">
-                {' '}
-              </span>
-              <span style={{ paddingLeft: '0.5rem' }}>{status}</span>
-            </>
-          ) : (
-            <span> Compile Project</span>
-          )}
-        </button>
-      )}
+
+      <button
+        className="btn btn-warning w-100 text-break remixui_disabled mb-1 mt-1 px-2"
+        onClick={() => handleCompile({ type: 'PROJECT' })}
+        disabled={isCompilingProject || !isContractsFolderAvailable}
+      >
+        {isCompilingProject ? (
+          <>
+            <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true">
+              {' '}
+            </span>
+            <span style={{ paddingLeft: '0.5rem' }}>{status}</span>
+          </>
+        ) : isContractsFolderAvailable ? (
+          <span> Compile Project</span>
+        ) : (
+          <Tooltip
+            icon={
+              <div className="text-truncate overflow-hidden text-nowrap">
+                <span>Compile Project</span>
+              </div>
+            }
+            content={
+              <div className="p-2 overflow-visible text-center text-wrap">
+                Contracts folder not found in the workspace
+              </div>
+            }
+            side="bottom"
+            avoidCollisions={false}
+          />
+        )}
+      </button>
+
       <button
         className="btn btn-primary w-100 text-break remixui_disabled mb-1 mt-1 px-2"
         style={{

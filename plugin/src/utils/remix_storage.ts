@@ -6,7 +6,9 @@ export const getAllContractFiles = async (remixClient: RemixClient, path: string
   const pathFiles = await remixClient.fileManager.readdir(`${path}/`)
   for (const [name, entry] of Object.entries<any>(pathFiles)) {
     if (entry.isDirectory) {
+      console.log('directory entry', entry, name)
       const deps = await getAllContractFiles(remixClient, `${path}/${name}`)
+      console.log('directory deps', deps)
       for (const dep of deps) files.push(dep)
     } else {
       const content = await remixClient.fileManager.readFile(name)
@@ -20,21 +22,18 @@ export const getAllContractFiles = async (remixClient: RemixClient, path: string
   return files
 }
 
-export const getContractFile = async (
-  remixClient: RemixClient,
-  workspacePath: string,
-  contractFileName: string
-): Promise<ContractFile | undefined> => {
-  const allFiles = await getAllContractFiles(remixClient, workspacePath)
-  const contractFile = allFiles.find(({ file_name }) => file_name === contractFileName)
-  return contractFile
-}
-
-export const appendContractPrefix = (contractFiles: ContractFile[]): ContractFile[] => {
-  return contractFiles.map((contractFile) => {
-    if (contractFile.file_name.endsWith('.sol') && !contractFile.file_name.startsWith('contracts/')) {
-      contractFile.file_name = `contracts/${contractFile.file_name}`
+export const getContractTargetPath = (allContracts: ContractFile[], contractFileName: string) => {
+  for (const { file_name } of allContracts) {
+    if (file_name.includes(contractFileName)) {
+      const parts = file_name.split('/')
+      if (parts.length === 1) {
+        return './'
+      } else {
+        parts.pop()
+        return './' + parts.join('/')
+      }
     }
-    return contractFile
-  })
+  }
+
+  return './'
 }
