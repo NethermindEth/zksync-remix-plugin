@@ -6,9 +6,7 @@ export const getAllContractFiles = async (remixClient: RemixClient, path: string
   const pathFiles = await remixClient.fileManager.readdir(`${path}/`)
   for (const [name, entry] of Object.entries<any>(pathFiles)) {
     if (entry.isDirectory) {
-      console.log('directory entry', entry, name)
       const deps = await getAllContractFiles(remixClient, `${path}/${name}`)
-      console.log('directory deps', deps)
       for (const dep of deps) files.push(dep)
     } else {
       const content = await remixClient.fileManager.readFile(name)
@@ -36,4 +34,10 @@ export const getContractTargetPath = (allContracts: ContractFile[], contractFile
   }
 
   return './'
+}
+
+export const findFilesNotInContracts = (allContracts: ContractFile[]) => {
+  return allContracts
+    .filter(({ file_name, is_contract }) => is_contract && !file_name.startsWith('contracts/'))
+    .map(({ file_name }) => file_name.split('/').pop())
 }

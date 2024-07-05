@@ -22,8 +22,9 @@ import {
   remixClientAtom
 } from '@/stores/remixClient'
 import './styles.css'
-import { getAllContractFiles, getContractTargetPath } from '@/utils/remix_storage'
+import { findFilesNotInContracts, getAllContractFiles, getContractTargetPath } from '@/utils/remix_storage'
 import { Tooltip } from '@/ui_components'
+import { FILES_NOT_IN_CONTRACTS_MESSAGE } from '@/utils/constants'
 
 interface CompilationProps {
   setAccordian: React.Dispatch<React.SetStateAction<AccordianTabs>>
@@ -82,13 +83,20 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
       console.log(`workspaceFiles: ${JSON.stringify(workspaceFiles)}`)
 
       setCompileStatus('Compiling...')
-      //TODO: here change the logic to only send single file in case of signle file compilation
       const allContractFiles = await getAllContractFiles(remixClient, currentWorkspacePath)
       workspaceContents.contracts = allContractFiles
 
       if (type === 'SINGLE_FILE') {
         const targetPath = getContractTargetPath(allContractFiles, currentFilename)
         workspaceContents.target_path = targetPath
+      } else {
+        const filesNotInContractsFolder = findFilesNotInContracts(allContractFiles)
+        if (filesNotInContractsFolder.length > 0) {
+          await remixClient.terminal.log({
+            value: `${FILES_NOT_IN_CONTRACTS_MESSAGE} ${filesNotInContractsFolder.join('  ')}`,
+            type: 'warn'
+          })
+        }
       }
       const response = await asyncPost('compile-async', 'compile-result', workspaceContents)
 
