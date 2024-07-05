@@ -69,6 +69,14 @@ pub async fn do_compile(compilation_request: CompilationRequest) -> Result<Json<
         return Err(ApiError::VersionNotSupported(zksolc_version));
     }
 
+    if compilation_request.contracts.is_empty() {
+        return Ok(Json(CompileResponse {
+            file_content: vec![],
+            status: status_code_to_message(Some(0)),
+            message: "Nothing to compile".into(),
+        }));
+    }
+
     let namespace = generate_folder_name();
 
     // root directory for the contracts
