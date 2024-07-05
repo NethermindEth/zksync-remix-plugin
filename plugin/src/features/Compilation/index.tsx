@@ -170,7 +170,7 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
       const contractsToAdd: Contract[] = []
       if (type === 'PROJECT') {
         for (const file of compileResult.file_content) {
-          if (!file.is_contract) continue
+          if (!file.is_contract || !file.file_name.startsWith('contracts/')) continue
           const contract = JSON.parse(file.file_content) as Contract
           contractsToAdd.push(contract)
         }
