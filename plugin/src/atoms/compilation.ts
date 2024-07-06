@@ -1,6 +1,6 @@
 import { atom } from 'jotai'
 
-type CompilationType = 'PROJECT' | 'SINGLE_FILE' | 'NONE'
+export type CompilationType = 'PROJECT' | 'SINGLE_FILE' | 'NONE'
 const compileStatusAtom = atom<string>('Compiling....')
 const hashDirAtom = atom<string>('')
 const isCompilingAtom = atom<boolean>(false)

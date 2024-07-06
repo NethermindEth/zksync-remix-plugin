@@ -6,7 +6,8 @@ export {
   compileErrorMessagesAtom,
   type CompilationKeys,
   type SetCompilationValue,
-  compilationTypeAtom
+  compilationTypeAtom,
+  type CompilationType
 } from './compilation'
 export { contractsAtom, selectedContractAtom } from './compiledContracts'
 export { accountAtom, providerAtom } from './connection'

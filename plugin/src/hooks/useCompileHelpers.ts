@@ -1,5 +1,5 @@
 import {
-  compilationTypeAtom,
+  CompilationType,
   compileErrorMessagesAtom,
   contractsAtom,
   selectedContractAtom,
@@ -15,7 +15,6 @@ export const useCompileHelpers = () => {
   const setCompileErrorMessages = useSetAtom(compileErrorMessagesAtom)
   const currentWorkspacePath = useAtomValue(currentWorkspacePathAtom)
   const solidityVersion = useAtomValue(solidityVersionAtom)
-  const compilationType = useAtomValue(compilationTypeAtom)
   const currentFilename = useAtomValue(currentFilenameAtom)
   const setContracts = useSetAtom(contractsAtom)
   const setSelectedContract = useSetAtom(selectedContractAtom)
@@ -112,7 +111,7 @@ export const useCompileHelpers = () => {
     }
   }
 
-  const setCompiledContracts = (compileResult: CompilationResult) => {
+  const setCompiledContracts = (compileResult: CompilationResult, compilationType: CompilationType) => {
     const contractsToAdd: Contract[] = []
     if (compilationType === 'PROJECT') {
       for (const file of compileResult.file_content) {

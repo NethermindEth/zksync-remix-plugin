@@ -10,10 +10,12 @@ import {
   compileStatusAtom,
   compileErrorMessagesAtom,
   deployStatusAtom,
-  compilationTypeAtom
+  compilationTypeAtom,
+  CompilationType
 } from '@/atoms'
 import {
   currentFilenameAtom,
+  currentFilepathAtom,
   currentWorkspacePathAtom,
   isValidSolidityAtom,
   remixClientAtom
@@ -32,6 +34,7 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
   const remixClient = useAtomValue(remixClientAtom)
   const isValidSolidity = useAtomValue(isValidSolidityAtom)
   const currentFilename = useAtomValue(currentFilenameAtom)
+  const currentFilepath = useAtomValue(currentFilepathAtom)
   const currentWorkspacePath = useAtomValue(currentWorkspacePathAtom)
   const { status, isCompiling } = useAtomValue(compilationAtom)
 
@@ -58,7 +61,7 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
       })
   }, [currentWorkspacePath, remixClient])
 
-  async function handleCompile({ type }: { type: 'PROJECT' | 'SINGLE_FILE' }): Promise<void> {
+  async function handleCompile({ type }: { type: CompilationType }): Promise<void> {
     const workspaceContents = getDefaultWorkspaceContents()
 
     setCompilationType(type)
@@ -73,7 +76,7 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
       workspaceContents.contracts = allContractFiles
 
       if (type === 'SINGLE_FILE') {
-        const targetPath = getContractTargetPath(allContractFiles, currentFilename)
+        const targetPath = getContractTargetPath(allContractFiles, currentFilepath)
         workspaceContents.target_path = targetPath
       } else {
         const filesNotInContractsFolder = findFilesNotInContracts(allContractFiles)
@@ -98,7 +101,7 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
         await emitErrorToRemix(compileResult)
       }
       console.log('compile result', compileResult)
-      setCompiledContracts(compileResult)
+      setCompiledContracts(compileResult, type)
       writeResultsToArtifacts(compileResult)
 
       setCompileStatus('done')

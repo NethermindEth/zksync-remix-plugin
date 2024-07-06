@@ -20,9 +20,9 @@ export const getAllContractFiles = async (remixClient: RemixClient, path: string
   return files
 }
 
-export const getContractTargetPath = (allContracts: ContractFile[], contractFileName: string) => {
+export const getContractTargetPath = (allContracts: ContractFile[], contractFilePath: string) => {
   for (const { file_name } of allContracts) {
-    if (file_name.includes(contractFileName)) {
+    if (file_name.includes(contractFilePath)) {
       const parts = file_name.split('/')
       if (parts.length === 1) {
         return './'
