@@ -1,9 +1,11 @@
 import { atom } from 'jotai'
 
+type CompilationType = 'PROJECT' | 'SINGLE_FILE' | 'NONE'
 const compileStatusAtom = atom<string>('Compiling....')
 const hashDirAtom = atom<string>('')
 const isCompilingAtom = atom<boolean>(false)
-type CompilationKeys = 'status' | 'isCompiling' | 'hashDir' | 'errorMessages'
+const compilationTypeAtom = atom<CompilationType>('NONE')
+type CompilationKeys = 'status' | 'isCompiling' | 'hashDir' | 'errorMessages' | 'compilationType'
 const compileErrorMessagesAtom = atom<string[]>([])
 
 interface SetCompilationValue {
@@ -17,7 +19,8 @@ const compilationAtom = atom(
       status: get(compileStatusAtom),
       isCompiling: get(isCompilingAtom),
       hashDir: get(hashDirAtom),
-      errorMessages: get(compileErrorMessagesAtom)
+      errorMessages: get(compileErrorMessagesAtom),
+      compilationType: get(compilationTypeAtom)
     }
   },
   (_get, set, newValue: SetCompilationValue) => {
@@ -34,6 +37,9 @@ const compilationAtom = atom(
       case 'errorMessages':
         Array.isArray(newValue?.value) && set(compileErrorMessagesAtom, newValue?.value)
         break
+      case 'compilationType':
+        typeof newValue?.value === 'string' && set(compilationTypeAtom, newValue?.value as CompilationType)
+        break
     }
   }
 )
@@ -44,6 +50,7 @@ export {
   hashDirAtom,
   compilationAtom,
   compileErrorMessagesAtom,
+  compilationTypeAtom,
   type SetCompilationValue,
   type CompilationKeys
 }

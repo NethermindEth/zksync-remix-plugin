@@ -5,7 +5,8 @@ export {
   isCompilingAtom,
   compileErrorMessagesAtom,
   type CompilationKeys,
-  type SetCompilationValue
+  type SetCompilationValue,
+  compilationTypeAtom
 } from './compilation'
 export { contractsAtom, selectedContractAtom } from './compiledContracts'
 export { accountAtom, providerAtom } from './connection'
