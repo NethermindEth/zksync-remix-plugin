@@ -47,6 +47,8 @@ const licenses = [
   'Business Source License (BSL 1.1)'
 ]
 
+export const FILES_NOT_IN_CONTRACTS_MESSAGE =
+  'Warning: Only files within the /contracts/* folder structure are included in the project compilation. The following smart contracts defined outside this structure will not be available for deployment:'
 export { devnetUrl, networks, networkExplorerUrls, licenses }
 
 export type { Network }

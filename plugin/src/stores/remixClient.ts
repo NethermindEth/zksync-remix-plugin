@@ -8,7 +8,12 @@ const WORKSPACE_ROOT = '.workspaces'
 const remixClientAtom = atom({} as unknown as RemixClient)
 const noFileSelectedAtom = atom(false)
 const isValidSolidityAtom = atom(false)
-const currentFilenameAtom = atom('')
+const currentFilepathAtom = atom('')
+const currentFilenameAtom = atom((get) => {
+  const currentFilePath = get(currentFilepathAtom)
+  return getFileNameFromPath(currentFilePath)
+})
+
 const currentWorkspacePathAtom = atom('')
 const isLoadedAtom = atom(false)
 
@@ -43,7 +48,7 @@ async function initializeRemixClient(): Promise<RemixClient> {
     const currentFileExtension = getFileExtension(filename)
     const isValidSolidity = currentFileExtension === 'sol'
     remixClientStore.set(isValidSolidityAtom, isValidSolidity)
-    remixClientStore.set(currentFilenameAtom, filename)
+    remixClientStore.set(currentFilepathAtom, currentFileChanged)
     remixClientStore.set(noFileSelectedAtom, false)
 
     await handleStatusChange()
@@ -51,7 +56,7 @@ async function initializeRemixClient(): Promise<RemixClient> {
 
   remixClient.on('fileManager', 'noFileSelected', async () => {
     remixClientStore.set(noFileSelectedAtom, true)
-    remixClientStore.set(currentFilenameAtom, '')
+    remixClientStore.set(currentFilepathAtom, '')
     remixClientStore.set(isValidSolidityAtom, false)
 
     await handleStatusChange()
@@ -59,7 +64,7 @@ async function initializeRemixClient(): Promise<RemixClient> {
 
   remixClient.on('filePanel', 'workspaceCreated', async (workspace) => {
     remixClientStore.set(noFileSelectedAtom, true)
-    remixClientStore.set(currentFilenameAtom, '')
+    remixClientStore.set(currentFilepathAtom, '')
     remixClientStore.set(isValidSolidityAtom, false)
     remixClientStore.set(currentWorkspacePathAtom, `${WORKSPACE_ROOT}/${workspace as string}`)
   })
@@ -68,7 +73,7 @@ async function initializeRemixClient(): Promise<RemixClient> {
     const workspace = valueRaw as Workspace
 
     remixClientStore.set(noFileSelectedAtom, true)
-    remixClientStore.set(currentFilenameAtom, '')
+    remixClientStore.set(currentFilepathAtom, '')
     remixClientStore.set(isValidSolidityAtom, false)
     remixClientStore.set(currentWorkspacePathAtom, `${WORKSPACE_ROOT}/${workspace.name}`)
   })
@@ -86,5 +91,6 @@ export {
   isValidSolidityAtom,
   currentFilenameAtom,
   currentWorkspacePathAtom,
-  isLoadedAtom
+  isLoadedAtom,
+  currentFilepathAtom
 }

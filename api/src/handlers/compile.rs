@@ -16,8 +16,8 @@ use rocket::serde::json::Json;
 use rocket::{tokio, State};
 use std::path::Path;
 use std::process::{Command, Stdio};
-use tracing::info;
 use tracing::instrument;
+use tracing::{error, info};
 
 #[instrument]
 #[post("/compile", format = "json", data = "<request_json>")]
@@ -69,6 +69,14 @@ pub async fn do_compile(compilation_request: CompilationRequest) -> Result<Json<
         return Err(ApiError::VersionNotSupported(zksolc_version));
     }
 
+    if compilation_request.contracts.is_empty() {
+        return Ok(Json(CompileResponse {
+            file_content: vec![],
+            status: status_code_to_message(Some(0)),
+            message: "Nothing to compile".into(),
+        }));
+    }
+
     let namespace = generate_folder_name();
 
     // root directory for the contracts
@@ -98,11 +106,15 @@ pub async fn do_compile(compilation_request: CompilationRequest) -> Result<Json<
     };
 
     // write the hardhat config file
-    let hardhat_config_content = HardhatConfigBuilder::new()
+    let mut hardhat_config_builder = HardhatConfigBuilder::new();
+    hardhat_config_builder
         .zksolc_version(&zksolc_version)
-        .solidity_version(DEFAULT_SOLIDITY_VERSION)
-        .build()
-        .to_string_config();
+        .solidity_version(DEFAULT_SOLIDITY_VERSION);
+    if let Some(target_path) = compilation_request.target_path {
+        hardhat_config_builder.paths_sources(&target_path);
+    }
+
+    let hardhat_config_content = hardhat_config_builder.build().to_string_config();
 
     // create parent directories
     tokio::fs::create_dir_all(hardhat_config_path.parent().unwrap())
@@ -134,6 +146,10 @@ pub async fn do_compile(compilation_request: CompilationRequest) -> Result<Json<
 
     info!("Output: \n{:?}", String::from_utf8_lossy(&output.stdout));
     if !status.success() {
+        error!(
+            "Compilation error: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
         return Ok(Json(CompileResponse {
             file_content: vec![],
             message: format!(
@@ -157,9 +173,8 @@ pub async fn do_compile(compilation_request: CompilationRequest) -> Result<Json<
         let relative_path_str = relative_path.to_str().unwrap();
 
         // todo(varex83): is it the best way to check?
-        let is_contract = relative_path_str.starts_with("contracts")
-            && !relative_path_str.ends_with(".dbg.json")
-            && relative_path_str.ends_with(".json");
+        let is_contract =
+            !relative_path_str.ends_with(".dbg.json") && relative_path_str.ends_with(".json");
 
         file_contents.push(CompiledFile {
             file_name: relative_path_str.to_string(),

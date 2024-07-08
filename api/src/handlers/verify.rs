@@ -59,8 +59,27 @@ pub async fn get_verify_result(process_id: String, engine: &State<WorkerEngine>)
     })
 }
 
+fn extract_verify_args(request: &VerificationRequest) -> Vec<String> {
+    let mut args: Vec<String> = vec!["hardhat".into(), "verify".into(), "--network".into()];
+    if request.config.network == "sepolia" {
+        args.push("zkSyncTestnet".into())
+    } else {
+        args.push("zkSyncMainnet".into())
+    }
+
+    if let Some(ref target_contract) = request.target_contract {
+        args.push("--contract".into());
+        args.push(target_contract.clone());
+    }
+
+    args.push(request.config.contract_address.clone());
+    args.extend(request.config.inputs.clone());
+
+    args
+}
+
 pub async fn do_verify(verification_request: VerificationRequest) -> Result<Json<VerifyResponse>> {
-    let zksolc_version = verification_request.config.zksolc_version;
+    let zksolc_version = verification_request.config.zksolc_version.clone();
 
     // check if the version is supported
     if !ZKSOLC_VERSIONS.contains(&zksolc_version.as_str()) {
@@ -70,9 +89,10 @@ pub async fn do_verify(verification_request: VerificationRequest) -> Result<Json
     let solc_version = verification_request
         .config
         .solc_version
+        .clone()
         .unwrap_or(DEFAULT_SOLIDITY_VERSION.to_string());
 
-    let network = verification_request.config.network;
+    let network = verification_request.config.network.clone();
 
     // check if the network is supported
     if !ALLOWED_NETWORKS.contains(&network.as_str()) {
@@ -126,20 +146,10 @@ pub async fn do_verify(verification_request: VerificationRequest) -> Result<Json
     // initialize the files
     initialize_files(verification_request.contracts.clone(), workspace_path).await?;
 
+    let args = extract_verify_args(&verification_request);
     let command = Command::new("npx")
-        .arg("hardhat")
-        .arg("verify")
+        .args(args)
         .current_dir(workspace_path)
-        .args([
-            "--network",
-            if network == "sepolia" {
-                "zkSyncTestnet"
-            } else {
-                "zkSyncMainnet"
-            },
-        ])
-        .arg(verification_request.config.contract_address)
-        .args(verification_request.config.inputs)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn();

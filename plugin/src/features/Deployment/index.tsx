@@ -5,27 +5,33 @@ import * as zksync from 'zksync-ethers'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 
 import CompiledContracts from '@/components/CompiledContracts'
-import './styles.css'
-import Container from '../../ui_components/Container'
+import Container from '@/ui_components/Container'
 import { type AccordianTabs } from '@/types/common'
-import ConstructorInput from '../../components/ConstructorInput'
-import { type VerificationResult, type DeployedContract, type ContractFile } from '../../types/contracts'
-import { mockManualChain, type Transaction } from '../../types/transaction'
-import { transactionsAtom } from '../../atoms/transaction'
-import { contractsAtom, selectedContractAtom } from '../../atoms/compiledContracts'
-import { accountAtom, providerAtom } from '../../atoms/connection'
-import { deployedContractsAtom, deployedSelectedContractAtom } from '../../atoms/deployedContracts'
-import { envAtom } from '../../atoms/environment'
-import { isVerifyingAtom, verificationAtom } from '../../atoms/verification'
-import { asyncPost } from '../../api/asyncRequests'
-import { solidityVersionAtom } from '../../atoms/version'
-import { deployStatusAtom } from '../../atoms/deployment'
+import ConstructorInput from '@/components/ConstructorInput'
+import { type VerificationResult, type DeployedContract, type ContractFile } from '@/types/contracts'
+import { mockManualChain, type Transaction } from '@/types/transaction'
+import { asyncPost } from '@/api/asyncRequests'
+import {
+  transactionsAtom,
+  accountAtom,
+  providerAtom,
+  deployedContractsAtom,
+  deployedSelectedContractAtom,
+  envAtom,
+  isVerifyingAtom,
+  verificationAtom,
+  solidityVersionAtom,
+  deployStatusAtom,
+  contractsAtom,
+  selectedContractAtom
+} from '@/atoms'
 import {
   currentFilenameAtom,
   currentWorkspacePathAtom,
   isValidSolidityAtom,
   remixClientAtom
-} from '../../stores/remixClient'
+} from '@/stores/remixClient'
+import './styles.css'
 
 interface DeploymentProps {
   setActiveTab: (tab: AccordianTabs) => void
@@ -48,7 +54,7 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const currentFilename = useAtomValue(currentFilenameAtom)
   const currentWorkspacePath = useAtomValue(currentWorkspacePathAtom)
 
-  const setStatus = useSetAtom(deployStatusAtom)
+  const [deployStatus, setDeployStatus] = useAtom(deployStatusAtom)
 
   const setIsVerifying = useSetAtom(isVerifyingAtom)
 
@@ -105,7 +111,7 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     }
 
     setIsVerifying(true)
-    setStatus('Verifying...')
+    setDeployStatus('IN_PROGRESS')
     // clear current file annotations: inline syntax error reporting
     await remixClient.editor.clearAnnotations()
     try {
@@ -124,14 +130,12 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       const workspaceFiles = await remixClient.fileManager.readdir(`${currentWorkspacePath}/`)
       console.log(`workspaceFiles: ${JSON.stringify(workspaceFiles)}`)
 
-      setStatus('Compiling...')
       workspaceContents.contracts = await getAllContractFiles(currentWorkspacePath)
-
-      setStatus('Verifying...')
 
       const response = await asyncPost('verify-async', 'verify-result', workspaceContents)
 
       if (!response.ok) {
+        setDeployStatus('ERROR')
         throw new Error('Could not reach solidity verification server')
       }
 
@@ -139,7 +143,7 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       const verificationResult = JSON.parse(await response.text()) as VerificationResult
 
       if (verificationResult.status !== 'Success') {
-        setStatus('Reporting Errors...')
+        setDeployStatus('ERROR')
         await remixClient.terminal.log({
           value: verificationResult.message,
           type: 'error'
@@ -207,9 +211,10 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         })
 
         await remixClient.call('notification' as any, 'toast', 'Verification successful.')
+        setDeployStatus('DONE')
       }
     } catch (e) {
-      setStatus('failed')
+      setDeployStatus('ERROR')
       if (e instanceof Error) {
         await remixClient.call('notification' as any, 'alert', {
           id: 'zksyncRemixPluginAlert',
@@ -224,16 +229,14 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   }
 
   async function deploy(): Promise<void> {
-    //   Deploy contract
+    setDeployStatus('IDLE')
     if (selectedContract == null) {
       await remixClient.call('notification' as any, 'toast', 'No contract selected')
-
       return
     }
 
     if (account == null) {
       await remixClient.call('notification' as any, 'toast', 'No account selected')
-
       return
     }
 
@@ -242,10 +245,9 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         value: 'Wallet is not connected!',
         type: 'error'
       })
-
       return
     }
-
+    setDeployStatus('IN_PROGRESS')
     await remixClient.terminal.log({
       value: `Deploying contract ${selectedContract.contractName}`,
       type: 'info'
@@ -255,7 +257,6 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 
     try {
       const contract: Contract = await factory.deploy(...inputs)
-
       remixClient.emit('statusChanged', {
         key: 'loading',
         type: 'info',
@@ -299,7 +300,7 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       if (shouldRunVerification) {
         await verify(deployedContract)
       }
-
+      setDeployStatus('DONE')
       setActiveTab('interaction')
 
       const transaction: Transaction = {
@@ -327,6 +328,7 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         title: `Contract ${selectedContract.contractName} failed to deploy!`
       })
       console.error(e)
+      setDeployStatus('ERROR')
     }
   }
 
@@ -348,7 +350,16 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                     })
                   }}
                 >
-                  Deploy {shouldRunVerification ? ' and Verify' : ''}
+                  {deployStatus === 'IN_PROGRESS' ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true">
+                        {' '}
+                      </span>
+                      <span style={{ paddingLeft: '0.5rem' }}>Deploying...</span>
+                    </>
+                  ) : (
+                    <span> Deploy {shouldRunVerification ? ' and Verify' : ''}</span>
+                  )}
                 </button>
 
                 <div className="flex mt-1 custom-checkbox">

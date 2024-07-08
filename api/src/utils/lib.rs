@@ -205,6 +205,7 @@ pub fn generate_mock_compile_request() -> CompilationRequest {
             file_content: generate_mock_solidity_file_content(),
             is_contract: false,
         }],
+        target_path: None,
     }
 }
 
