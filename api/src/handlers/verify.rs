@@ -147,8 +147,11 @@ pub async fn do_verify(verification_request: VerificationRequest) -> Result<Json
     // initialize the files
     initialize_files(verification_request.contracts.clone(), workspace_path).await?;
 
+    // Limit number of spawned processes. RAII released
+    let _permit = SPAWN_SEMAPHORE.acquire().await.expect("Expired semaphore");
+
     let args = extract_verify_args(&verification_request);
-    let command = Command::new("npx")
+    let command = tokio::process::Command::new("npx")
         .args(args)
         .current_dir(workspace_path)
         .stdout(Stdio::piped())
