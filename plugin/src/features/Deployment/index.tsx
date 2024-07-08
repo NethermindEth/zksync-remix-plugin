@@ -8,7 +8,7 @@ import CompiledContracts from '@/components/CompiledContracts'
 import Container from '@/ui_components/Container'
 import { type AccordianTabs } from '@/types/common'
 import ConstructorInput from '@/components/ConstructorInput'
-import { type VerificationResult, type DeployedContract, type ContractFile } from '@/types/contracts'
+import { type VerificationResult, type DeployedContract } from '@/types/contracts'
 import { mockManualChain, type Transaction } from '@/types/transaction'
 import { asyncPost } from '@/api/asyncRequests'
 import {
