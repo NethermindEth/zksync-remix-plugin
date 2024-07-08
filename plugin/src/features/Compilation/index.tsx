@@ -72,11 +72,10 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
     await remixClient.editor.clearAnnotations()
     try {
       const allContractFiles = await getAllContractFiles(remixClient, currentWorkspacePath)
-      console.log('All contract files', allContractFiles)
       workspaceContents.contracts = allContractFiles
 
       if (type === 'SINGLE_FILE') {
-        const targetPath = getContractTargetPath(allContractFiles, currentFilepath)
+        const targetPath = getContractTargetPath(currentFilepath)
         workspaceContents.target_path = targetPath
       } else {
         const filesNotInContractsFolder = findFilesNotInContracts(allContractFiles)
