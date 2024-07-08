@@ -125,8 +125,15 @@ pub async fn do_compile(compilation_request: CompilationRequest) -> Result<Json<
         .await
         .map_err(ApiError::FailedToWriteFile)?;
 
+    // filter test files from compilation candidates
+    let contracts = compilation_request
+        .contracts
+        .into_iter()
+        .filter(|contract| !contract.file_name.ends_with("_test.sol"))
+        .collect();
+
     // initialize the files
-    initialize_files(compilation_request.contracts, workspace_path).await?;
+    initialize_files(contracts, workspace_path).await?;
 
     // TODO(edwin): change to tokio
     let command = Command::new("npx")
