@@ -46,7 +46,7 @@ export const Plugin = () => {
   }, [setHashDir])
 
   // Deployment Context state variables
-  const { isDeploying, deployStatus } = useAtomValue(deploymentAtom)
+  const { deployStatus } = useAtomValue(deploymentAtom)
 
   // Interaction state variables
   const [interactionStatus] = useState<'loading' | 'success' | 'error' | ''>('')
@@ -100,15 +100,7 @@ export const Plugin = () => {
                   <span className="d-flex align-items-center" style={{ gap: '0.5rem' }}>
                     <p style={{ all: 'unset' }}>Deploy</p>
                     <StateAction
-                      value={
-                        isDeploying
-                          ? 'loading'
-                          : deployStatus === 'error'
-                            ? 'error'
-                            : deployStatus === 'done'
-                              ? 'success'
-                              : ''
-                      }
+                      value={deployStatus === 'ERROR' ? 'error' : deployStatus === 'DONE' ? 'success' : ''}
                     />
                   </span>
                 </AccordionTrigger>

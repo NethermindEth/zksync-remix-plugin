@@ -19,3 +19,25 @@ export const getAllContractFiles = async (remixClient: RemixClient, path: string
   }
   return files
 }
+
+export const getContractTargetPath = (allContracts: ContractFile[], contractFilePath: string) => {
+  for (const { file_name } of allContracts) {
+    if (file_name.includes(contractFilePath)) {
+      const parts = file_name.split('/')
+      if (parts.length === 1) {
+        return './'
+      } else {
+        parts.pop()
+        return './' + parts.join('/')
+      }
+    }
+  }
+
+  return './'
+}
+
+export const findFilesNotInContracts = (allContracts: ContractFile[]) => {
+  return allContracts
+    .filter(({ file_name, is_contract }) => is_contract && !file_name.startsWith('contracts/'))
+    .map(({ file_name }) => file_name.split('/').pop())
+}

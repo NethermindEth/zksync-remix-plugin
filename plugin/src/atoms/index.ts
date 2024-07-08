@@ -5,18 +5,14 @@ export {
   isCompilingAtom,
   compileErrorMessagesAtom,
   type CompilationKeys,
-  type SetCompilationValue
+  type SetCompilationValue,
+  compilationTypeAtom,
+  type CompilationType
 } from './compilation'
 export { contractsAtom, selectedContractAtom } from './compiledContracts'
 export { accountAtom, providerAtom } from './connection'
 export { deployedContractsAtom, deployedSelectedContractAtom } from './deployedContracts'
-export {
-  constructorInputsAtom,
-  deployStatusAtom,
-  deploymentAtom,
-  isDeployingAtom,
-  notEnoughInputsAtom
-} from './deployment'
+export { constructorInputsAtom, deployStatusAtom, deploymentAtom, notEnoughInputsAtom } from './deployment'
 export {
   availableDevnetAccountsAtom,
   devnetAtom,
