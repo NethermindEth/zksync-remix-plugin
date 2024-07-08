@@ -1,5 +1,6 @@
 use crate::handlers::process::{do_process_command, fetch_process_result};
 use crate::handlers::types::{ApiCommand, ApiCommandResult, VerificationRequest, VerifyResponse};
+use crate::handlers::SPAWN_SEMAPHORE;
 use crate::rate_limiter::RateLimited;
 use crate::types::{ApiError, Result};
 use crate::utils::cleaner::AutoCleanUp;
@@ -12,7 +13,7 @@ use crate::worker::WorkerEngine;
 use rocket::serde::{json, json::Json};
 use rocket::{tokio, State};
 use std::path::Path;
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 use tracing::info;
 use tracing::instrument;
 
@@ -146,8 +147,11 @@ pub async fn do_verify(verification_request: VerificationRequest) -> Result<Json
     // initialize the files
     initialize_files(verification_request.contracts.clone(), workspace_path).await?;
 
+    // Limit number of spawned processes. RAII released
+    let _permit = SPAWN_SEMAPHORE.acquire().await.expect("Expired semaphore");
+
     let args = extract_verify_args(&verification_request);
-    let command = Command::new("npx")
+    let command = tokio::process::Command::new("npx")
         .args(args)
         .current_dir(workspace_path)
         .stdout(Stdio::piped())
@@ -157,9 +161,13 @@ pub async fn do_verify(verification_request: VerificationRequest) -> Result<Json
     let process = command.map_err(ApiError::FailedToExecuteCommand)?;
     let output = process
         .wait_with_output()
+        .await
         .map_err(ApiError::FailedToReadOutput)?;
     let status = output.status;
     let message = String::from_utf8_lossy(&output.stdout).to_string();
+
+    // calling here explicitly to avoid dropping the AutoCleanUp struct
+    auto_clean_up.clean_up().await;
 
     if !status.success() {
         return Ok(Json(VerifyResponse {
@@ -167,9 +175,6 @@ pub async fn do_verify(verification_request: VerificationRequest) -> Result<Json
             message: String::from_utf8_lossy(&output.stderr).to_string(),
         }));
     }
-
-    // calling here explicitly to avoid dropping the AutoCleanUp struct
-    auto_clean_up.clean_up().await;
 
     Ok(Json(VerifyResponse {
         status: "Success".to_string(),

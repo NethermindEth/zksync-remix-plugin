@@ -2,6 +2,7 @@ use crate::handlers::process::{do_process_command, fetch_process_result};
 use crate::handlers::types::{
     ApiCommand, ApiCommandResult, CompilationRequest, CompileResponse, CompiledFile,
 };
+use crate::handlers::SPAWN_SEMAPHORE;
 use crate::rate_limiter::RateLimited;
 use crate::types::{ApiError, Result};
 use crate::utils::cleaner::AutoCleanUp;
@@ -15,7 +16,7 @@ use rocket::serde::json;
 use rocket::serde::json::Json;
 use rocket::{tokio, State};
 use std::path::Path;
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 use tracing::instrument;
 use tracing::{error, info};
 
@@ -135,19 +136,22 @@ pub async fn do_compile(compilation_request: CompilationRequest) -> Result<Json<
     // initialize the files
     initialize_files(contracts, workspace_path).await?;
 
-    // TODO(edwin): change to tokio
-    let command = Command::new("npx")
+    // Limit number of spawned processes. RAII released
+    let _permit = SPAWN_SEMAPHORE.acquire().await.expect("Expired semaphore");
+
+    let command = tokio::process::Command::new("npx")
         .arg("hardhat")
         .arg("compile")
         .current_dir(workspace_path)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn();
-
     let process = command.map_err(ApiError::FailedToExecuteCommand)?;
     let output = process
         .wait_with_output()
+        .await
         .map_err(ApiError::FailedToReadOutput)?;
+
     let status = output.status;
     let message = String::from_utf8_lossy(&output.stdout).to_string();
 
