@@ -1,2 +1,5 @@
 [global]
 address = "0.0.0.0"
+
+[default.limits]
+json = "10 MiB"
