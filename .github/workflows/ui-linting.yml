@@ -1,4 +1,4 @@
-name: UI Lint Check on every PR
+name: [UI] Lint
 
 on:
   pull_request:
