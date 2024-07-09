@@ -1,4 +1,4 @@
-name: [UI] Lint
+name: 'UI: Lint'
 
 on:
   pull_request:
