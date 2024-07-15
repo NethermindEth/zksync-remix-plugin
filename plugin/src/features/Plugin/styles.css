@@ -1,33 +1,51 @@
-
 .plugin-wrapper {
-    height: 100%;
-    display: grid;
-    grid-template-rows: 1fr auto;
-    max-height: 100vh;
-    background-color: var(--body-bg);
+  height: 100%;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  max-height: 100vh;
+  background-color: var(--body-bg);
 }
 
-
 .plugin-main-wrapper {
-    overflow-y: scroll;
-    height: 100%;
+  overflow-y: scroll;
+  height: 100%;
 }
 
 .max-w-300 {
-    max-width: 300px;
+  max-width: 300px;
 }
 
 .width-full {
-    width: 100%;
+  width: 100%;
 }
 
 .text-truncate {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .overflow-hidden {
-    overflow: hidden;
+  overflow: hidden;
+}
+
+.tabs-trigger[data-state='active'] {
+  border-bottom: 3px solid var(--info);
+  transition: border-bottom 0.3s ease;
+  color: var(--info);
+}
+
+.tabs-trigger:focus {
+  outline: none;
+}
+
+.tabs-trigger {
+  width: auto;
+  height: 100%;
+  text-align: center;
+  padding: 0.5rem;
+  border-bottom: 3px solid transparent;
+  transition: border-bottom 0.3s ease;
+  border-radius: 3px;
 }
