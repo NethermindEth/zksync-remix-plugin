@@ -19,8 +19,8 @@ import { initializeRemixClient, isLoadedAtom, remixClientAtom } from '@/stores/r
 import storage from '@/utils/storage'
 import useAsync from '@/hooks/useAsync'
 import { type AccordianTabs } from '@/types/common'
-import './styles.css'
 import { FullScreenOverlay, Loader } from '@/ui_components'
+import './styles.css'
 
 export const Plugin = () => {
   const { status: compileStatus, errorMessages: compileErrorMessages } = useAtomValue(compilationAtom)
@@ -29,7 +29,6 @@ export const Plugin = () => {
   const setHashDir = useSetAtom(hashDirAtom)
   const { deployStatus } = useAtomValue(deploymentAtom)
 
-  // Interaction state variables
   const [interactionStatus] = useState<'loading' | 'success' | 'error' | ''>('')
 
   const [currentAccordian, setCurrentAccordian] = useState<AccordianTabs>('compile')
@@ -69,7 +68,10 @@ export const Plugin = () => {
           <div className="plugin-main-wrapper">
             <CompilerVersion />
             <Tabs.Root defaultValue="home" className="tabs-root">
-              <Tabs.List className="flex justify-between rounded tab-list" aria-label="zksyc plugin tab options">
+              <Tabs.List
+                className="flex justify-content-between rounded tab-list"
+                aria-label="zksyc plugin tab options"
+              >
                 <div className="tabs-trigger" />
                 <Tabs.Trigger value="home" className="tabs-trigger">
                   Home
@@ -83,7 +85,6 @@ export const Plugin = () => {
                 <Tabs.Trigger value="settings" className="tabs-trigger">
                   Settings
                 </Tabs.Trigger>
-                <div className="tabs-trigger" />
               </Tabs.List>
               <Tabs.Content value="home">
                 <Accordian type="single" value={currentAccordian} defaultValue={'compile'}>
