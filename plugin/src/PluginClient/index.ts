@@ -7,6 +7,7 @@ interface GithubRepoQuery {
   owner: string
   repo: string
   path: string
+  ref?: string
 }
 
 enum EntryType {
@@ -38,7 +39,8 @@ export class ZKSyncPluginClient extends PluginClient {
     }
 
     const path = pathArray.join('/')
-    return { owner, repo, path }
+    const ref = url.searchParams.get('ref') || undefined
+    return { owner, repo, path, ref }
   }
 
   private static extractEntriesFromData(rawData: any): GithubEntry[] {
@@ -68,11 +70,15 @@ export class ZKSyncPluginClient extends PluginClient {
       throw error
     }
 
-    return await this.loadFromGithub(query.owner, query.repo, query.path)
+    return await this.loadFromGithub(query.owner, query.repo, query.path, query.ref)
   }
 
-  async loadFromGithub(owner: string, repo: string, path: string): Promise<void> {
-    const query = { owner, repo, path }
+  async loadFromGithub(owner: string, repo: string, path?: string, ref?: string): Promise<void> {
+    if (!owner || !repo) {
+      throw Error('owner and repo arguments are required.')
+    }
+
+    const query: GithubRepoQuery = { owner, repo, path: path || '', ref }
     const nameExistsAlready = await this.validateWorkspaceCreation(query)
     if (nameExistsAlready) {
       throw Error('Name already exists')
@@ -93,8 +99,15 @@ export class ZKSyncPluginClient extends PluginClient {
     await this.call('filePanel', 'createWorkspace', repo, true)
 
     try {
-      const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`
-      const content = await axios.get(apiUrl)
+      const getApiUrl = (ref?: string) => {
+        if (!ref) {
+          return `https://api.github.com/repos/${owner}/${repo}/contents/${path}`
+        }
+
+        return `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${ref}`
+      }
+
+      const content = await axios.get(getApiUrl(query.ref))
       const entries = ZKSyncPluginClient.extractEntriesFromData(content.data)
 
       await this.loadRepositoryImpl(entries)
