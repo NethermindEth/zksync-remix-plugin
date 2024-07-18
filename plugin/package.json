@@ -22,6 +22,7 @@
     "axios": "^1.4.0",
     "bn.js": "^5.2.1",
     "clsx": "^2.1.1",
+    "compare-versions": "^6.1.1",
     "copy-to-clipboard": "^3.3.3",
     "ethers": "^5.7.0",
     "form-data": "^4.0.0",
@@ -68,13 +69,14 @@
   },
   "scripts": {
     "start": "vite",
-    "build": "vite build",
+    "build": "vite build && pnpm run postbuild",
     "serve": "vite preview --port 3000",
     "deploy": "pnpm run build; pnpm run serve",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "lint": "eslint \"src/**/*.{ts,tsx,js,jsx}\"",
-    "lint:fix": "eslint \"src/**/*.{ts,tsx,js,jsx}\" --fix"
+    "lint:fix": "eslint \"src/**/*.{ts,tsx,js,jsx}\" --fix",
+    "postbuild": "node ./post-build.cjs"
   },
   "eslintConfig": {
     "extends": [

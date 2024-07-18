@@ -3,11 +3,19 @@ import path from 'path'
 import react from '@vitejs/plugin-react'
 import svgr from 'vite-plugin-svgr'
 import checker from 'vite-plugin-checker'
+import cp from 'child_process'
+
+import packageJson from './package.json'
+
+const commitHash = cp.execSync('git rev-parse --short HEAD').toString().replace('\n', '')
+
+const APP_VERSION = `${packageJson.version}-${commitHash}`
 
 export default defineConfig(() => {
   return {
     define: {
-      'process.env': {}
+      'process.env': {},
+      'import.meta.env.APP_VERSION': JSON.stringify(APP_VERSION)
     },
     server: {
       port: 3000,
