@@ -32,7 +32,9 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
   const env = useAtomValue(envAtom)
   const provider = useAtomValue(providerAtom)
 
-  const [inputs, setInputs] = useState<ContractInputType>([])
+  const [inputs, setInputs] = useState<ContractInputType>(
+    new Array(element.inputs.length).fill({ internalType: 'string', value: '' })
+  )
   const [value, setValue] = useState<string>('')
 
   const callContract = async (): Promise<void> => {
@@ -154,7 +156,7 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
           key={index}
           placeholder={generateInputName(input)}
           index={index}
-          value={inputs[index].value}
+          value={inputs[index]?.value}
           onChange={(index, newValue) => {
             const newInputs = [...inputs]
             newInputs[index] = {
