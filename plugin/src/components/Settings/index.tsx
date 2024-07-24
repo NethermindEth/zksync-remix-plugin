@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react'
-import './settings.css'
 import { BsChevronDown } from 'react-icons/bs'
 import { useAtom, useAtomValue } from 'jotai'
 import useAsyncFn from '@/hooks/useAsyncFn'
@@ -8,6 +7,7 @@ import { apiUrl } from '@/utils/network'
 import { solidityVersionAtom, versionsAtom } from '@/atoms'
 import * as Dropdown from '@/ui_components/Dropdown'
 import useTimeoutFn from '@/hooks/useTimeoutFn'
+import './settings.css'
 
 const DEFAULT_DELAY = 5_000
 

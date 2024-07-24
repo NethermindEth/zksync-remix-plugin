@@ -1,8 +1,8 @@
 import React from 'react'
-import Nethermind from '../../components/NM'
-import './style.css'
 import { useAtomValue } from 'jotai'
+import Nethermind from '@/components/NM'
 import { solidityVersionAtom } from '@/atoms'
+import './style.css'
 
 export const Footer = () => {
   const solidityVersion = useAtomValue(solidityVersionAtom)
