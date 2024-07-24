@@ -55,10 +55,9 @@ export const SolidityVersion: React.FC = () => {
   }, [remixClient])
 
   return (
-    <div className="version-wrapper">
-      <div className="version-right">
-        <label className="plugin-version">Plugin version: {pluginVersion}</label>
-      </div>
+    <div className="plugin-version-wrapper">
+      <div className="plugin-version-label">ALPHA</div>
+      <div className="plugin-version">Using {pluginVersion}</div>
     </div>
   )
 }

@@ -331,6 +331,7 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                       console.error(err)
                     })
                   }}
+                  disabled={deployStatus === 'IN_PROGRESS'}
                 >
                   {deployStatus === 'IN_PROGRESS' ? (
                     <>
