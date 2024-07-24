@@ -8,7 +8,8 @@ import {
   Deployment,
   Interaction,
   TransactionHistory,
-  SolidityVersion as CompilerVersion
+  SolidityVersion as CompilerVersion,
+  Footer
 } from '@/features'
 import Accordian, { AccordianItem, AccordionContent, AccordionTrigger } from '@/ui_components/Accordian'
 import StateAction from '@/components/StateAction'
@@ -21,6 +22,7 @@ import useAsync from '@/hooks/useAsync'
 import { type AccordianTabs } from '@/types/common'
 import { FullScreenOverlay, Loader } from '@/ui_components'
 import './styles.css'
+import { Settings } from '@/components/Settings'
 
 export const Plugin = () => {
   const { status: compileStatus, errorMessages: compileErrorMessages } = useAtomValue(compilationAtom)
@@ -153,12 +155,16 @@ export const Plugin = () => {
               <Tabs.Content value="info">
                 <BackgroundNotices />
               </Tabs.Content>
+              <Tabs.Content value="settings">
+                <Settings />
+              </Tabs.Content>
             </Tabs.Root>
           </div>
           <div>
             <Environment />
           </div>
         </div>
+        <Footer />
       </>
     ) : (
       <FullScreenOverlay>
