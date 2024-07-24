@@ -127,7 +127,7 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
       </div> */}
 
       <button
-        className="btn btn-warning w-100 text-break remixui_disabled mb-1 mt-1 px-2"
+        className="btn btn-secondary btn-block d-block w-100 text-break mb-1 text-center"
         onClick={() => handleCompile({ type: 'PROJECT' })}
         disabled={isCompiling || !isContractsFolderAvailable}
       >
@@ -139,7 +139,7 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
             <span style={{ paddingLeft: '0.5rem' }}>{status}</span>
           </>
         ) : isContractsFolderAvailable ? (
-          <span> Compile Project</span>
+          <div className="text-truncate overflow-hidden text-nowrap">Compile Project</div>
         ) : (
           <Tooltip
             icon={
@@ -159,7 +159,7 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
       </button>
 
       <button
-        className="btn btn-primary w-100 text-break remixui_disabled mb-1 mt-1 px-2"
+        className="btn btn-primary btn-block d-block w-100 text-break mb-1 mt-3"
         style={{
           cursor: `${!isValidSolidity || !currentFilename ? 'not-allowed' : 'pointer'}`
         }}
