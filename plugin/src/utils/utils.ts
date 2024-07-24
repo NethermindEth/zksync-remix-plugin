@@ -1,3 +1,4 @@
+import { ContractInputType } from '@/components/ConstructorInput'
 import { type DevnetAccount } from '../types/accounts'
 import { type Abi, type AbiElement, type Contract, type Input } from '../types/contracts'
 import { type Network, networkExplorerUrls } from './constants'
@@ -78,6 +79,44 @@ const trimStr = (str?: string, strip?: number): string => {
   return `${str?.slice(0, strip ?? 6)}...${str?.slice(length - (strip ?? 6))}`
 }
 
+const isSolidityArrayType = (str: string) => {
+  // Regular expression to match Solidity array types
+  const arrayTypeRegex = /^(uint|int|bytes|string|address|bool)(\d{1,3})?(\[\])+$/
+
+  if (str === 'bytes[]' || str === 'string[]') {
+    return true
+  }
+
+  if (arrayTypeRegex.test(str)) {
+    const match = str.match(arrayTypeRegex)
+    if (match && (match[1] === 'uint' || match[1] === 'int')) {
+      const bitSize = parseInt(match[2] || '256')
+      return bitSize >= 8 && bitSize <= 256 && bitSize % 8 === 0
+    }
+
+    if (match && match[1] === 'bytes' && match[2]) {
+      const byteSize = parseInt(match[2])
+      return byteSize >= 1 && byteSize <= 32
+    }
+    return true
+  }
+  return false
+}
+
+const parseContractInputs = (inputs: ContractInputType) =>
+  inputs.map((input) => {
+    if (isSolidityArrayType(input.internalType)) {
+      try {
+        const parsedValue = JSON.parse(input.value)
+        return parsedValue
+      } catch (error) {
+        console.error(`Failed to parse constructor input ${error}`)
+        return input.value
+      }
+    }
+    return input.value
+  })
+
 export {
   getFileExtension,
   getFileNameFromPath,
@@ -95,5 +134,6 @@ export {
   weiToEth,
   getExplorerUrl,
   generateInputName,
-  trimStr
+  trimStr,
+  parseContractInputs
 }

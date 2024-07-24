@@ -7,10 +7,15 @@ import InputField from '../InputField'
 import { useAtomValue } from 'jotai'
 import { selectedContractAtom } from '../../atoms/compiledContracts'
 
+export type ContractInputType = {
+  internalType: string
+  value: string
+}[]
+
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface ConstructorContractsProps {
-  inputs: string[]
-  setInputs: (input: string[]) => void
+  inputs: ContractInputType
+  setInputs: (input: ContractInputType) => void
 }
 
 const ConstructorInput: React.FC<ConstructorContractsProps> = ({ inputs, setInputs }: ConstructorContractsProps) => {
@@ -33,10 +38,13 @@ const ConstructorInput: React.FC<ConstructorContractsProps> = ({ inputs, setInpu
           <InputField
             name={generateInputName(input)}
             index={index}
-            value={inputs[index]}
+            value={inputs[index].value}
             onChange={(index, newValue) => {
               const newInputs = [...inputs]
-              newInputs[index] = newValue
+              newInputs[index] = {
+                internalType: input.internalType || 'string',
+                value: newValue
+              }
               setInputs(newInputs)
             }}
             key={index}

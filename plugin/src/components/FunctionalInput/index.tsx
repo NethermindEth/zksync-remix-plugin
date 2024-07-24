@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import * as zksync from 'zksync-ethers'
-import { generateInputName } from '../../utils/utils'
+import { generateInputName, parseContractInputs } from '../../utils/utils'
 import { type AbiElement, type Input } from '../../types/contracts'
 import InputField from '../InputField'
 import { ethers } from 'ethers'
@@ -14,6 +14,7 @@ import { accountAtom, providerAtom } from '../../atoms/connection'
 import { useWalletClient } from 'wagmi'
 import { envAtom } from '../../atoms/environment'
 import { remixClientAtom } from '../../stores/remixClient'
+import { ContractInputType } from '../ConstructorInput'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface CompiledContractsProps {
@@ -31,7 +32,9 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
   const env = useAtomValue(envAtom)
   const provider = useAtomValue(providerAtom)
 
-  const [inputs, setInputs] = useState<string[]>([])
+  const [inputs, setInputs] = useState<ContractInputType>(
+    new Array(element.inputs.length).fill({ internalType: 'string', value: '' })
+  )
   const [value, setValue] = useState<string>('')
 
   const callContract = async (): Promise<void> => {
@@ -57,7 +60,7 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
         title: `Executing "${element.name}" method!`
       })
 
-      const callParameters = [...inputs]
+      const callParameters = parseContractInputs(inputs)
       if (element.stateMutability === 'payable') {
         const options: any = { value: ethers.utils.parseEther(value) }
         callParameters.push(options)
@@ -119,7 +122,7 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
   }
 
   useEffect(() => {
-    setInputs(new Array(element.inputs.length).fill(''))
+    setInputs(new Array(element.inputs.length).fill({ internalType: 'string', value: '' }))
   }, [element])
 
   return (
@@ -153,10 +156,13 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
           key={index}
           placeholder={generateInputName(input)}
           index={index}
-          value={inputs[index]}
+          value={inputs[index].value}
           onChange={(index, newValue) => {
             const newInputs = [...inputs]
-            newInputs[index] = newValue
+            newInputs[index] = {
+              internalType: input.internalType || 'string',
+              value: newValue
+            }
             setInputs(newInputs)
           }}
         />

@@ -7,7 +7,7 @@ import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import CompiledContracts from '@/components/CompiledContracts'
 import Container from '@/ui_components/Container'
 import { type AccordianTabs } from '@/types/common'
-import ConstructorInput from '@/components/ConstructorInput'
+import ConstructorInput, { ContractInputType } from '@/components/ConstructorInput'
 import { type VerificationResult, type DeployedContract } from '@/types/contracts'
 import { mockManualChain, type Transaction } from '@/types/transaction'
 import { asyncPost } from '@/api/asyncRequests'
@@ -33,6 +33,7 @@ import {
 } from '@/stores/remixClient'
 import './styles.css'
 import { getAllContractFiles } from '@/utils/remix_storage'
+import { parseContractInputs } from '@/utils/utils'
 
 interface DeploymentProps {
   setActiveTab: (tab: AccordianTabs) => void
@@ -47,7 +48,7 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const account = useAtomValue(accountAtom)
   const [deployedContracts, setDeployedContracts] = useAtom(deployedContractsAtom)
   const setDeployedSelectedContract = useSetAtom(deployedSelectedContractAtom)
-  const [inputs, setInputs] = useState<string[]>([])
+  const [inputs, setInputs] = useState<ContractInputType>([])
   const [shouldRunVerification, setShouldRunVerification] = useState<boolean>(false)
 
   const { isVerifying } = useAtomValue(verificationAtom)
@@ -77,7 +78,7 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       return
     }
 
-    setInputs(new Array(constructor?.inputs.length).fill(''))
+    setInputs(new Array(constructor?.inputs.length).fill({ internalType: 'string', value: '' }))
   }, [selectedContract])
 
   useEffect(() => {
@@ -103,7 +104,7 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
           // solc_version: ,
           network: selectedChainName ?? 'unknown',
           contract_address: contract.address,
-          inputs
+          inputs: parseContractInputs(inputs)
         },
         contracts: [] as Array<{ file_name: string; file_content: string; is_contract: boolean }>
       }
@@ -238,7 +239,8 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     const factory = new zksync.ContractFactory(selectedContract.abi, selectedContract.bytecode, account)
 
     try {
-      const contract: Contract = await factory.deploy(...inputs)
+      const parsedInputs = parseContractInputs(inputs)
+      const contract: Contract = await factory.deploy(...parsedInputs)
       remixClient.emit('statusChanged', {
         key: 'loading',
         type: 'info',
