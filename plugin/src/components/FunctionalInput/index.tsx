@@ -156,7 +156,7 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
           key={index}
           placeholder={generateInputName(input)}
           index={index}
-          value={inputs[index]?.value}
+          value={inputs[index].value}
           onChange={(index, newValue) => {
             const newInputs = [...inputs]
             newInputs[index] = {
