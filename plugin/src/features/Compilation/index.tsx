@@ -121,13 +121,9 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
   }
 
   return (
-    <Container>
-      {/* <div className="align-center d-flex justify-content-center">
-        Only files in the contracts folder can be compiled.
-      </div> */}
-
+    <Container className="flex flex-column justify-content-center">
       <button
-        className="btn btn-secondary btn-block d-block w-100 text-break mb-1 text-center"
+        className="btn btn-secondary d-block text-break mb-1 text-center"
         onClick={() => handleCompile({ type: 'PROJECT' })}
         disabled={isCompiling || !isContractsFolderAvailable}
       >
@@ -159,7 +155,7 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
       </button>
 
       <button
-        className="btn btn-primary btn-block d-block w-100 text-break mb-1 mt-3"
+        className="btn btn-primary d-block text-break mb-1 mt-3"
         style={{
           cursor: `${!isValidSolidity || !currentFilename ? 'not-allowed' : 'pointer'}`
         }}
