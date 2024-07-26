@@ -28,9 +28,9 @@ const NetworkTag = ({ type }: { type: string }) => {
 export const TransactionCard = ({ transaction }: { transaction: Transaction }) => {
   const cardRef = useRef<HTMLDivElement>(null)
   const [address, setAddress] = useState<string | undefined>()
-  const { account, txId, env, chain } = transaction
+  const { account, txId: txnHash, env, chain } = transaction
   const isEnvLocalOrRemote = env === 'localDevnet' || env === 'remoteDevnet'
-  const txIdShort = getShortenedHash(txId, 8, 6)
+  const txnHashShort = getShortenedHash(txnHash, 8, 6)
 
   useEffect(() => {
     const fetchAddress = async (): Promise<void> => {
@@ -64,19 +64,19 @@ export const TransactionCard = ({ transaction }: { transaction: Transaction }) =
           )}
         </div>
         <div className="txn-wrapper">
-          <p className={'label-tx'}>TxID:</p>
+          <p className={'label-tx'}>TxHash:</p>
           {isEnvLocalOrRemote ? (
-            <a target="_blank" title={txId} rel="noreferrer">
-              {txIdShort}
+            <a target="_blank" title={txnHash} rel="noreferrer">
+              {txnHashShort}
             </a>
           ) : (
             <a
-              href={`${String(chain?.blockExplorers?.default.url)}/tx/${txId}`}
+              href={`${String(chain?.blockExplorers?.default.url)}/tx/${txnHash}`}
               target="_blank"
-              title={txId}
+              title={txnHash}
               rel="noreferrer"
             >
-              {txIdShort}
+              {txnHashShort}
             </a>
           )}
         </div>
