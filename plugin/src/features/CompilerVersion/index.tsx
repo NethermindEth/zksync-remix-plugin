@@ -1,16 +1,23 @@
-import React from 'react'
-import { useAtomValue } from 'jotai'
+import React, { useEffect } from 'react'
+import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import semver from 'semver'
 import { apiUrl } from '../../utils/network'
 import { remixClientAtom } from '../../stores/remixClient'
 import './style.css'
 import useAsync from '@/hooks/useAsync'
+import useAsyncFn from '@/hooks/useAsyncFn'
+import { solidityVersionAtom, versionsAtom } from '@/atoms'
+import useTimeoutFn from '@/hooks/useTimeoutFn'
 
 const envViteVersion: string | undefined = import.meta.env.VITE_VERSION
 const pluginVersion = envViteVersion !== undefined ? `v${envViteVersion}` : 'v0.2.5'
 
+const DEFAULT_DELAY = 5_000
+
 export const SolidityVersion: React.FC = () => {
   const remixClient = useAtomValue(remixClientAtom)
+  const setSolidityVersion = useSetAtom(solidityVersionAtom)
+  const [versions, setVersions] = useAtom(versionsAtom)
 
   useAsync(async () => {
     try {
@@ -53,6 +60,46 @@ export const SolidityVersion: React.FC = () => {
       console.error(error)
     }
   }, [remixClient])
+
+  const [, refetchVersions] = useAsyncFn(async () => {
+    try {
+      await remixClient.call(
+        'notification' as any,
+        'toast',
+        `🟢 Fetching solidity versions from the compilation server at ${apiUrl}`
+      )
+      const response = await fetch(`${apiUrl}/allowed_versions`, {
+        method: 'GET',
+        redirect: 'follow',
+        headers: {
+          'Content-Type': 'application/octet-stream'
+        }
+      })
+      const allowedVersions = await response.json()
+      setVersions(allowedVersions)
+      if (allowedVersions.length > 0) {
+        setSolidityVersion(allowedVersions[0])
+      }
+
+      return allowedVersions
+    } catch (error) {
+      await remixClient.call(
+        'notification' as any,
+        'toast',
+        '🔴 Failed to fetch solidity versions from the compilation server'
+      )
+      console.error(error)
+      throw error
+    }
+  }, [remixClient])
+
+  const [, cancelRefetchVersions] = useTimeoutFn(refetchVersions, DEFAULT_DELAY)
+
+  useEffect(() => {
+    if (versions.length > 0) {
+      cancelRefetchVersions()
+    }
+  }, [versions, cancelRefetchVersions])
 
   return (
     <div className="plugin-version-wrapper">

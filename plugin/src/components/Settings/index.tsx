@@ -1,60 +1,13 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { BsChevronDown } from 'react-icons/bs'
 import { useAtom, useAtomValue } from 'jotai'
-import useAsyncFn from '@/hooks/useAsyncFn'
-import { remixClientAtom } from '@/stores/remixClient'
-import { apiUrl } from '@/utils/network'
 import { solidityVersionAtom, versionsAtom } from '@/atoms'
 import * as Dropdown from '@/ui_components/Dropdown'
-import useTimeoutFn from '@/hooks/useTimeoutFn'
 import './settings.css'
 
-const DEFAULT_DELAY = 5_000
-
 export const Settings = () => {
-  const remixClient = useAtomValue(remixClientAtom)
   const [solidityVersion, setSolidityVersion] = useAtom(solidityVersionAtom)
-  const [versions, setVersions] = useAtom(versionsAtom)
-
-  const [, refetchVersions] = useAsyncFn(async () => {
-    try {
-      await remixClient.call(
-        'notification' as any,
-        'toast',
-        `🟢 Fetching solidity versions from the compilation server at ${apiUrl}`
-      )
-      const response = await fetch(`${apiUrl}/allowed_versions`, {
-        method: 'GET',
-        redirect: 'follow',
-        headers: {
-          'Content-Type': 'application/octet-stream'
-        }
-      })
-      const allowedVersions = await response.json()
-      setVersions(allowedVersions)
-      if (allowedVersions.length > 0) {
-        setSolidityVersion(allowedVersions[0])
-      }
-
-      return allowedVersions
-    } catch (error) {
-      await remixClient.call(
-        'notification' as any,
-        'toast',
-        '🔴 Failed to fetch solidity versions from the compilation server'
-      )
-      console.error(error)
-      throw error
-    }
-  }, [remixClient])
-
-  const [, cancelRefetchVersions] = useTimeoutFn(refetchVersions, DEFAULT_DELAY)
-
-  useEffect(() => {
-    if (versions.length > 0) {
-      cancelRefetchVersions()
-    }
-  }, [versions, cancelRefetchVersions])
+  const versions = useAtomValue(versionsAtom)
 
   return (
     <div className="settings-wrapper">
