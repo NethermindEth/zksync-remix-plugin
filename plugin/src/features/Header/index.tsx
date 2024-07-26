@@ -14,7 +14,7 @@ const pluginVersion = envViteVersion !== undefined ? `v${envViteVersion}` : 'v0.
 
 const DEFAULT_DELAY = 5_000
 
-export const SolidityVersion: React.FC = () => {
+export const Header = () => {
   const remixClient = useAtomValue(remixClientAtom)
   const setSolidityVersion = useSetAtom(solidityVersionAtom)
   const [versions, setVersions] = useAtom(versionsAtom)

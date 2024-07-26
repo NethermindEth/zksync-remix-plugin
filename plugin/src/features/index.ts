@@ -1,5 +1,5 @@
 export * from './Compilation'
-export * from './CompilerVersion'
+export * from './Header'
 export * from './Deployment'
 export * from './Environment'
 export * from './Interaction'
