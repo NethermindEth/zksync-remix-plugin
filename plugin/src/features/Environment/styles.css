@@ -1,77 +1,76 @@
 .zksync-connection-component {
-    background-color: var(--body-bg);
+  background-color: var(--body-bg);
 }
 
 .wallet-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .wallet-wrapper > p {
-    text-decoration: none;
-    text-transform: capitalize;
+  text-decoration: none;
+  text-transform: capitalize;
 }
 
 .wallet-wrapper img {
-    width: 30px;
-    height: 30px;
+  width: 30px;
+  height: 30px;
 }
 
 .text {
-    font-size: 1rem;
-    margin: 0;
-    padding: 0;
+  font-size: 1rem;
+  margin: 0;
+  padding: 0;
 }
 
 .account {
-    font-weight: 700;
-    cursor: pointer;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .account-wrapper {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .account-wrapper span {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .flex_dot {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .env-testnet-btn {
-    border: 1px solid var(--warning) !important;
-    font-size: var(--font-sm) !important;
-    color: var(--white);
+  border: 1px solid var(--warning) !important;
+  font-size: var(--font-sm) !important;
+  color: var(--white);
 }
 
 @media screen and (max-width: 310px) {
-    .env-testnet-btn {
-        font-size: 8px;
-    }
+  .env-testnet-btn {
+    font-size: 8px;
+  }
 }
 
 .env-testnet-btn:hover {
-    border: 1px solid var(--warning);
+  border: 1px solid var(--warning);
 }
 
 .trigger-env {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-right: 1rem;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-right: 1rem;
 }
 
 .trigger-env > p {
-    margin: 0;
-    text-shadow: 2px 2px 3px var(--accentColor);
+  margin: 0;
 }
