@@ -31,7 +31,7 @@
 }
 
 .tabs-trigger[data-state='active'] {
-  border-bottom: 3px solid var(--info);
+  border-bottom: 2px solid var(--info);
   transition: border-bottom 0.3s ease;
   color: var(--info);
 }
@@ -47,5 +47,4 @@
   padding: 0.5rem 0.3rem;
   border-bottom: 3px solid transparent;
   transition: border-bottom 0.3s ease;
-  border-radius: 3px;
 }

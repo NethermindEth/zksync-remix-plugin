@@ -155,7 +155,7 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
       </button>
 
       <button
-        className="btn btn-primary d-block text-break mb-1 mt-3"
+        className="btn btn-primary d-block text-break mb-1 mt-2"
         style={{
           cursor: `${!isValidSolidity || !currentFilename ? 'not-allowed' : 'pointer'}`
         }}
