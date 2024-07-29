@@ -327,12 +327,13 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                 <ConstructorInput inputs={inputs} setInputs={setInputs}></ConstructorInput>
 
                 <button
-                  className="deploy-btn btn btn-primary btn-warning w-100 text-break mb-1 mt-2 px-0"
+                  className="btn btn-warning w-100 text-break mb-1 mt-2 px-0"
                   onClick={() => {
                     deploy().catch((err) => {
                       console.error(err)
                     })
                   }}
+                  disabled={deployStatus === 'IN_PROGRESS'}
                 >
                   {deployStatus === 'IN_PROGRESS' ? (
                     <>

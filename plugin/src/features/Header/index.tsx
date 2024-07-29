@@ -1,15 +1,12 @@
 import React, { useEffect } from 'react'
-import { useAtom, useAtomValue } from 'jotai'
+import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import semver from 'semver'
-import { BsChevronDown } from 'react-icons/bs'
-import * as Dropdown from '../../ui_components/Dropdown'
 import { apiUrl } from '../../utils/network'
-import Nethermind from '../../components/NM'
-import { solidityVersionAtom, versionsAtom } from '../../atoms/version'
 import { remixClientAtom } from '../../stores/remixClient'
 import './style.css'
 import useAsync from '@/hooks/useAsync'
 import useAsyncFn from '@/hooks/useAsyncFn'
+import { solidityVersionAtom, versionsAtom } from '@/atoms'
 import useTimeoutFn from '@/hooks/useTimeoutFn'
 
 const envViteVersion: string | undefined = import.meta.env.VITE_VERSION
@@ -17,9 +14,9 @@ const pluginVersion = envViteVersion !== undefined ? `v${envViteVersion}` : 'v0.
 
 const DEFAULT_DELAY = 5_000
 
-export const SolidityVersion: React.FC = () => {
+export const Header = () => {
   const remixClient = useAtomValue(remixClientAtom)
-  const [solidityVersion, setSolidityVersion] = useAtom(solidityVersionAtom)
+  const setSolidityVersion = useSetAtom(solidityVersionAtom)
   const [versions, setVersions] = useAtom(versionsAtom)
 
   useAsync(async () => {
@@ -105,39 +102,9 @@ export const SolidityVersion: React.FC = () => {
   }, [versions, cancelRefetchVersions])
 
   return (
-    <div className="version-wrapper">
-      <div>
-        <Dropdown.Root>
-          <Dropdown.Trigger>
-            <label className="solidity-version-legend">
-              Using zksolc-{solidityVersion} <BsChevronDown />
-            </label>
-          </Dropdown.Trigger>
-          <Dropdown.Portal>
-            <Dropdown.Content>
-              {versions.map((v, i) => {
-                return (
-                  <Dropdown.Item
-                    key={i}
-                    onClick={() => {
-                      setSolidityVersion(v)
-                    }}
-                  >
-                    {v}
-                  </Dropdown.Item>
-                )
-              })}
-            </Dropdown.Content>
-          </Dropdown.Portal>
-        </Dropdown.Root>
-      </div>
-      <div className="version-right">
-        <label className="nethermind-powered">
-          <span style={{ marginRight: '4px' }}>Powered by </span>
-          <Nethermind size="xs" />
-        </label>
-        <label className="plugin-version">Plugin version: {pluginVersion}</label>
-      </div>
+    <div className="plugin-version-wrapper">
+      <div className="plugin-version-label">ALPHA</div>
+      <div className="plugin-version">Using {pluginVersion}</div>
     </div>
   )
 }

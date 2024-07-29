@@ -49,6 +49,12 @@ const licenses = [
 
 export const FILES_NOT_IN_CONTRACTS_MESSAGE =
   'Warning: Only files within the /contracts/* folder structure are included in the project compilation. The following smart contracts defined outside this structure will not be available for deployment:'
+
+export const PLUGIN_INFO_CONTENT_ARRAY = [
+    'The zkSync Remix Plugin is in Alpha',
+    'Solidity contracts are compiled on a server hosted by Nethermind'
+  ]
+
 export { devnetUrl, networks, networkExplorerUrls, licenses }
 
 export type { Network }

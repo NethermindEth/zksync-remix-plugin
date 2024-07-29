@@ -1,9 +1,12 @@
+body {
+  font: 1rem;
+}
 .shell {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
 }
 
 .solidity-version-legend {
-    margin: 0 24px;
+  margin: 0 24px;
 }
