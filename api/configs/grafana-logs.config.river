@@ -1,0 +1,23 @@
+local.file_match "logs" {
+	path_targets = [{
+		__address__ = "localhost",
+        __path__    = env("PROMTAIL_BASE_DIR") + "/logs/*",
+		host        = "localhost",
+		job         = "zksync-remix-docker-logs",
+	}]
+}
+
+loki.source.file "logs" {
+    targets = local.file_match.logs.targets
+    forward_to = [loki.write.logs.receiver]
+}
+
+loki.write "logs" {
+    endpoint {
+        url = "https://logs-prod-us-central1.grafana.net/loki/api/v1/push"
+        basic_auth {
+          username = env("PROMTAIL_USERNAME")
+          password = env("PROMTAIL_PASSWORD")
+        }
+    }
+}
