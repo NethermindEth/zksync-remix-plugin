@@ -68,7 +68,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-right: 1rem;
+  padding-right: 8px;
+  gap: 4px;
 }
 
 .trigger-env > p {
