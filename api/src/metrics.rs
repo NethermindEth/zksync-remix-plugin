@@ -1,9 +1,8 @@
+use crate::errors::CoreError;
 use prometheus::core::{AtomicU64, GenericCounter, GenericCounterVec};
 use prometheus::{Encoder, IntCounter, IntCounterVec, Opts, Registry, TextEncoder};
 use rocket::fairing::{Fairing, Info, Kind};
 use rocket::{Data, Request, State};
-use std::sync::Arc;
-use tokio::sync::Mutex;
 use tracing::instrument;
 
 const NAMESPACE: &str = "zksync_api";
@@ -32,10 +31,7 @@ impl Fairing for Metrics {
         });
 
         match req.uri().path().as_str() {
-            "/compile" | "/compile-async" => {
-                let a = 1;
-                self.num_of_compilations.inc()
-            }
+            "/compile" | "/compile-async" => self.num_of_compilations.inc(),
             // TODO: num_plugin_launches
             _ => {}
         }
@@ -43,30 +39,24 @@ impl Fairing for Metrics {
 }
 
 // TODO: Result<Registry>
-pub(crate) fn create_metrics(registry: Registry) -> Metrics {
+pub(crate) fn create_metrics(registry: Registry) -> Result<Metrics, CoreError> {
     let opts = Opts::new("num_distinct_users", "Number of distinct users").namespace(NAMESPACE);
-    let num_distinct_users = IntCounterVec::new(opts, &["ip"]).unwrap();
-    registry
-        .register(Box::new(num_distinct_users.clone()))
-        .unwrap();
+    let num_distinct_users = IntCounterVec::new(opts, &["ip"])?;
+    registry.register(Box::new(num_distinct_users.clone()))?;
 
     let opts = Opts::new("num_plugin_launches", "Number of plugin launches").namespace(NAMESPACE);
-    let num_plugin_launches = IntCounter::with_opts(opts).unwrap();
-    registry
-        .register(Box::new(num_plugin_launches.clone()))
-        .unwrap();
+    let num_plugin_launches = IntCounter::with_opts(opts)?;
+    registry.register(Box::new(num_plugin_launches.clone()))?;
 
     let opts = Opts::new("num_of_compilations", "Number of compilation runs").namespace(NAMESPACE);
-    let num_of_compilations = IntCounter::with_opts(opts).unwrap();
-    registry
-        .register(Box::new(num_of_compilations.clone()))
-        .unwrap();
+    let num_of_compilations = IntCounter::with_opts(opts)?;
+    registry.register(Box::new(num_of_compilations.clone()))?;
 
-    Metrics {
+    Ok(Metrics {
         num_distinct_users,
         num_plugin_launches,
         num_of_compilations,
-    }
+    })
 }
 
 #[instrument]

@@ -1,7 +1,5 @@
 use std::io::Error as IoError;
 
-pub type Result<T> = std::result::Result<T, ApiError>;
-
 #[derive(Debug, thiserror::Error)]
 pub enum ApiError {
     #[error("Failed to execute command: {0}")]
@@ -49,3 +47,15 @@ pub enum ApiError {
     #[error("Unknown network selected: {0}")]
     UnknownNetwork(String),
 }
+
+#[derive(thiserror::Error, Debug)]
+pub enum CoreError {
+    #[error(transparent)]
+    RocketError(#[from] rocket::Error),
+    #[error(transparent)]
+    PrometheusError(#[from] prometheus::Error),
+    #[error(transparent)]
+    LoggingGlobalError(#[from] tracing::dispatcher::SetGlobalDefaultError),
+}
+
+pub type Result<T, E = ApiError> = std::result::Result<T, E>;

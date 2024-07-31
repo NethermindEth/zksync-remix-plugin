@@ -21,3 +21,26 @@ loki.write "logs" {
         }
     }
 }
+
+prometheus.remote_write "metrics" {
+    endpoint {
+        name = "zksync-metrics"
+        url = "https://prometheus-us-central1.grafana.net/api/prom/push"
+
+        basic_auth {
+            username = env("PROMTAIL_USERNAME")
+            password = env("PROMTAIL_PASSWORD")
+        }
+    }
+}
+
+prometheus.scrape "metrics" {
+    targets = [{
+        __address__ = "localhost:" + env(METRICS_PORT),
+        __metrics_path__ = "/metrics",
+    }]
+    forward_to = [prometheus.remote_write.metrics.receiver]
+
+    job_name = "zksync-metrics-job"
+    scrape_interval = 30s
+}

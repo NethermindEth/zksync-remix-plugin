@@ -5,11 +5,11 @@ pub mod service_version;
 pub mod types;
 pub mod verify;
 
+use crate::errors::ApiError;
 use crate::handlers::compile::do_compile;
 use crate::handlers::compiler_version::do_compiler_version;
 use crate::handlers::types::{ApiCommand, ApiCommandResult, HealthCheckResponse};
 use crate::handlers::verify::do_verify;
-use crate::types::ApiError;
 use crate::utils::lib::generate_mock_compile_request;
 use lazy_static::lazy_static;
 use tokio::sync::Semaphore;

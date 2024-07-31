@@ -2,20 +2,14 @@
 extern crate rocket;
 
 pub mod cors;
+pub mod errors;
 pub mod handlers;
 mod metrics;
 pub mod rate_limiter;
 pub mod tracing_log;
-pub mod types;
 pub mod utils;
 pub mod worker;
 
-use crate::cors::CORS;
-use crate::metrics::{create_metrics, Metrics};
-use crate::rate_limiter::RateLimiter;
-use crate::tracing_log::init_logger;
-use crate::utils::lib::{ARTIFACTS_ROOT, SOL_ROOT};
-use crate::worker::WorkerEngine;
 use clokwerk::{Scheduler, TimeUnits};
 use handlers::compile::{compile, compile_async, get_compile_result};
 use handlers::compiler_version::{allowed_versions, compiler_version};
@@ -29,6 +23,14 @@ use rocket::{tokio, Build, Config, Rocket};
 use std::env;
 use std::net::Ipv4Addr;
 use tracing::info;
+
+use crate::cors::CORS;
+use crate::errors::CoreError;
+use crate::metrics::{create_metrics, Metrics};
+use crate::rate_limiter::RateLimiter;
+use crate::tracing_log::init_logger;
+use crate::utils::lib::{ARTIFACTS_ROOT, SOL_ROOT};
+use crate::worker::WorkerEngine;
 
 async fn clear_artifacts() {
     let _ = tokio::fs::remove_dir_all(ARTIFACTS_ROOT).await;
@@ -121,19 +123,18 @@ fn create_metrics_server(registry: Registry) -> Rocket<Build> {
 }
 
 #[rocket::main]
-async fn main() -> Result<(), rocket::Error> {
-    // TODO: handle error
-    if let Err(err) = init_logger() {
-        eprintln!("Error initializing logger: {}", err);
-    }
+async fn main() -> Result<(), CoreError> {
+    init_logger()?;
 
     let registry = Registry::new();
-    let metrics = create_metrics(registry.clone());
+    let metrics = create_metrics(registry.clone())?;
 
     let app = create_app(metrics);
     let metrics_server = create_metrics_server(registry);
 
-    rocket::tokio::join!(app.launch(), metrics_server.launch());
+    let (app_result, metrics_result) = rocket::tokio::join!(app.launch(), metrics_server.launch());
+    app_result?;
+    metrics_result?;
 
     Ok(())
 }
