@@ -15,6 +15,7 @@ import { type AccordianTabs } from '@/types/common'
 import { FullScreenOverlay, Loader } from '@/ui_components'
 import './styles.css'
 import { Settings } from '@/components/Settings'
+import { apiUrl } from '@/utils/network'
 
 export const Plugin = () => {
   const { status: compileStatus, errorMessages: compileErrorMessages } = useAtomValue(compilationAtom)
@@ -31,6 +32,24 @@ export const Plugin = () => {
     const client = await initializeRemixClient()
     setRemixClient(client)
     setIsLoaded(true)
+
+    try {
+      const response = await fetch(`${apiUrl}/on-plugin-launched`, {
+        method: 'POST',
+        redirect: 'follow',
+        headers: {
+          'Content-Type': 'application/octet-stream'
+        }
+      })
+
+      console.log('on-plugin-')
+
+      if (!response.ok) {
+        console.log('Could not post on launch')
+      }
+    } catch (error) {
+      console.log('Could not post on launch', error)
+    }
   }, [setIsLoaded, setRemixClient])
 
   useEffect(() => {

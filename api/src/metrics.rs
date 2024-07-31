@@ -32,7 +32,7 @@ impl Fairing for Metrics {
 
         match req.uri().path().as_str() {
             "/compile" | "/compile-async" => self.num_of_compilations.inc(),
-            // TODO: num_plugin_launches
+            "/on-plugin-launched" => self.num_plugin_launches.inc(),
             _ => {}
         }
     }

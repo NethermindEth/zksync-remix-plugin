@@ -1,8 +1,8 @@
 pub mod compile;
 pub mod compiler_version;
 pub mod process;
-pub mod service_version;
 pub mod types;
+pub mod utils;
 pub mod verify;
 
 use crate::errors::ApiError;

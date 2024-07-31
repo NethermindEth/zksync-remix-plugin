@@ -14,7 +14,7 @@ use clokwerk::{Scheduler, TimeUnits};
 use handlers::compile::{compile, compile_async, get_compile_result};
 use handlers::compiler_version::{allowed_versions, compiler_version};
 use handlers::process::get_process_status;
-use handlers::service_version::service_version;
+use handlers::utils::service_version;
 use handlers::verify::{get_verify_result, verify, verify_async};
 use handlers::{health, who_is_this};
 use prometheus::Registry;
@@ -26,6 +26,7 @@ use tracing::info;
 
 use crate::cors::CORS;
 use crate::errors::CoreError;
+use crate::handlers::utils::on_plugin_launched;
 use crate::metrics::{create_metrics, Metrics};
 use crate::rate_limiter::RateLimiter;
 use crate::tracing_log::init_logger;
@@ -99,7 +100,8 @@ fn create_app(metrics: Metrics) -> Rocket<Build> {
                 allowed_versions,
                 health,
                 who_is_this,
-                service_version
+                service_version,
+                on_plugin_launched
             ],
         )
 }
