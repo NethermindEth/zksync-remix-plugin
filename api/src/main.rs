@@ -3,6 +3,7 @@ extern crate rocket;
 
 pub mod cors;
 pub mod handlers;
+mod metrics;
 pub mod rate_limiter;
 pub mod tracing_log;
 pub mod types;
@@ -10,6 +11,7 @@ pub mod utils;
 pub mod worker;
 
 use crate::cors::CORS;
+use crate::metrics::{create_metrics, Metrics};
 use crate::rate_limiter::RateLimiter;
 use crate::tracing_log::init_logger;
 use crate::utils::lib::{ARTIFACTS_ROOT, SOL_ROOT};
@@ -21,8 +23,11 @@ use handlers::process::get_process_status;
 use handlers::service_version::service_version;
 use handlers::verify::{get_verify_result, verify, verify_async};
 use handlers::{health, who_is_this};
-use rocket::tokio;
+use prometheus::Registry;
 use rocket::tokio::time::sleep;
+use rocket::{tokio, Build, Config, Rocket};
+use std::env;
+use std::net::Ipv4Addr;
 use tracing::info;
 
 async fn clear_artifacts() {
@@ -33,25 +38,22 @@ async fn clear_artifacts() {
     info!("artifacts cleared!");
 }
 
-#[launch]
-async fn rocket() -> _ {
-    if let Err(err) = init_logger() {
-        eprintln!("Error initializing logger: {}", err);
-    }
+fn create_app(metrics: Metrics) -> Rocket<Build> {
+    const DEFAULT_NUM_OF_WORKERS: u32 = 2u32;
+    const DEFAULT_QUEUE_SIZE: usize = 1_000;
 
-    let number_of_workers = match std::env::var("WORKER_THREADS") {
-        Ok(v) => v.parse::<u32>().unwrap_or(2u32),
-        Err(_) => 2u32,
+    let number_of_workers = match env::var("WORKER_THREADS") {
+        Ok(v) => v.parse::<u32>().unwrap_or(DEFAULT_NUM_OF_WORKERS),
+        Err(_) => DEFAULT_NUM_OF_WORKERS,
     };
 
-    let queue_size = match std::env::var("QUEUE_SIZE") {
-        Ok(v) => v.parse::<usize>().unwrap_or(1_000),
-        Err(_) => 1_000,
+    let queue_size = match env::var("QUEUE_SIZE") {
+        Ok(v) => v.parse::<usize>().unwrap_or(DEFAULT_QUEUE_SIZE),
+        Err(_) => DEFAULT_QUEUE_SIZE,
     };
 
     // Launch the worker processes
     let mut engine = WorkerEngine::new(number_of_workers, queue_size);
-
     engine.start();
 
     // Create a new scheduler
@@ -79,6 +81,7 @@ async fn rocket() -> _ {
     rocket::build()
         .manage(engine)
         .manage(RateLimiter::new())
+        .attach(metrics)
         .attach(CORS)
         .mount(
             "/",
@@ -97,4 +100,40 @@ async fn rocket() -> _ {
                 service_version
             ],
         )
+}
+
+fn create_metrics_server(registry: Registry) -> Rocket<Build> {
+    const DEFAULT_PORT: u16 = 8001;
+    let port = match env::var("METRICS_PORT") {
+        Ok(val) => val.parse::<u16>().unwrap_or(DEFAULT_PORT),
+        Err(_) => DEFAULT_PORT,
+    };
+
+    let config = Config {
+        port,
+        address: Ipv4Addr::LOCALHOST.into(),
+        ..Config::default()
+    };
+
+    rocket::custom(config)
+        .manage(registry)
+        .mount("/", routes![metrics::metrics])
+}
+
+#[rocket::main]
+async fn main() -> Result<(), rocket::Error> {
+    // TODO: handle error
+    if let Err(err) = init_logger() {
+        eprintln!("Error initializing logger: {}", err);
+    }
+
+    let registry = Registry::new();
+    let metrics = create_metrics(registry.clone());
+
+    let app = create_app(metrics);
+    let metrics_server = create_metrics_server(registry);
+
+    rocket::tokio::join!(app.launch(), metrics_server.launch());
+
+    Ok(())
 }
