@@ -24,11 +24,11 @@ impl Fairing for Metrics {
     }
 
     async fn on_request(&self, req: &mut Request<'_>, _data: &mut Data<'_>) {
-        req.client_ip().map(|val| {
+        if let Some(val) = req.client_ip() {
             self.num_distinct_users
                 .with_label_values(&[val.to_string().as_str()])
-                .inc()
-        });
+                .inc();
+        }
 
         match req.uri().path().as_str() {
             "/compile" | "/compile-async" => self.num_of_compilations.inc(),
@@ -37,8 +37,6 @@ impl Fairing for Metrics {
         }
     }
 }
-
-// TODO: Result<Registry>
 pub(crate) fn create_metrics(registry: Registry) -> Result<Metrics, CoreError> {
     let opts = Opts::new("num_distinct_users", "Number of distinct users").namespace(NAMESPACE);
     let num_distinct_users = IntCounterVec::new(opts, &["ip"])?;
