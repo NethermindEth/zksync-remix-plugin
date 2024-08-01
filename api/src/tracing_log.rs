@@ -6,6 +6,7 @@ use tracing_subscriber::{prelude::*, EnvFilter};
 
 use tracing_subscriber::field::MakeExt;
 
+use crate::errors::CoreError;
 use tracing_subscriber::Layer;
 use yansi::Paint;
 
@@ -101,7 +102,7 @@ pub fn filter_layer(level: LogLevel) -> EnvFilter {
     tracing_subscriber::filter::EnvFilter::try_new(filter_str).expect("filter string must parse")
 }
 
-pub fn init_logger() -> Result<(), Box<dyn std::error::Error>> {
+pub fn init_logger() -> Result<(), CoreError> {
     // Log all `tracing` events to files prefixed with `debug`.
     // Rolling these files every day
     let debug_file = rolling::daily("./logs", "debug").with_max_level(tracing::Level::TRACE);
@@ -124,23 +125,17 @@ pub fn init_logger() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     match log_type {
-        LogType::Formatted => {
-            tracing::subscriber::set_global_default(
-                tracing_subscriber::registry()
-                    .with(default_logging_layer())
-                    .with(filter_layer(log_level)),
-            )
-            .unwrap();
-        }
-        LogType::Json => {
-            tracing::subscriber::set_global_default(
-                tracing_subscriber::registry()
-                    .with(json_logging_layer())
-                    .with(filter_layer(log_level))
-                    .with(rolling_files),
-            )
-            .unwrap();
-        }
+        LogType::Formatted => tracing::subscriber::set_global_default(
+            tracing_subscriber::registry()
+                .with(default_logging_layer())
+                .with(filter_layer(log_level)),
+        )?,
+        LogType::Json => tracing::subscriber::set_global_default(
+            tracing_subscriber::registry()
+                .with(json_logging_layer())
+                .with(filter_layer(log_level))
+                .with(rolling_files),
+        )?,
     };
 
     Ok(())
