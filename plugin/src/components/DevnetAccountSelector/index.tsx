@@ -23,7 +23,7 @@ import useAsyncFn from '@/hooks/useAsyncFn'
 
 const DEVNET_POLL_INTERVAL = 10_000
 
-const DevnetAccountSelector = () => {
+export const DevnetAccountSelector = () => {
   const remixClient = useAtomValue(remixClientAtom)
   const [account, setAccount] = useAtom(accountAtom)
   const [provider, setProvider] = useAtom(providerAtom)

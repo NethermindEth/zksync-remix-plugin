@@ -2,27 +2,29 @@ import React, { useEffect } from 'react'
 import * as zksync from 'zksync-ethers'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { useAccount, useWalletClient } from 'wagmi'
-import { accountAtom, providerAtom } from '@/atoms/connection'
+import { accountAtom, providerAtom, accountInfoAtom } from '@/atoms/connection'
 import { envAtom } from '@/atoms/environment'
 import './wallet.css'
 
-const Wallet = () => {
+export const Wallet = () => {
   const { data: walletClient } = useWalletClient()
   const setAccount = useSetAtom(accountAtom)
   const setProvider = useSetAtom(providerAtom)
+  const setAccountInfo = useSetAtom(accountInfoAtom)
   const env = useAtomValue(envAtom)
-  const { isDisconnected } = useAccount()
+  const { isDisconnected, address } = useAccount()
 
   useEffect((): void => {
-    if (walletClient != null && !isDisconnected) {
+    if (walletClient != null && !isDisconnected && address) {
       const network = {
         chainId: walletClient.chain.id,
         name: walletClient.chain.name
       }
       const newProvider = new zksync.Web3Provider(walletClient.transport, network)
-      const newSigner = newProvider.getSigner(walletClient.account.address)
+      const newSigner = newProvider.getSigner(address)
       setAccount(newSigner)
       setProvider(newProvider)
+      setAccountInfo({ address, balance: 0 })
     }
   }, [
     walletClient?.account.address,
@@ -31,7 +33,9 @@ const Wallet = () => {
     setAccount,
     walletClient,
     isDisconnected,
-    setProvider
+    setProvider,
+    setAccountInfo,
+    address
   ])
 
   useEffect(() => {

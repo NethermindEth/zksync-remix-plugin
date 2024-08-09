@@ -21,7 +21,7 @@ import useInterval from '@/hooks/useInterval'
 // TODOS: move state parts to contexts
 // Account address selection
 // network selection drop down
-const ManualAccountComp: React.FC<{
+export const ManualAccount: React.FC<{
   prevEnv: EnvType
 }> = ({ prevEnv }) => {
   const setEnv = useSetAtom(envAtom)
@@ -165,4 +165,4 @@ const ManualAccountComp: React.FC<{
   )
 }
 
-export default ManualAccountComp
+export default ManualAccount

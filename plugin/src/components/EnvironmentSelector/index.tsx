@@ -8,7 +8,7 @@ import { providerAtom } from '../../atoms/connection'
 import * as D from '../../ui_components/Dropdown'
 import { BsChevronDown } from 'react-icons/bs'
 
-const EnvironmentSelector: React.FC = () => {
+export const EnvironmentSelector: React.FC = () => {
   const [env, setEnv] = useAtom(envAtom)
   const setDevnet = useSetAtom(devnetAtom)
   const setProvider = useSetAtom(providerAtom)
