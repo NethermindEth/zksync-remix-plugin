@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import { ethers } from 'ethers'
 import * as Tabs from '@radix-ui/react-tabs'
-import { Environment, Compilation, Deployment, Interaction, TransactionHistory, Header, Footer } from '@/features'
+import { Compilation, Deployment, Interaction, TransactionHistory, Header, Footer, Environment } from '@/features'
 import Accordian, { AccordianItem, AccordionContent, AccordionTrigger } from '@/ui_components/Accordian'
 import StateAction from '@/components/StateAction'
 import BackgroundNotices from '@/components/BackgroundNotices'
@@ -80,6 +80,7 @@ export const Plugin = () => {
         <div className="plugin-wrapper">
           <div className="plugin-main-wrapper">
             <Header />
+            <Environment />
             <Tabs.Root defaultValue="home" className="tabs-root">
               <Tabs.List
                 className="flex justify-content-between rounded tab-list"
@@ -170,9 +171,6 @@ export const Plugin = () => {
                 <Settings />
               </Tabs.Content>
             </Tabs.Root>
-          </div>
-          <div>
-            <Environment />
           </div>
         </div>
         <Footer />
