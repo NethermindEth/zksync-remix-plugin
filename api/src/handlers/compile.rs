@@ -1,10 +1,10 @@
+use crate::errors::{ApiError, Result};
 use crate::handlers::process::{do_process_command, fetch_process_result};
 use crate::handlers::types::{
     ApiCommand, ApiCommandResult, CompilationRequest, CompileResponse, CompiledFile,
 };
 use crate::handlers::SPAWN_SEMAPHORE;
 use crate::rate_limiter::RateLimited;
-use crate::types::{ApiError, Result};
 use crate::utils::cleaner::AutoCleanUp;
 use crate::utils::hardhat_config::HardhatConfigBuilder;
 use crate::utils::lib::{

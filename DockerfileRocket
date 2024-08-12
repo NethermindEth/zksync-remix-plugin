@@ -28,14 +28,13 @@ RUN apt-get install grafana-agent-flow
 RUN npm install -g yarn && npm install -g n
 RUN n lts
 
-WORKDIR /opt/app
-COPY . /opt/app
-
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain stable -y
+ENV PATH="/root/.cargo/bin:${PATH}"
 
 RUN whoami
 
-ENV PATH="/root/.cargo/bin:${PATH}"
+WORKDIR /opt/app
+COPY . /opt/app
 
 WORKDIR /opt/app/api/hardhat_env
 RUN yarn install
@@ -45,6 +44,5 @@ RUN cargo build --release
 RUN chmod +x ./docker_run.sh
 
 EXPOSE 8000
-WORKDIR /opt/app/api
 
 ENTRYPOINT [ "./docker_run.sh" ]

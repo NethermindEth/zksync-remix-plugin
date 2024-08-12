@@ -1,4 +1,4 @@
-use crate::types::ApiError;
+use crate::errors::ApiError;
 use crate::utils::lib::ZKSOLC_VERSIONS;
 use rocket::serde::json::serde_json;
 use tracing::{info, instrument};

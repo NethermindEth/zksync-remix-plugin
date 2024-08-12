@@ -1,18 +1,13 @@
 import React from 'react'
 import './backgroundNotices.css'
+import { PLUGIN_INFO_CONTENT_ARRAY } from '@/utils/constants'
 
-const Notices = [
-  'The zkSync Remix Plugin is in Alpha',
-  'Solidity contracts are compiled on a server hosted by Nethermind'
-]
-
-const BackgroundNotices: React.FC = () => {
+const BackgroundNotices = () => {
   return (
     <div className={'bg-transparent'}>
-      <p className="text-center text-md bg-notices-text">Notices</p>
       {
         <ul className="list-group">
-          {Notices.map((notice, index) => {
+          {PLUGIN_INFO_CONTENT_ARRAY.map((notice, index) => {
             return (
               <li
                 className="list-group-item d-flex justify-content-left align-items-center bg-notices-text bg-primary"

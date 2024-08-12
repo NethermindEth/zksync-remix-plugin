@@ -1,5 +1,5 @@
+use crate::errors::{ApiError, Result};
 use crate::handlers::types::{CompilationConfig, CompilationRequest, CompiledFile};
-use crate::types::{ApiError, Result};
 use rocket::tokio;
 use rocket::tokio::fs;
 use solang_parser::diagnostics::{Diagnostic, ErrorType, Level};
