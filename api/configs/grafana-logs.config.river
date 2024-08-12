@@ -28,8 +28,8 @@ prometheus.remote_write "metrics" {
         url = "https://prometheus-us-central1.grafana.net/api/prom/push"
 
         basic_auth {
-            username = env("PROMTAIL_USERNAME")
-            password = env("PROMTAIL_PASSWORD")
+            username = env("PROMETHEUS_USERNAME")
+            password = env("PROMETHEUS_PASSWORD")
         }
     }
 }
