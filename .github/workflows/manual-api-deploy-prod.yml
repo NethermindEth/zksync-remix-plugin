@@ -9,8 +9,8 @@ permissions:
 env:
   REGISTRY: "599564732950.dkr.ecr.us-east-2.amazonaws.com"
   REPOSITORY: "zksync-remix-plugin"
-  DEV_CLUSTER: "zksync-remix-plugin-ecs-cluster"
-  DEV_SERVICE_NAME: "rocket-development-svc"
+  DEV_CLUSTER: "zksync-remix-plugin-dev-ecs-cluster"
+  DEV_SERVICE_NAME: "rocket-dev-svc"
   PROD_CLUSTER: "zksync-remix-plugin-production-ecs-cluster"
   PROD_SERVICE_NAME: "rocket-production-svc"
   API_SERVICE_URL: "https://zksync-plugin-api.nethermind.io"
