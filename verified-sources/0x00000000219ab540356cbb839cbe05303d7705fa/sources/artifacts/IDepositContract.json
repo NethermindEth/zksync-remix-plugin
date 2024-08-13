@@ -1,0 +1,146 @@
+{
+	"deploy": {
+		"VM:-": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"main:1": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"ropsten:3": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"rinkeby:4": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"kovan:42": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"goerli:5": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"Custom": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		}
+	},
+	"data": {
+		"bytecode": {
+			"linkReferences": {},
+			"object": "",
+			"opcodes": "",
+			"sourceMap": ""
+		},
+		"deployedBytecode": {
+			"immutableReferences": {},
+			"linkReferences": {},
+			"object": "",
+			"opcodes": "",
+			"sourceMap": ""
+		},
+		"gasEstimates": null,
+		"methodIdentifiers": {
+			"deposit(bytes,bytes,bytes,bytes32)": "22895118",
+			"get_deposit_count()": "621fd130",
+			"get_deposit_root()": "c5f2892f"
+		}
+	},
+	"abi": [
+		{
+			"anonymous": false,
+			"inputs": [
+				{
+					"indexed": false,
+					"internalType": "bytes",
+					"name": "pubkey",
+					"type": "bytes"
+				},
+				{
+					"indexed": false,
+					"internalType": "bytes",
+					"name": "withdrawal_credentials",
+					"type": "bytes"
+				},
+				{
+					"indexed": false,
+					"internalType": "bytes",
+					"name": "amount",
+					"type": "bytes"
+				},
+				{
+					"indexed": false,
+					"internalType": "bytes",
+					"name": "signature",
+					"type": "bytes"
+				},
+				{
+					"indexed": false,
+					"internalType": "bytes",
+					"name": "index",
+					"type": "bytes"
+				}
+			],
+			"name": "DepositEvent",
+			"type": "event"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "bytes",
+					"name": "pubkey",
+					"type": "bytes"
+				},
+				{
+					"internalType": "bytes",
+					"name": "withdrawal_credentials",
+					"type": "bytes"
+				},
+				{
+					"internalType": "bytes",
+					"name": "signature",
+					"type": "bytes"
+				},
+				{
+					"internalType": "bytes32",
+					"name": "deposit_data_root",
+					"type": "bytes32"
+				}
+			],
+			"name": "deposit",
+			"outputs": [],
+			"stateMutability": "payable",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "get_deposit_count",
+			"outputs": [
+				{
+					"internalType": "bytes",
+					"name": "",
+					"type": "bytes"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "get_deposit_root",
+			"outputs": [
+				{
+					"internalType": "bytes32",
+					"name": "",
+					"type": "bytes32"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		}
+	]
+}
