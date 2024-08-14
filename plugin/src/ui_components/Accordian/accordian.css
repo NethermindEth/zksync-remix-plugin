@@ -1,4 +1,10 @@
 /* reset */
+
+:root {
+  --accordian-border-radius: 8px;
+  --accordian-bg-color: var(--light);
+}
+
 button,
 h3 {
   all: unset;
@@ -7,13 +13,11 @@ h3 {
 .AccordionRoot {
   border-radius: 6px;
   width: 100%;
-  /* box-shadow: 0 2px 10px var(--secondary); */
 }
 
 .AccordionItem {
   overflow: hidden;
   margin-top: 1px;
-  box-shadow: 0 0 0 2px var(--secondary);
 }
 
 .AccordionItem:first-child {
@@ -38,10 +42,11 @@ h3 {
 }
 
 .AccordionTrigger {
+  * {
+    outline: none !important;
+  }
   font-family: inherit;
   min-height: 45px;
-  padding: 0 20px;
-  height: 45px;
   flex: 1;
   display: flex;
   align-items: center;
@@ -51,26 +56,44 @@ h3 {
   line-height: 1;
   color: var(--text);
   transition: all 0.1s ease;
-  box-shadow: 0 1px 0 var(--secondary);
-}
+  background-color: var(--accordian-bg-color) !important;
 
-.AccordionTrigger:hover {
-  background-color: var(--secondary) !important;
-  color: var(--text);
+  border-radius: var(--accordian-border-radius);
+
+  padding: 8px 16px 8px 16px;
+
+  margin: 10px 10px 0 10px;
 }
 
 .AccordionTrigger:focus {
   outline: none;
 }
 
+.AccordionTrigger[data-state='open'] {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.AccordionTrigger:hover {
+  background-color: var(--accordian-bg-color) !important;
+  color: var(--text);
+}
+
 .AccordionContent {
   overflow: hidden;
   font-size: 1rem;
   color: var(--text);
+  background-color: var(--accordian-bg-color) !important;
+  /*  make text to not break words */
+  word-break: keep-all !important;
+  overflow-wrap: break-word !important;
+  margin: 0 10px;
 }
-
 .AccordionContent[data-state='open'] {
   animation: slideDown 300ms cubic-bezier(0.87, 0, 0.13, 1);
+
+  border-bottom-left-radius: var(--accordian-border-radius);
+  border-bottom-right-radius: var(--accordian-border-radius);
 }
 
 .AccordionContent[data-state='closed'] {
@@ -78,14 +101,12 @@ h3 {
 }
 
 .AccordionContentText {
-  padding: 15px 20px;
+  padding: 15px 6px;
 }
 
 .AccordionChevron {
-  color: var(--textPrimary);
   transition: transform 300ms cubic-bezier(0.87, 0, 0.13, 1);
 }
-
 .AccordionTrigger[data-state='open'] > .AccordionChevron {
   transform: rotate(180deg);
 }

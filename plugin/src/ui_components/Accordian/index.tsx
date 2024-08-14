@@ -19,7 +19,7 @@ export const AccordionTrigger = React.forwardRef<any, any>(({ children, classNam
 
 // eslint-disable-next-line react/display-name
 export const AccordionContent = React.forwardRef<any, any>(({ children, ...props }, forwardedRef) => (
-  <AccordionPrimitive.Content className={'AccordionContent bg-primary'} {...props} ref={forwardedRef}>
+  <AccordionPrimitive.Content className={'AccordionContent'} {...props} ref={forwardedRef}>
     <div className="AccordionContentText">{children}</div>
   </AccordionPrimitive.Content>
 ))

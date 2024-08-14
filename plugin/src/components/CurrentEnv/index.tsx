@@ -1,8 +1,7 @@
 import React from 'react'
-import { ethers } from 'ethers'
 import { useAtomValue } from 'jotai'
 import { selectedAccountAtom, accountInfoAtom, envAtom, selectedDevnetAccountAtom } from '@/atoms'
-import { getShortenedHash } from '@/utils/utils'
+import { getShortenedHash, weiToEth } from '@/utils/utils'
 import { envName } from '@/utils/misc'
 import { DevnetStatus } from '@/components'
 import './currentEnv.css'
@@ -24,7 +23,7 @@ export const CurrentEnv = () => {
   const selectedAccountAddress =
     selectedAccount.address != null ? getShortenedHash(selectedAccount.address, 6, 4) : 'No account selected'
 
-  const selectedAccountBalance = ethers.utils.formatEther(selectedAccount.balance ?? 0)
+  const selectedAccountBalance = weiToEth(Number(selectedAccount.balance ?? 0))
 
   return (
     <div className={'current-env-root'}>
