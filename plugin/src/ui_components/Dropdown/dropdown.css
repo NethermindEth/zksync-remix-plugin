@@ -9,9 +9,6 @@ button {
   border: 1px solid var(--secondary);
   border-radius: 6px;
   padding: 5px;
-  box-shadow:
-    0 10px 38px -10px var(--secondary),
-    0 10px 20px -15px var(--secondary);
   animation-duration: 400ms;
   animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform, opacity;
