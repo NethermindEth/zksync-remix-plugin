@@ -1,9 +1,9 @@
-import { RxDotFilled } from 'react-icons/rx'
 import React from 'react'
+import { RxDotFilled } from 'react-icons/rx'
 import { useAtomValue } from 'jotai'
 import { envAtom, isDevnetAliveAtom } from '@/atoms'
 
-export const DevnetStatus: React.FC = () => {
+export const DevnetStatus = () => {
   const env = useAtomValue(envAtom)
   const isDevnetAlive = useAtomValue(isDevnetAliveAtom)
 

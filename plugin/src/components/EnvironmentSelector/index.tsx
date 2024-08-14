@@ -1,17 +1,17 @@
 import React, { useState } from 'react'
-import { devnets } from '../../utils/network'
-
 import { useAtom, useSetAtom } from 'jotai'
-import { devnetAtom, envAtom } from '../../atoms/environment'
-import { providerAtom } from '../../atoms/connection'
-import * as Dropdown from '@/ui_components/Dropdown'
 import { BsChevronDown } from 'react-icons/bs'
+import { devnets } from '@/utils/network'
+import { devnetAtom, envAtom, providerAtom } from '@/atoms'
+import * as Dropdown from '@/ui_components/Dropdown'
+import { envName } from '@/utils/misc'
 import './styles.css'
 
 export const EnvironmentSelector = () => {
   const [env, setEnv] = useAtom(envAtom)
   const setDevnet = useSetAtom(devnetAtom)
   const setProvider = useSetAtom(providerAtom)
+  const [dropdownControl, setDropdownControl] = useState(false)
 
   const handleEnvironmentChange = (ipValue: string): void => {
     const value = parseInt(ipValue)
@@ -28,21 +28,6 @@ export const EnvironmentSelector = () => {
     }
   }
 
-  const getActiveEnv = (lEnv: typeof env): string => {
-    switch (lEnv) {
-      case 'localDevnet':
-        return 'Local Devnet'
-      case 'remoteDevnet':
-        return 'Remote Devnet'
-      case 'wallet':
-        return 'Wallet'
-      case 'manual':
-        return 'Manual'
-    }
-  }
-
-  const [dropdownControl, setDropdownControl] = useState(false)
-
   return (
     <div className="environment-selector-wrapper">
       <Dropdown.Root
@@ -53,7 +38,7 @@ export const EnvironmentSelector = () => {
       >
         <Dropdown.Trigger>
           <div className="flex flex-row justify-content-space-between align-items-center p-2 br-1 devnet-trigger-wrapper">
-            <label className="text-light text-sm m-0">{getActiveEnv(env)}</label>
+            <label className="text-light text-sm m-0">{envName(env)}</label>
             <BsChevronDown
               style={{
                 transform: dropdownControl ? 'rotate(180deg)' : 'none',
