@@ -36,11 +36,11 @@ prometheus.remote_write "metrics" {
 
 prometheus.scrape "metrics" {
     targets = [{
-        __address__ = "localhost:" + env(METRICS_PORT),
+        __address__ = "localhost:" + env("METRICS_PORT"),
         __metrics_path__ = "/metrics",
     }]
     forward_to = [prometheus.remote_write.metrics.receiver]
 
     job_name = "zksync-metrics-job"
-    scrape_interval = 30s
+    scrape_interval = "30s"
 }
