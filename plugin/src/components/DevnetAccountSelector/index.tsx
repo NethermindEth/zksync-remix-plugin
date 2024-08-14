@@ -11,6 +11,7 @@ import { accountAtom, providerAtom } from '@/atoms/connection'
 import {
   availableDevnetAccountsAtom,
   devnetAtom,
+  envAtom,
   isDevnetAliveAtom,
   selectedDevnetAccountAtom
 } from '@/atoms/environment'
@@ -35,6 +36,7 @@ export const DevnetAccountSelector = () => {
   const [accountRefreshing, setAccountRefreshing] = useState(false)
   const [showCopied, setCopied] = useState(false)
   const [accountIdx, setAccountIdx] = useState(0)
+  const env = useAtomValue(envAtom)
 
   useInterval(
     () => {
@@ -82,7 +84,7 @@ export const DevnetAccountSelector = () => {
   useAsync(async () => {
     const updatedAccounts = await updateBalances(availableDevnetAccounts, devnet.url)
     setAvailableDevnetAccounts(updatedAccounts)
-  }, [devnet])
+  }, [devnet, env])
 
   const [, refreshDevnetAccounts] = useAsyncFn(async () => {
     try {
@@ -107,11 +109,15 @@ export const DevnetAccountSelector = () => {
   useEffect(() => {
     if (
       !(selectedDevnetAccount !== null && availableDevnetAccounts.includes(selectedDevnetAccount)) &&
-      availableDevnetAccounts.length > 0
+      availableDevnetAccounts.length > 0 &&
+      isDevnetAlive
     ) {
       setSelectedDevnetAccount(availableDevnetAccounts[0])
     }
-  }, [availableDevnetAccounts, devnet, selectedDevnetAccount, setSelectedDevnetAccount])
+    if (!isDevnetAlive && selectedDevnetAccount !== null) {
+      setSelectedDevnetAccount(null)
+    }
+  }, [availableDevnetAccounts, devnet, selectedDevnetAccount, setSelectedDevnetAccount, env, isDevnetAlive])
 
   useEffect(() => {
     const newProvider = new Provider(devnet.url)
@@ -151,7 +157,9 @@ export const DevnetAccountSelector = () => {
           <Dropdown.Trigger>
             <div className="flex flex-row justify-content-space-between align-items-center p-2 br-1 devnet-account-selector-trigger">
               <label className="text-light text-sm m-0">
-                {availableDevnetAccounts.length !== 0 && availableDevnetAccounts[accountIdx]?.address !== undefined
+                {isDevnetAlive &&
+                availableDevnetAccounts.length !== 0 &&
+                availableDevnetAccounts[accountIdx]?.address !== undefined
                   ? getShortenedHash(availableDevnetAccounts[accountIdx]?.address, 6, 4)
                   : 'No accounts found'}
               </label>
@@ -160,7 +168,7 @@ export const DevnetAccountSelector = () => {
                   transform: dropdownControl ? 'rotate(180deg)' : 'none',
                   transition: 'all 0.3s ease'
                 }}
-              />{' '}
+              />
             </div>
           </Dropdown.Trigger>
           <Dropdown.Portal>
@@ -195,9 +203,9 @@ export const DevnetAccountSelector = () => {
             </Dropdown.Content>
           </Dropdown.Portal>
         </Dropdown.Root>
-        <div className="position-relative">
+        <div>
           <button
-            className="btn"
+            className="refresh"
             onClick={() => {
               copy((account as Wallet)?.address ?? '')
               setCopied(true)
