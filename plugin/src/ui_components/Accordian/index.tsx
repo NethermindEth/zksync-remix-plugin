@@ -7,7 +7,7 @@ export interface IFCProps {
   children: React.ReactNode | null
 }
 
-// eslint-disable-next-line react/display-name
+// eslint-disable-next-line react/display-name, @typescript-eslint/no-unused-vars
 export const AccordionTrigger = React.forwardRef<any, any>(({ children, className, ...props }, forwardedRef) => (
   <AccordionPrimitive.Header className="AccordionHeader">
     <AccordionPrimitive.Trigger className={'AccordionTrigger'} {...props} ref={forwardedRef}>
@@ -17,7 +17,7 @@ export const AccordionTrigger = React.forwardRef<any, any>(({ children, classNam
   </AccordionPrimitive.Header>
 ))
 
-// eslint-disable-next-line react/display-name
+// eslint-disable-next-line react/display-name, @typescript-eslint/no-unused-vars
 export const AccordionContent = React.forwardRef<any, any>(({ children, className, ...props }, forwardedRef) => (
   <AccordionPrimitive.Content className={'AccordionContent'} {...props} ref={forwardedRef}>
     <div className="AccordionContentText">{children}</div>

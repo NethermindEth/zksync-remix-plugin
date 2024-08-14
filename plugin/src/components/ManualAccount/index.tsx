@@ -7,24 +7,15 @@ import { FaCheck } from 'react-icons/fa'
 import { MdCopyAll } from 'react-icons/md'
 import { BsChevronDown } from 'react-icons/bs'
 import { CiSquareCheck, CiSquarePlus } from 'react-icons/ci'
-
-import { envAtom } from '@/atoms/environment'
 import { accountsAtom, selectedAccountAtom } from '@/atoms/manualAccount'
 
-import { type EnvType } from '@/types/transaction'
 import * as D from '@/ui_components/Dropdown'
 import { getShortenedHash } from '@/utils/utils'
 import { accountAtom } from '@/atoms/connection'
 import './index.css'
 import useInterval from '@/hooks/useInterval'
 
-// TODOS: move state parts to contexts
-// Account address selection
-// network selection drop down
-export const ManualAccount: React.FC<{
-  prevEnv: EnvType
-}> = ({ prevEnv }) => {
-  const setEnv = useSetAtom(envAtom)
+export const ManualAccount = () => {
   const [dropdownControl, setDropdownControl] = useState(false)
   const setAccount = useSetAtom(accountAtom)
 
@@ -90,16 +81,6 @@ export const ManualAccount: React.FC<{
 
   return (
     <div className="manual-root-wrapper">
-      <button
-        type="button"
-        className="mb-0 btn btn-sm btn-primary float-right rounded-pill"
-        onClick={() => {
-          setEnv(prevEnv)
-        }}
-      >
-        Back to Previous
-      </button>
-
       <div className={'flex flex-column'}>
         <div className={'flex flex-row justify-content-space-between'}>
           <D.Root
