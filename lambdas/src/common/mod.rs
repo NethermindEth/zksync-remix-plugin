@@ -52,16 +52,6 @@ impl From<Item> for HashMap<String, AttributeValue> {
     fn from(value: Item) -> Self {
         let mut item_map = HashMap::from([("ID".into(), AttributeValue::S(value.id))]);
         item_map.extend(HashMap::from(value.status));
-        // // item_map.
-        // match value.status {
-        //     Status::Ready(val) => {
-        //         item_map.insert("Data".into(), AttributeValue::S(val));
-        //     }
-        //     Status::Failed(val) => {
-        //         item_map.insert("Data".into(), AttributeValue::S(val));
-        //     }
-        //     _ => {}
-        // }
 
         item_map
     }
