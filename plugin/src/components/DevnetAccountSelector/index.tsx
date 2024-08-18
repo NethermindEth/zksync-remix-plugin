@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { Provider, Wallet } from 'zksync-ethers'
 import { MdCopyAll, MdRefresh } from 'react-icons/md'
 import copy from 'copy-to-clipboard'
@@ -38,36 +38,36 @@ export const DevnetAccountSelector = () => {
   const [accountIdx, setAccountIdx] = useState(0)
   const env = useAtomValue(envAtom)
 
-  useInterval(
-    () => {
-      fetch(`${devnet.url}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          jsonrpc: '2.0',
-          method: 'eth_blockNumber',
-          params: [],
-          id: 1
-        })
+  const fetchDevnetStatus = useCallback(() => {
+    fetch(`${devnet.url}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'eth_blockNumber',
+        params: [],
+        id: 1
       })
-        .then(async (res) => await res.json())
-        .then((res) => {
-          if (res.result) {
-            setIsDevnetAlive(true)
-          } else {
-            setIsDevnetAlive(false)
-          }
-        })
-        .catch(() => {
+    })
+      .then(async (res) => await res.json())
+      .then((res) => {
+        if (res.result) {
+          setIsDevnetAlive(true)
+        } else {
           setIsDevnetAlive(false)
-        })
-    },
-    devnet.url.length > 0 ? DEVNET_POLL_INTERVAL : null
-  )
+        }
+      })
+      .catch(() => {
+        setIsDevnetAlive(false)
+      })
+  }, [setIsDevnetAlive, devnet.url])
+
+  useInterval(fetchDevnetStatus, devnet.url.length > 0 ? DEVNET_POLL_INTERVAL : null)
 
   useEffect(() => {
+    fetchDevnetStatus()
     if (!isDevnetAlive) {
       remixClient
         .call(
@@ -79,7 +79,7 @@ export const DevnetAccountSelector = () => {
           console.error(e)
         })
     }
-  }, [isDevnetAlive, remixClient, devnet])
+  }, [isDevnetAlive, remixClient, devnet, fetchDevnetStatus])
 
   useAsync(async () => {
     const updatedAccounts = await updateBalances(availableDevnetAccounts, devnet.url)
