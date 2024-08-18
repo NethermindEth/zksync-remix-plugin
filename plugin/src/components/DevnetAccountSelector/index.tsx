@@ -182,11 +182,15 @@ export const DevnetAccountSelector = () => {
                         }}
                         key={index}
                       >
-                        {accountIdx === index && <BsCheck size={18} />}
-                        {`${getShortenedHash(account.address ?? '', 6, 4)} (${getRoundedNumber(
-                          weiToEth(account.initial_balance),
-                          2
-                        )} ether)`}
+                        <div className="devnet-account-item">
+                          <span className="selected-account">{accountIdx === index && <BsCheck size={18} />}</span>
+                          <span className="ml-2 chain-account-info">
+                            <span>{getShortenedHash(account.address ?? '', 6, 4)}</span>
+                            <span className="account-balance">
+                              {`(${getRoundedNumber(weiToEth(account.initial_balance), 2)} ETH)`}
+                            </span>
+                          </span>
+                        </div>
                       </Dropdown.Item>
                     )
                   })

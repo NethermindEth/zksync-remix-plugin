@@ -166,3 +166,14 @@
     border-bottom-right-radius: var(--accordian-border-radius);
   }
 }
+
+.chain-account-info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.1rem;
+}
+
+.account-balance {
+  word-break: break-all;
+}

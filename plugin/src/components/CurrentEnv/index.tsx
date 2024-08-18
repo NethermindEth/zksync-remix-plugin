@@ -33,7 +33,8 @@ export const CurrentEnv = () => {
       <div className={'chain-info-box'}>
         <span className={'chain-name'}>{envName(env)}</span>
         <span className={'chain-account-info'}>
-          {selectedAccountAddress} {selectedAccount != null ? `(${selectedAccountBalance} ETH)` : ''}
+          <span>{selectedAccountAddress}</span>
+          <span className="account-balance">{selectedAccount != null ? `(${selectedAccountBalance} ETH)` : ''}</span>
         </span>
       </div>
     </div>

@@ -34,6 +34,16 @@
   animation: rotating 1s linear infinite;
 }
 
+.devnet-account-item {
+  position: relative;
+}
+
+.selected-account {
+  position: absolute;
+  top: -2px;
+  left: -10px;
+}
+
 @-webkit-keyframes rotating /* Safari and Chrome */ {
   from {
     -webkit-transform: rotate(0deg);
