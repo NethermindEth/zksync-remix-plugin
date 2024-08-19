@@ -1,29 +1,29 @@
 use aws_config::BehaviorVersion;
 use aws_sdk_s3::presigning::PresigningConfig;
-use lambda_http::http::StatusCode;
 use lambda_http::{
-    run, service_fn, Error as LambdaError, IntoResponse, Request as LambdaRequest,
-    RequestPayloadExt, Response as LambdaResponse,
+    http::StatusCode, run, service_fn, Error as LambdaError, Request as LambdaRequest,
+    Response as LambdaResponse,
 };
 use serde::{Deserialize, Serialize};
-use std::path::{Path, PathBuf};
-use std::time::Duration;
-use tracing::{error, Value};
+use std::{
+    path::{Path, PathBuf},
+    time::Duration,
+};
+use tracing::warn;
 use uuid::Uuid;
 
 mod common;
-use common::BUCKET_NAME_DEFAULT;
+use crate::common::{errors::Error, utils::extract_request, BUCKET_NAME_DEFAULT};
 
 const MAX_FILES: usize = 300;
 const OBJECT_EXPIRATION_TIME: Duration = Duration::from_secs(24 * 60 * 60);
 
-const PAYLOAD_EMPTY_ERROR: &str = "Request payload is empty";
 const EXCEEDED_MAX_FILES_ERROR: &str = "Exceeded max number of files";
 
 #[derive(Debug, Deserialize)]
 struct Request {
-    pub files: Vec<PathBuf>,
     // TODO: add files_md5. Use set_content_md5 on object
+    pub files: Vec<PathBuf>,
 }
 
 #[derive(Debug, Serialize)]
@@ -36,7 +36,7 @@ async fn generate_presigned_urs(
     files: Vec<PathBuf>,
     bucket_name: &str,
     s3_client: &aws_sdk_s3::Client,
-) -> Result<Response, LambdaError> {
+) -> Result<Response, Error> {
     let uuid = Uuid::new_v4();
     let uuid_str = uuid.to_string();
     let uuid_dir = Path::new(&uuid_str);
@@ -48,7 +48,8 @@ async fn generate_presigned_urs(
             .bucket(bucket_name)
             .key(uuid_dir.join(file).to_string_lossy().to_string())
             .presigned(PresigningConfig::expires_in(OBJECT_EXPIRATION_TIME).map_err(Box::new)?)
-            .await?;
+            .await
+            .map_err(Box::new)?;
 
         output.push(presigned.uri().into());
     }
@@ -59,42 +60,22 @@ async fn generate_presigned_urs(
     })
 }
 
-#[tracing::instrument]
+#[tracing::instrument(skip(bucket_name, s3_client))]
 async fn process_request(
     request: LambdaRequest,
     bucket_name: &str,
     s3_client: &aws_sdk_s3::Client,
-) -> Result<LambdaResponse<String>, LambdaError> {
-    let request = match request.payload::<Request>() {
-        Ok(Some(val)) => val,
-        Ok(None) => {
-            let response = LambdaResponse::builder()
-                .status(400)
-                .header("content-type", "text/html")
-                .body("Request payload is empty".into())
-                .map_err(Box::new)?;
-
-            return Ok(response);
-        }
-        Err(err) => {
-            let response = LambdaResponse::builder()
-                .status(400)
-                .header("content-type", "text/html")
-                .body(err.to_string().into())
-                .map_err(Box::new)?;
-
-            return Ok(response);
-        }
-    };
-
+) -> Result<LambdaResponse<String>, Error> {
+    let request = extract_request::<Request>(request)?;
     if request.files.len() > MAX_FILES {
+        warn!("MAX_FILES limit exceeded");
         let response = LambdaResponse::builder()
             .status(400)
             .header("content-type", "text/html")
             .body(EXCEEDED_MAX_FILES_ERROR.into())
             .map_err(Box::new)?;
 
-        return Ok(response);
+        return Err(Error::HttpError(response));
     }
 
     let response = generate_presigned_urs(request.files, bucket_name, s3_client).await?;
@@ -106,6 +87,7 @@ async fn process_request(
     Ok(response)
 }
 
+// TODO: setup ratelimiter for lambdas
 #[tokio::main]
 async fn main() -> Result<(), LambdaError> {
     tracing_subscriber::fmt()
@@ -120,7 +102,13 @@ async fn main() -> Result<(), LambdaError> {
     let s3_client = aws_sdk_s3::Client::new(&aws_config);
 
     run(service_fn(|request: LambdaRequest| async {
-        process_request(request, &bucket_name, &s3_client).await
+        let result = process_request(request, &bucket_name, &s3_client).await;
+
+        match result {
+            Ok(val) => Ok(val),
+            Err(Error::HttpError(val)) => Ok(val),
+            Err(Error::LambdaError(err)) => Err(err),
+        }
     }))
-    .await
+        .await
 }

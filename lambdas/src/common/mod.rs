@@ -1,3 +1,6 @@
+pub mod errors;
+pub mod utils;
+
 use aws_sdk_dynamodb::types::AttributeValue;
 use serde::Serialize;
 use std::collections::HashMap;
