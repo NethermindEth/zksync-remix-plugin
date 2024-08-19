@@ -14,9 +14,10 @@ import { EIP6963Connector, walletConnectProvider } from '@web3modal/wagmi'
 
 const projectId: string = import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID // TODO who owns this? make sure nethermind owns this
 
-const {
-  publicClient
-} = configureChains([zkSync, zkSyncSepoliaTestnet], [walletConnectProvider({ projectId }), publicProvider()])
+const { publicClient } = configureChains(
+  [zkSync, zkSyncSepoliaTestnet],
+  [walletConnectProvider({ projectId }), publicProvider()]
+)
 
 const chains = [zkSyncSepoliaTestnet, zkSync]
 

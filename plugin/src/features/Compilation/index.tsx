@@ -1,589 +1,197 @@
-/* eslint-disable @typescript-eslint/restrict-plus-operands */
-/* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import React, { useEffect } from 'react'
-import { apiUrl } from '../../utils/network'
-import { artifactFolder, getFileExtension, getFileNameFromPath } from '../../utils/utils'
-import './styles.css'
-import Container from '../../ui_components/Container'
-import storage from '../../utils/storage'
-import { ethers } from 'ethers'
-import { type AccordianTabs } from '../Plugin'
-import { type CompilationResult, type Contract } from '../../types/contracts'
-import { asyncFetch } from '../../utils/async_fetch'
-import {
-  activeTomlPathAtom,
-  compilationAtom,
-  currentFilenameAtom,
-  hashDirAtom,
-  isCompilingAtom,
-  isValidSolidityAtom,
-  noFileSelectedAtom,
-  statusAtom,
-  tomlPathsAtom
-} from '../../atoms/compilation'
+import React, { useEffect, useState } from 'react'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
-import { solidityVersionAtom } from '../../atoms/version'
-import { contractsAtom, selectedContractAtom } from '../../atoms/compiledContracts'
-import useRemixClient from '../../hooks/useRemixClient'
+import Container from '@/ui_components/Container'
+import { type AccordianTabs } from '@/types/common'
+import { type CompilationResult } from '@/types/contracts'
+import { asyncPost } from '@/api/asyncRequests'
+import {
+  compilationAtom,
+  isCompilingAtom,
+  compileStatusAtom,
+  compileErrorMessagesAtom,
+  deployStatusAtom,
+  compilationTypeAtom,
+  CompilationType
+} from '@/atoms'
+import {
+  currentFilenameAtom,
+  currentFilepathAtom,
+  currentWorkspacePathAtom,
+  isValidSolidityAtom,
+  remixClientAtom
+} from '@/stores/remixClient'
+import './styles.css'
+import { findFilesNotInContracts, getAllContractFiles, getContractTargetPath } from '@/utils/remix_storage'
+import { Tooltip } from '@/ui_components'
+import { FILES_NOT_IN_CONTRACTS_MESSAGE } from '@/utils/constants'
+import { useCompileHelpers } from '@/hooks/useCompileHelpers'
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface CompilationProps {
   setAccordian: React.Dispatch<React.SetStateAction<AccordianTabs>>
 }
 
-const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
-  const { remixClient } = useRemixClient()
+export const Compilation = ({ setAccordian }: CompilationProps) => {
+  const remixClient = useAtomValue(remixClientAtom)
+  const isValidSolidity = useAtomValue(isValidSolidityAtom)
+  const currentFilename = useAtomValue(currentFilenameAtom)
+  const currentFilepath = useAtomValue(currentFilepathAtom)
+  const currentWorkspacePath = useAtomValue(currentWorkspacePathAtom)
+  const { status, isCompiling } = useAtomValue(compilationAtom)
 
-  const [contracts, setContracts] = useAtom(contractsAtom)
-  const setSelectedContract = useSetAtom(selectedContractAtom)
+  const setDeployStatus = useSetAtom(deployStatusAtom)
 
-  const {
-    status,
-    currentFilename,
-    isCompiling,
-    isValidSolidity,
-    noFileSelected,
-    hashDir,
-    tomlPaths,
-    activeTomlPath
-  } = useAtomValue(compilationAtom)
-
-  const setStatus = useSetAtom(statusAtom)
-  const setCurrentFilename = useSetAtom(currentFilenameAtom)
+  const setCompileStatus = useSetAtom(compileStatusAtom)
   const setIsCompiling = useSetAtom(isCompilingAtom)
-  const setNoFileSelected = useSetAtom(noFileSelectedAtom)
-  const setHashDir = useSetAtom(hashDirAtom)
-  const setTomlPaths = useSetAtom(tomlPathsAtom)
-  const setActiveTomlPath = useSetAtom(activeTomlPathAtom)
-  const setIsValidSolidity = useSetAtom(isValidSolidityAtom)
+  const setCompileErrorMessages = useSetAtom(compileErrorMessagesAtom)
 
-  const solidityVersion = useAtomValue(solidityVersionAtom)
+  const [compilationType, setCompilationType] = useAtom(compilationTypeAtom)
 
-  const [currWorkspacePath, setCurrWorkspacePath] = React.useState<string>('')
+  const [isContractsFolderAvailable, setIsContractsFolderAvailable] = useState(true)
+  const { emitErrorToRemix, writeResultsToArtifacts, getDefaultWorkspaceContents, setCompiledContracts } =
+    useCompileHelpers()
 
   useEffect(() => {
-    // read hashDir from localStorage
-    const hashDir = storage.get('hashDir')
-    if (hashDir != null) {
-      setHashDir(hashDir)
-    } else {
-      // create a random hash of length 32
-      const hashDir = ethers.utils
-        .hashMessage(ethers.utils.randomBytes(32))
-        .replace('0x', '')
-      setHashDir(hashDir)
-      storage.set('hashDir', hashDir)
-    }
-  }, [hashDir])
-
-  useEffect(() => {
-    remixClient.on('fileManager', 'noFileSelected', () => {
-      setNoFileSelected(true)
-    })
-  }, [remixClient])
-
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    setTimeout(async () => {
-      try {
-        if (noFileSelected) {
-          throw new Error('No file selected')
-        }
-
-        // get current file
-        const currentFile = await remixClient.call(
-          'fileManager',
-          'getCurrentFile'
-        )
-        if (currentFile.length > 0) {
-          const filename = getFileNameFromPath(currentFile)
-          const currentFileExtension = getFileExtension(filename)
-          setIsValidSolidity(currentFileExtension === 'sol')
-          setCurrentFilename(filename)
-
-          remixClient.emit('statusChanged', {
-            key: 'succeed',
-            type: 'info',
-            title: 'Current file: ' + currentFilename
-          })
-        }
-      } catch (e) {
-        remixClient.emit('statusChanged', {
-          key: 'failed',
-          type: 'info',
-          title: 'Please open a solidity file to compile'
-        })
-        console.log('error: ', e)
-      }
-    }, 500)
-  }, [remixClient, currentFilename, noFileSelected])
-
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    setTimeout(async () => {
-      remixClient.on(
-        'fileManager',
-        'currentFileChanged',
-        (currentFileChanged: any) => {
-          const filename = getFileNameFromPath(currentFileChanged)
-          const currentFileExtension = getFileExtension(filename)
-          setIsValidSolidity(currentFileExtension === 'sol')
-          setCurrentFilename(filename)
-          remixClient.emit('statusChanged', {
-            key: 'succeed',
-            type: 'info',
-            title: 'Current file: ' + currentFilename
-          })
-          setNoFileSelected(false)
-        }
-      )
-    }, 500)
-  }, [remixClient, currentFilename])
-
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    setTimeout(async () => {
-      try {
-        if (noFileSelected) {
-          throw new Error('No file selected')
-        }
-        const currentFilePath = await remixClient.call(
-          'fileManager',
-          'getCurrentFile'
-        )
-        if (!currentFilePath.endsWith('.sol')) {
-          throw new Error('Not a valid solidity file')
-        }
-        const currentFileContent = await remixClient.call(
-          'fileManager',
-          'readFile',
-          currentFilePath
-        )
-        await fetch(`${apiUrl}/save_code/${hashDir}/${currentFilePath}`, {
-          method: 'POST',
-          body: currentFileContent,
-          redirect: 'follow',
-          headers: {
-            'Content-Type': 'application/octet-stream'
-          }
-        })
-      } catch (e) {
-        remixClient.emit('statusChanged', {
-          key: 'failed',
-          type: 'info',
-          title: 'Please open a solidity file to compile'
-        })
-        console.log('error: ', e)
-      }
-    }, 100)
-  }, [currentFilename, remixClient])
-
-  async function getTomlPaths (
-    workspacePath: string,
-    currPath: string
-  ): Promise<string[]> {
-    const resTomlPaths: string[] = []
-
-    try {
-      const allFiles = await remixClient.fileManager.readdir(
-        workspacePath + '/' + currPath
-      )
-      // get keys of allFiles object
-      const allFilesKeys = Object.keys(allFiles)
-      // const get all values of allFiles object
-      const allFilesValues = Object.values(allFiles)
-
-      for (let i = 0; i < allFilesKeys.length; i++) {
-        if (allFilesKeys[i].endsWith('Scarb.toml')) {
-          resTomlPaths.push(currPath)
-        }
-        if (Object.values(allFilesValues[i])[0]) {
-          const recTomlPaths = await getTomlPaths(
-            workspacePath,
-            allFilesKeys[i]
-          )
-          resTomlPaths.push(...recTomlPaths)
-        }
-      }
-    } catch (e) {
-      console.log('error: ', e)
-    }
-    return resTomlPaths
-  }
-
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    setTimeout(async () => {
-      // get current workspace path
-      try {
-        const currWorkspace = await remixClient.filePanel.getCurrentWorkspace()
-        setCurrWorkspacePath(currWorkspace.absolutePath)
-      } catch (e) {
-        console.log('error: ', e)
-      }
-    })
-  })
-
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    setTimeout(async () => {
-      // get current workspace path
-      try {
-        if (currWorkspacePath === '') return
-        const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
-
-        setTomlPaths(allTomlPaths)
-        if (activeTomlPath === '' || activeTomlPath === undefined) {
-          setActiveTomlPath(tomlPaths[0])
-        }
-      } catch (e) {
-        console.log('error: ', e)
-      }
-    }, 100)
-  }, [currWorkspacePath])
-
-  useEffect(() => {
-    if (activeTomlPath === '' || activeTomlPath === undefined) {
-      setActiveTomlPath(tomlPaths[0])
-    }
-  }, [tomlPaths])
-
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    setTimeout(async () => {
-      remixClient.on('fileManager', 'fileAdded', (_: any) => {
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        setTimeout(async () => {
-          // get current workspace path
-          try {
-            const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
-
-            setTomlPaths(allTomlPaths)
-          } catch (e) {
-            console.log('error: ', e)
-          }
-        }, 100)
+    remixClient.fileManager
+      .readdir(`${currentWorkspacePath}/`)
+      .then((workspaceFiles: any) => {
+        setIsContractsFolderAvailable(!!workspaceFiles?.contracts?.isDirectory)
       })
-      remixClient.on('fileManager', 'folderAdded', (_: any) => {
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        setTimeout(async () => {
-          // get current workspace path
-          try {
-            const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
-
-            setTomlPaths(allTomlPaths)
-          } catch (e) {
-            console.log('error: ', e)
-          }
-        }, 100)
+      .catch((error) => {
+        console.error(`Failed to read current workspace ${error.message}`)
       })
-      remixClient.on('fileManager', 'fileRemoved', (_: any) => {
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        setTimeout(async () => {
-          // get current workspace path
-          try {
-            const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
+  }, [currentWorkspacePath, remixClient])
 
-            setTomlPaths(allTomlPaths)
-          } catch (e) {
-            console.log('error: ', e)
-          }
-        }, 100)
-      })
-      remixClient.on('filePanel', 'workspaceCreated', (_: any) => {
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        setTimeout(async () => {
-          // get current workspace path
-          try {
-            const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
+  async function handleCompile({ type }: { type: CompilationType }): Promise<void> {
+    const workspaceContents = getDefaultWorkspaceContents()
 
-            setTomlPaths(allTomlPaths)
-          } catch (e) {
-            console.log('error: ', e)
-          }
-        }, 100)
-      })
-      remixClient.on('filePanel', 'workspaceRenamed', (_: any) => {
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        setTimeout(async () => {
-          // get current workspace path
-          try {
-            const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
-
-            setTomlPaths(allTomlPaths)
-          } catch (e) {
-            console.log('error: ', e)
-          }
-        }, 100)
-      })
-    }, 500)
-  }, [remixClient])
-
-  const compilations = [
-    {
-      validation: isValidSolidity,
-      isLoading: isCompiling,
-      onClick: compile
-    }
-  ]
-
-  async function compile (): Promise<void> {
+    setCompilationType(type)
     setIsCompiling(true)
-    setStatus('Compiling...')
-    // clear current file annotations: inline syntax error reporting
+    setDeployStatus('IDLE')
+    setCompileStatus('Compiling...')
+    setCompileErrorMessages([])
     await remixClient.editor.clearAnnotations()
     try {
-      setStatus('Getting solidity file path...')
-      const currentFilePath = await remixClient.call(
-        'fileManager',
-        'getCurrentFile'
-      )
+      const allContractFiles = await getAllContractFiles(remixClient, currentWorkspacePath)
+      workspaceContents.contracts = allContractFiles
 
-      setStatus('Getting solidity file content...')
-      const currentFileContent = await remixClient.call(
-        'fileManager',
-        'readFile',
-        currentFilePath
-      )
-
-      setStatus('Parsing solidity code...')
-      let response = await fetch(
-        `${apiUrl}/save_code/${solidityVersion}/${hashDir}/${currentFilePath}`,
-        {
-          method: 'POST',
-          body: currentFileContent,
-          redirect: 'follow',
-          headers: {
-            'Content-Type': 'application/octet-stream'
-          }
-        }
-      )
-
-      if (!response.ok) {
-        await remixClient.call(
-          'notification' as any,
-          'toast',
-          'Could not reach solidity compilation server'
-        )
-        throw new Error('Solidity Compilation Request Failed')
-      }
-
-      setStatus('Compiling...')
-
-      response = await asyncFetch(`compile-async/${solidityVersion}/${hashDir}/${currentFilePath}`, 'compile-result')
-
-      if (!response.ok) {
-        await remixClient.call(
-          'notification' as any,
-          'toast',
-          'Could not reach solidity compilation server'
-        )
-        throw new Error('Solidity Compilation Request Failed')
+      if (type === 'SINGLE_FILE') {
+        const targetPath = getContractTargetPath(currentFilepath)
+        workspaceContents.target_path = targetPath
       } else {
-        await remixClient.call(
-          'notification' as any,
-          'toast',
-          'Solidity compilation request successful'
-        )
+        const filesNotInContractsFolder = findFilesNotInContracts(allContractFiles)
+        if (filesNotInContractsFolder.length > 0) {
+          await remixClient.terminal.log({
+            value: `${FILES_NOT_IN_CONTRACTS_MESSAGE} ${filesNotInContractsFolder.join('  ')}`,
+            type: 'warn'
+          })
+        }
       }
 
-      // get Json body from response
+      const response = await asyncPost('compile-async', 'compile-result', workspaceContents)
+
+      if (!response.ok) throw new Error('Solidity Compilation Request Failed')
+      else {
+        await remixClient.call('notification' as any, 'toast', 'Solidity compilation request successful')
+      }
+
       const compileResult = JSON.parse(await response.text()) as CompilationResult
 
       if (compileResult.status !== 'Success') {
-        setStatus('Reporting Errors...')
-        await remixClient.terminal.log({
-          value: compileResult.message,
-          type: 'error'
-        })
-
-        const errorLets = compileResult.message.trim().split('\n')
-
-        // remove last element if it's starts with `Error:`
-        if (errorLets[errorLets.length - 1].startsWith('Error:')) {
-          errorLets.pop()
-        }
-
-        // break the errorLets in array of arrays with first element contains the string `Plugin diagnostic`
-        const errorLetsArray = errorLets.reduce(
-          (acc: any, curr: any) => {
-            if (curr.startsWith('error:') || curr.startsWith('warning:')) {
-              acc.push([curr])
-            } else {
-              acc[acc.length - 1].push(curr)
-            }
-            return acc
-          },
-          [['errors diagnostic:']]
-        )
-
-        // remove the first array
-        errorLetsArray.shift()
-
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        errorLetsArray.forEach(async (errorLet: any) => {
-          const errorType = errorLet[0].split(':')[0].trim()
-          const errorTitle = errorLet[0].split(':').slice(1).join(':').trim()
-          const errorLine = errorLet[1].split(':')[1].trim()
-          const errorColumn = errorLet[1].split(':')[2].trim()
-          // join the rest of the array
-          const errorMsg = errorLet.slice(2).join('\n')
-
-          await remixClient.editor.addAnnotation({
-            row: Number(errorLine) - 1,
-            column: Number(errorColumn) - 1,
-            text: errorMsg + '\n' + errorTitle,
-            type: errorType
-          })
-        })
-
-        // trim sierra message to get last line
-        const lastLine = compileResult.message.trim().split('\n').pop()?.trim()
-
-        remixClient.emit('statusChanged', {
-          key: 'failed',
-          type: 'error',
-          title: (lastLine ?? '').startsWith('Error') ? lastLine : 'Compilation Failed'
-        })
-        throw new Error(
-          'Solidity Compilation Failed, logs can be read in the terminal log'
-        )
+        await emitErrorToRemix(compileResult)
       }
+      console.log('compile result', compileResult)
+      setCompiledContracts(compileResult, type)
+      writeResultsToArtifacts(compileResult)
 
-      const artifacts: string[] = []
-
-      const contractsToAdd: Contract[] = []
-      for (const file of compileResult.file_content) {
-        const contract = JSON.parse(file.file_content) as Contract
-        contractsToAdd.push(contract)
-      }
-
-      setContracts([...contractsToAdd, ...contracts])
-      setSelectedContract(contractsToAdd[0])
-
-      for (const file of compileResult.file_content) {
-        const artifactsPath = `${artifactFolder(currentFilePath)}/${file.file_name}`
-        artifacts.push(artifactsPath)
-
-        try {
-          await remixClient.call(
-            'fileManager',
-            'writeFile',
-            artifactsPath,
-            file.file_content
-          )
-        } catch (e) {
-          if (e instanceof Error) {
-            await remixClient.call(
-              'notification' as any,
-              'toast',
-              e.message +
-              ' try deleting the files: ' +
-              artifactsPath
-            )
-          }
-          remixClient.emit('statusChanged', {
-            key: 'succeed',
-            type: 'warning',
-            title: 'Failed to save artifacts'
-          })
-        } finally {
-          remixClient.emit('statusChanged', {
-            key: 'succeed',
-            type: 'info',
-            title: 'Saved artifacts'
-          })
-        }
-      }
+      setCompileStatus('done')
+      setAccordian('deploy')
     } catch (e) {
-      setStatus('failed')
+      setCompileStatus('failed')
       if (e instanceof Error) {
         await remixClient.call('notification' as any, 'alert', {
           id: 'zksyncRemixPluginAlert',
-          title: 'Expectation Failed',
+          title: 'Compilation Failed',
           message: e.message
         })
       }
       console.error(e)
+    } finally {
+      setIsCompiling(false)
     }
-    setAccordian('deploy')
-    setIsCompiling(false)
-  }
-
-  const compilationCard = (
-    validation: boolean,
-    isLoading: boolean,
-    onClick: () => unknown
-  ): React.ReactElement => {
-    return (
-      <Container>
-        {activeTomlPath && tomlPaths?.length > 0 && (
-          <div className='project-dropdown-wrapper d-flex flex-column mb-3'>
-            <div className='mx-auto'>Compile a single Solidity file:</div>
-          </div>
-        )}
-        <button
-          className='btn btn-primary w-100 text-break remixui_disabled mb-1 mt-1 px-0'
-          style={{
-            cursor: `${
-              !validation || !currentFilename ? 'not-allowed' : 'pointer'
-            }`
-          }}
-          disabled={!validation || !currentFilename || isCompiling}
-          aria-disabled={!validation || !currentFilename || isCompiling}
-          onClick={onClick}
-        >
-          <div className='d-flex align-items-center justify-content-center'>
-            <div className='text-truncate overflow-hidden text-nowrap'>
-              {!validation
-                ? (
-                  <span>Select a valid solidity file</span>
-                  )
-                : (
-                  <>
-                    <div className='d-flex align-items-center justify-content-center'>
-                      {isLoading
-                        ? (
-                          <>
-                        <span
-                          className='spinner-border spinner-border-sm'
-                          role='status'
-                          aria-hidden='true'
-                        >
-                          {' '}
-                        </span>
-                            <span style={{ paddingLeft: '0.5rem' }}>{status}</span>
-                          </>
-                          )
-                        : (
-                          <div className='text-truncate overflow-hidden text-nowrap'>
-                            <span>Compile</span>
-                            <span className='ml-1 text-nowrap'>
-                          {currentFilename}
-                        </span>
-                          </div>
-                          )}
-                    </div>
-                  </>
-                  )}
-            </div>
-          </div>
-        </button>
-      </Container>
-    )
   }
 
   return (
-    <div>
-      {compilations.map((compilation) => {
-        return compilationCard(
-          compilation.validation,
-          compilation.isLoading,
-          compilation.onClick
-        )
-      })}
-    </div>
+    <Container className="flex flex-column justify-content-center">
+      <button
+        className="btn btn-secondary d-block text-break mb-1 text-center"
+        onClick={() => handleCompile({ type: 'PROJECT' })}
+        disabled={isCompiling || !isContractsFolderAvailable}
+      >
+        {isCompiling && compilationType === 'PROJECT' ? (
+          <>
+            <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true">
+              {' '}
+            </span>
+            <span style={{ paddingLeft: '0.5rem' }}>{status}</span>
+          </>
+        ) : isContractsFolderAvailable ? (
+          <div className="text-truncate overflow-hidden text-nowrap">Compile Project</div>
+        ) : (
+          <Tooltip
+            icon={
+              <div className="text-truncate overflow-hidden text-nowrap">
+                <span>Compile Project</span>
+              </div>
+            }
+            content={
+              <div className="p-2 overflow-visible text-center text-wrap">
+                Contracts folder not found in the workspace
+              </div>
+            }
+            side="bottom"
+            avoidCollisions={false}
+          />
+        )}
+      </button>
+
+      <button
+        className="btn btn-primary d-block text-break mb-1 mt-2"
+        style={{
+          cursor: `${!isValidSolidity || !currentFilename ? 'not-allowed' : 'pointer'}`
+        }}
+        disabled={!isValidSolidity || !currentFilename || isCompiling}
+        aria-disabled={!isValidSolidity || !currentFilename || isCompiling}
+        onClick={() => handleCompile({ type: 'SINGLE_FILE' })}
+      >
+        <div className="d-flex align-items-center justify-content-center w-100">
+          {!isValidSolidity ? (
+            <div>Select a valid solidity file</div>
+          ) : (
+            <div className="d-flex align-items-center justify-content-center w-100">
+              {isCompiling && compilationType === 'SINGLE_FILE' ? (
+                <>
+                  <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true">
+                    {' '}
+                  </span>
+                  <span style={{ paddingLeft: '0.5rem' }}>{status}</span>
+                </>
+              ) : (
+                <Tooltip
+                  icon={
+                    <div className="text-truncate overflow-hidden text-nowrap">
+                      <span>Compile</span>
+                      <span className="ml-1 text-nowrap">{currentFilename}</span>
+                    </div>
+                  }
+                  content={<div className="p-2 overflow-visible text-center">{currentFilename}</div>}
+                  side="bottom"
+                  avoidCollisions={false}
+                />
+              )}
+            </div>
+          )}
+        </div>
+      </button>
+    </Container>
   )
 }
-
-export default Compilation

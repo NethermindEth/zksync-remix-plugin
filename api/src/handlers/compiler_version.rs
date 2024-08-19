@@ -1,5 +1,5 @@
-use crate::types::ApiError;
-use crate::utils::lib::ALLOWED_VERSIONS;
+use crate::errors::ApiError;
+use crate::utils::lib::ZKSOLC_VERSIONS;
 use rocket::serde::json::serde_json;
 use tracing::{info, instrument};
 
@@ -24,5 +24,5 @@ pub fn do_compiler_version() -> Result<String, ApiError> {
 }
 
 pub fn do_allowed_versions() -> Result<String, ApiError> {
-    Ok(serde_json::to_string(&ALLOWED_VERSIONS).unwrap())
+    Ok(serde_json::to_string(&ZKSOLC_VERSIONS).unwrap())
 }

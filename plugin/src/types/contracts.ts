@@ -11,6 +11,12 @@ interface Contract {
   factoryDeps: Record<string, unknown>
 }
 
+interface ContractFile {
+  file_name: string
+  file_content: string
+  is_contract: boolean
+}
+
 interface DeployedContract extends Contract {
   address: string
   transactionHash: string
@@ -20,12 +26,19 @@ interface DeployedContract extends Contract {
 interface CompilationResult {
   status: string
   message: string
-  file_content: SolFile[]
+  file_content: CompiledArtifact[]
 }
 
-interface SolFile {
+interface VerificationResult {
+  status: string
+  message: string
+}
+
+interface CompiledArtifact {
+  // Is a relative path to a file
   file_name: string
   file_content: string
+  is_contract: boolean
 }
 
 interface Input {
@@ -42,8 +55,7 @@ interface AbiElement {
   type: string
 }
 
-interface Abi extends Array<AbiElement> {
-}
+type Abi = Array<AbiElement>
 
 type Output = Input
 
@@ -51,9 +63,11 @@ export type {
   Abi,
   AbiElement,
   Contract,
+  ContractFile,
   Input,
   Output,
   DeployedContract,
   CompilationResult,
-  SolFile
+  VerificationResult,
+  CompiledArtifact
 }

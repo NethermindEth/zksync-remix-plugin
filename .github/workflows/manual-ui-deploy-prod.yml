@@ -7,7 +7,7 @@ env:
   BUCKET_NAME: 'zksync-remix-plugin-web'
   PROD_BUCKET_NAME: 'zksync-remix-plugin-prod-web'
   API_SERVICE_URL: "https://zksync-plugin-api.nethermind.io"
-  ZKSYNC_DEVNET_URL: "https://zksync-devnet.nethermind.dev"
+  ZKSYNC_DEVNET_URL: "https://zksync-devnet.nethermind.io"
   WALLETCONNECT_PROJECT_ID: '${{secrets.WALLECTCONNECT_PROJECT_ID_PROD}}'
 
 

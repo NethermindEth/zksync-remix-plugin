@@ -1,7 +1,0 @@
-{
-	"dependencies": {
-		"@web3modal/wagmi": "^3.1.0",
-		"wagmi": "^1.4.5",
-		"viem": "^1.16.6"
-	}
-}

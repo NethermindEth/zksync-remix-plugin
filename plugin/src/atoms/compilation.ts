@@ -1,30 +1,12 @@
 import { atom } from 'jotai'
 
-const statusAtom = atom<string>('Compiling....')
-
-const currentFilenameAtom = atom<string>('')
-
-const isCompilingAtom = atom<boolean>(false)
-
-const isValidSolidityAtom = atom<boolean>(false)
-
-const noFileSelectedAtom = atom<boolean>(false)
-
+export type CompilationType = 'PROJECT' | 'SINGLE_FILE' | 'NONE'
+const compileStatusAtom = atom<string>('Compiling....')
 const hashDirAtom = atom<string>('')
-
-const tomlPathsAtom = atom<string[]>([])
-
-const activeTomlPathAtom = atom<string>('')
-
-type CompilationKeys =
-  'status'
-  | 'currentFilename'
-  | 'isCompiling'
-  | 'isValidSolidity'
-  | 'noFileSelected'
-  | 'hashDir'
-  | 'tomlPaths'
-  | 'activeTomlPath'
+const isCompilingAtom = atom<boolean>(false)
+const compilationTypeAtom = atom<CompilationType>('NONE')
+type CompilationKeys = 'status' | 'isCompiling' | 'hashDir' | 'errorMessages' | 'compilationType'
+const compileErrorMessagesAtom = atom<string[]>([])
 
 interface SetCompilationValue {
   key: CompilationKeys
@@ -34,56 +16,41 @@ interface SetCompilationValue {
 const compilationAtom = atom(
   (get) => {
     return {
-      status: get(statusAtom),
-      currentFilename: get(currentFilenameAtom),
+      status: get(compileStatusAtom),
       isCompiling: get(isCompilingAtom),
-      isValidSolidity: get(isValidSolidityAtom),
-      noFileSelected: get(noFileSelectedAtom),
       hashDir: get(hashDirAtom),
-      tomlPaths: get(tomlPathsAtom),
-      activeTomlPath: get(activeTomlPathAtom)
+      errorMessages: get(compileErrorMessagesAtom),
+      compilationType: get(compilationTypeAtom)
     }
   },
   (_get, set, newValue: SetCompilationValue) => {
     switch (newValue?.key) {
       case 'status':
-        typeof newValue?.value === 'string' && set(statusAtom, newValue?.value)
-        break
-      case 'currentFilename':
-        typeof newValue?.value === 'string' && set(currentFilenameAtom, newValue?.value)
+        typeof newValue?.value === 'string' && set(compileStatusAtom, newValue?.value)
         break
       case 'isCompiling':
         typeof newValue?.value === 'boolean' && set(isCompilingAtom, newValue?.value)
         break
-      case 'isValidSolidity':
-        typeof newValue?.value === 'boolean' && set(isValidSolidityAtom, newValue?.value)
-        break
-      case 'noFileSelected':
-        typeof newValue?.value === 'boolean' && set(noFileSelectedAtom, newValue?.value)
-        break
       case 'hashDir':
         typeof newValue?.value === 'string' && set(hashDirAtom, newValue?.value)
         break
-      case 'tomlPaths':
-        Array.isArray(newValue?.value) && set(tomlPathsAtom, newValue?.value)
+      case 'errorMessages':
+        Array.isArray(newValue?.value) && set(compileErrorMessagesAtom, newValue?.value)
         break
-      case 'activeTomlPath':
-        typeof newValue?.value === 'string' && set(activeTomlPathAtom, newValue?.value)
+      case 'compilationType':
+        typeof newValue?.value === 'string' && set(compilationTypeAtom, newValue?.value as CompilationType)
         break
     }
   }
 )
 
 export {
-  statusAtom,
-  currentFilenameAtom,
+  compileStatusAtom,
   isCompilingAtom,
-  isValidSolidityAtom,
-  noFileSelectedAtom,
   hashDirAtom,
-  tomlPathsAtom,
-  activeTomlPathAtom,
   compilationAtom,
+  compileErrorMessagesAtom,
+  compilationTypeAtom,
   type SetCompilationValue,
   type CompilationKeys
 }

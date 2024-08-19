@@ -9,12 +9,8 @@ import * as D from '../../ui_components/Dropdown'
 import { BsChevronDown } from 'react-icons/bs'
 
 const EnvironmentSelector: React.FC = () => {
-  const [
-    env,
-    setEnv] = useAtom(envAtom)
-  const
-    setDevnet =
-      useSetAtom(devnetAtom)
+  const [env, setEnv] = useAtom(envAtom)
+  const setDevnet = useSetAtom(devnetAtom)
   const setProvider = useSetAtom(providerAtom)
 
   const handleEnvironmentChange = (ipValue: string): void => {
@@ -51,14 +47,21 @@ const EnvironmentSelector: React.FC = () => {
 
   return (
     <div className="environment-selector-wrapper">
-      <D.Root open={dropdownControl} onOpenChange={(e) => { setDropdownControl(e) }}>
+      <D.Root
+        open={dropdownControl}
+        onOpenChange={(e) => {
+          setDropdownControl(e)
+        }}
+      >
         <D.Trigger>
           <div className="flex flex-row justify-content-space-between align-items-center p-2 br-1 devnet-trigger-wrapper">
-            <label className='text-light text-sm m-0'>{getActiveEnv(env)}</label>
-            <BsChevronDown style={{
-              transform: dropdownControl ? 'rotate(180deg)' : 'none',
-              transition: 'all 0.3s ease'
-            }} />
+            <label className="text-light text-sm m-0">{getActiveEnv(env)}</label>
+            <BsChevronDown
+              style={{
+                transform: dropdownControl ? 'rotate(180deg)' : 'none',
+                transition: 'all 0.3s ease'
+              }}
+            />
           </div>
         </D.Trigger>
         <D.Portal>

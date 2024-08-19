@@ -1,9 +1,9 @@
 import React from 'react'
 import './loader.css'
 
-const Loader: React.FC = () => {
+export const Loader = () => {
   return (
-    <div className='loader center'>
+    <div className="loader center">
       <span></span>
     </div>
   )

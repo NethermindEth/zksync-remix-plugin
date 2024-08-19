@@ -1,23 +1,15 @@
 import React from 'react'
+import { Provider } from 'jotai'
 import './App.css'
-import Plugin from './features/Plugin'
-import Loader from './ui_components/CircularLoader'
-import FullScreenOverlay from './ui_components/FullScreenOverlay'
-import { useAtomValue } from 'jotai'
-import { pluginLoaded } from './atoms/remixClient'
+import { Plugin } from '@/features/Plugin'
+import { remixClientStore } from '@/stores/remixClient'
 
-const App: React.FC = () => {
+const App = () => {
   return (
-    <div className='shell bg-primary'>
-      {useAtomValue(pluginLoaded)
-        ? (
-          <Plugin />
-          )
-        : (
-          <FullScreenOverlay>
-            <Loader />
-          </FullScreenOverlay>
-          )}
+    <div className="shell bg-primary">
+      <Provider store={remixClientStore}>
+        <Plugin />
+      </Provider>
     </div>
   )
 }

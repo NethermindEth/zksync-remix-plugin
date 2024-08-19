@@ -1,14 +1,14 @@
-use crate::utils::lib::timestamp;
-use rand::Rng;
+use crate::utils::lib::{DEFAULT_SOLIDITY_VERSION, DEFAULT_ZKSOLC_VERSION};
 use rocket::serde::json::serde_json;
+use std::fmt::Formatter;
+
+const DEFAULT_CONTRACTS_LOCATION: &str = "./contracts";
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
 pub struct HardhatConfig {
-    #[serde(skip)]
-    pub name: String,
     pub zksolc: ZksolcConfig,
     pub solidity: SolidityConfig,
-    pub paths: PathsConfig,
+    pub paths: ProjectPathsUserConfig,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, Debug, Default)]
@@ -22,10 +22,23 @@ pub struct SolidityConfig {
     pub version: String,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Clone, Debug, Default)]
-pub struct PathsConfig {
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
+pub struct ProjectPathsUserConfig {
     pub sources: String,
-    pub artifacts: String,
+}
+
+impl std::fmt::Display for ProjectPathsUserConfig {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, r#"{{sources: "{}",}}"#, self.sources)
+    }
+}
+
+impl Default for ProjectPathsUserConfig {
+    fn default() -> Self {
+        Self {
+            sources: DEFAULT_CONTRACTS_LOCATION.into(),
+        }
+    }
 }
 
 #[derive(Default)]
@@ -36,18 +49,14 @@ pub struct HardhatConfigBuilder {
 impl Default for HardhatConfig {
     fn default() -> Self {
         Self {
-            name: Self::generate_random_name(),
             zksolc: ZksolcConfig {
-                version: "latest".to_string(),
+                version: DEFAULT_ZKSOLC_VERSION.to_string(),
                 settings: serde_json::json!({}),
             },
             solidity: SolidityConfig {
-                version: "0.8.20".to_string(),
+                version: DEFAULT_SOLIDITY_VERSION.to_string(),
             },
-            paths: PathsConfig {
-                sources: "./contracts".to_string(),
-                artifacts: "./artifacts".to_string(),
-            },
+            paths: ProjectPathsUserConfig::default(),
         }
     }
 }
@@ -61,9 +70,7 @@ impl HardhatConfig {
         let config_prefix_js = r#"
 import { HardhatUserConfig } from "hardhat/config";
 
-import "@matterlabs/hardhat-zksync-deploy";
 import "@matterlabs/hardhat-zksync-solc";
-
 import "@matterlabs/hardhat-zksync-verify";
 
 export const zkSyncTestnet = process.env.NODE_ENV == "test"
@@ -73,11 +80,17 @@ export const zkSyncTestnet = process.env.NODE_ENV == "test"
     zksync: true,
   }
 : {
-    url: "https://testnet.era.zksync.dev",
-    ethNetwork: "goerli",
+    url: "https://sepolia.era.zksync.dev",
+    ethNetwork: "sepolia",
     zksync: true,
-    // contract verification endpoint
-    verifyURL: "https://zksync2-testnet-explorer.zksync.dev/contract_verification",
+    verifyURL: "https://explorer.sepolia.era.zksync.dev/contract_verification"
+  };
+
+export const zkSyncMainnet = {
+    url: "https://mainnet.era.zksync.io",
+    ethNetwork: "mainnet",
+    zksync: true,
+    verifyURL: "https://zksync2-mainnet-explorer.zksync.io/contract_verification"
   };
 "#;
 
@@ -94,36 +107,20 @@ const config: HardhatUserConfig = {{
       zksync: false,
     }},
     zkSyncTestnet,
+    zkSyncMainnet,
   }},
   solidity: {{
-    version: "0.8.20",
+    version: "{}",
   }},
-  // path to the directory with contracts
-  paths: {{
-    sources: "{}",
-    artifacts: "{}",
-  }},
+  paths: {},
 }};
 
 export default config;
 "#,
-            config_prefix_js, self.zksolc.version, self.paths.sources, self.paths.artifacts
+            config_prefix_js, self.zksolc.version, self.solidity.version, self.paths
         );
 
         config
-    }
-
-    pub fn generate_random_name() -> String {
-        let mut rng = rand::thread_rng();
-        let rand_string: Vec<u8> = std::iter::repeat(())
-            .map(|()| rng.sample(rand::distributions::Alphanumeric))
-            .take(10)
-            .collect();
-        format!(
-            "hardhat-{}-{}.config.ts",
-            timestamp(),
-            String::from_utf8(rand_string).unwrap_or("".to_string())
-        )
     }
 }
 
@@ -142,13 +139,8 @@ impl HardhatConfigBuilder {
         self
     }
 
-    pub fn sources_path(&mut self, path: &str) -> &mut Self {
-        self.config.paths.sources = path.to_string();
-        self
-    }
-
-    pub fn artifacts_path(&mut self, path: &str) -> &mut Self {
-        self.config.paths.artifacts = path.to_string();
+    pub fn paths_sources(&mut self, target_path: &str) -> &mut Self {
+        self.config.paths.sources = target_path.to_string();
         self
     }
 
@@ -157,16 +149,15 @@ impl HardhatConfigBuilder {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+#[test]
+fn test_paths_user_config_display() {
+    const SOURCES: &str = "./some/folder";
 
-    #[test]
-    pub fn test_random_name() {
-        for _ in 1..100 {
-            let name = HardhatConfig::generate_random_name();
+    let expected = format!(r#"{{sources: "{}"}}"#, SOURCES);
+    let paths = ProjectPathsUserConfig {
+        sources: SOURCES.to_string(),
+    };
+    let actual = format!("{}", paths);
 
-            println!("Random name: {}", name);
-        }
-    }
+    assert_eq!(expected, actual);
 }

@@ -14,8 +14,8 @@ permissions:
 env:
   REGISTRY: "599564732950.dkr.ecr.us-east-2.amazonaws.com"
   REPOSITORY: "zksync-remix-plugin"
-  DEV_CLUSTER: "zksync-remix-plugin-ecs-cluster"
-  DEV_SERVICE_NAME: "rocket-development-svc"
+  DEV_CLUSTER: "zksync-remix-plugin-dev-ecs-cluster"
+  DEV_SERVICE_NAME: "rocket-dev-svc"
   PROD_CLUSTER: "zksync-remix-plugin-production-ecs-cluster"
   PROD_SERVICE_NAME: "rocket-production-svc"
 jobs:
@@ -71,28 +71,6 @@ jobs:
         with:
           mask-password: 'true'
 
-#      - name: Update local Rust toolchains
-#        run: |
-#          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain stable -y
-#          rustup update
-#          rustup component add clippy
-#          rustup install nightly
-#          sudo apt install musl-tools
-#          rustup target add x86_64-unknown-linux-musl
-
-
-#      - name: Toolchains info
-#        run: |
-#          cargo --version --verbose
-#          rustc --version
-#          cargo clippy --version
-
-#      - name: Build
-#        run: |
-#          cd api
-#          cargo build --target=x86_64-unknown-linux-musl
-#          ls ./target/debug/ -al
-
       - name: Build, tag, and push docker image to Amazon ECR
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -119,7 +97,7 @@ jobs:
 
       - name: Download task definition
         run: |
-          aws ecs describe-task-definition --task-definition zksync-remix-development-rocket --query taskDefinition > task-definition.json
+          aws ecs describe-task-definition --task-definition zksync-remix-dev-rocket --query taskDefinition > task-definition.json
 
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
@@ -135,6 +113,8 @@ jobs:
             VITE_URL=https://zksync-plugin.nethermind.dev
             PROMTAIL_USERNAME=${{secrets.PROMTAIL_USERNAME}}
             PROMTAIL_PASSWORD=${{secrets.PROMTAIL_PASSWORD}}
+            PROMETHEUS_USERNAME=${{secrets.PROMETHEUS_USERNAME}}
+            PROMETHEUS_PASSWORD=${{secrets.PROMETHEUS_PASSWORD}}
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
@@ -172,6 +152,8 @@ jobs:
             VITE_URL=https://zksync-plugin.nethermind.dev
             PROMTAIL_USERNAME=${{secrets.PROMTAIL_USERNAME}}
             PROMTAIL_PASSWORD=${{secrets.PROMTAIL_PASSWORD}}
+            PROMETHEUS_USERNAME=${{secrets.PROMETHEUS_USERNAME}}
+            PROMETHEUS_PASSWORD=${{secrets.PROMETHEUS_PASSWORD}}
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1

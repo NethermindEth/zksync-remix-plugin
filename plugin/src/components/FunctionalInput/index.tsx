@@ -1,18 +1,20 @@
 // A component that reads the compiled contracts from the context and displays them in a select
 
 import React, { useEffect, useState } from 'react'
-import { generateInputName } from '../../utils/utils'
+import * as zksync from 'zksync-ethers'
+import { generateInputName, parseContractInputs } from '../../utils/utils'
 import { type AbiElement, type Input } from '../../types/contracts'
 import InputField from '../InputField'
-import { Contract } from 'ethers'
+import { ethers } from 'ethers'
 import { mockManualChain, type Transaction } from '../../types/transaction'
-import useRemixClient from '../../hooks/useRemixClient'
 import { useAtom, useAtomValue } from 'jotai'
 import { deployedSelectedContractAtom } from '../../atoms/deployedContracts'
 import { transactionsAtom } from '../../atoms/transaction'
 import { accountAtom, providerAtom } from '../../atoms/connection'
 import { useWalletClient } from 'wagmi'
 import { envAtom } from '../../atoms/environment'
+import { remixClientAtom } from '../../stores/remixClient'
+import { ContractInputType } from '../ConstructorInput'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface CompiledContractsProps {
@@ -20,7 +22,7 @@ interface CompiledContractsProps {
 }
 
 const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledContractsProps) => {
-  const { remixClient } = useRemixClient()
+  const remixClient = useAtomValue(remixClientAtom)
   const { data: walletClient } = useWalletClient()
 
   const selectedContract = useAtomValue(deployedSelectedContractAtom)
@@ -30,7 +32,10 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
   const env = useAtomValue(envAtom)
   const provider = useAtomValue(providerAtom)
 
-  const [inputs, setInputs] = useState<string[]>([])
+  const [inputs, setInputs] = useState<ContractInputType>(
+    new Array(element.inputs.length).fill({ internalType: 'string', value: '' })
+  )
+  const [value, setValue] = useState<string>('')
 
   const callContract = async (): Promise<void> => {
     if (selectedContract == null) {
@@ -45,8 +50,7 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
       }
 
       const contractAddress = selectedContract.address
-      const contract = new Contract(contractAddress, selectedContract.abi, account)
-        .connect(account)
+      const contract = new zksync.Contract(contractAddress, selectedContract.abi, account)
 
       const method = contract[element.name]
 
@@ -56,7 +60,12 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
         title: `Executing "${element.name}" method!`
       })
 
-      const result = await method(...inputs)
+      const callParameters = parseContractInputs(inputs)
+      if (element.stateMutability === 'payable') {
+        const options: any = { value: ethers.utils.parseEther(value) }
+        callParameters.push(options)
+      }
+      const result = await method(...callParameters)
 
       remixClient.emit('statusChanged', {
         key: 'succeed',
@@ -70,8 +79,9 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
           type: 'invoke',
           txId: result.hash,
           env,
-          chain: (env !== 'manual' ? walletClient?.chain : mockManualChain),
-          provider
+          chain: env !== 'manual' ? walletClient?.chain : mockManualChain,
+          provider,
+          value
         }
 
         setTransactions([transaction, ...transactions])
@@ -95,37 +105,68 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
         title: `Contract ${selectedContract.contractName} failed to deploy!`
       })
 
-      await remixClient.call(
-        'notification' as any,
-        'toast',
-        `Error: ${String(e)}`
-      )
+      if (e instanceof Error) {
+        await remixClient.terminal.log({
+          value: `Error in function invocation (message): ${JSON.stringify(e.message)}`,
+          type: 'error'
+        })
+      } else {
+        await remixClient.terminal.log({
+          value: `Error in function invocation: ${JSON.stringify(e)}`,
+          type: 'error'
+        })
+      }
+
+      await remixClient.call('notification' as any, 'toast', `Error: ${String(e)}`)
     }
   }
 
   useEffect(() => {
-    setInputs(new Array(element.inputs.length).fill(''))
+    setInputs(new Array(element.inputs.length).fill({ internalType: 'string', value: '' }))
   }, [element])
 
   return (
     <div>
-      <button onClick={() => {
-        callContract().catch(console.error)
-      }} className={`btn btn-primary w-100 text-break mb-1 mt-1 px-0 ${
-        element.stateMutability === 'view' ? '' : 'btn-warning'
-      }`}>{element.name}</button>
-      {
-        element.inputs.map((input: Input, index: number) => {
-          return (
-            <InputField key={index} placeholder={generateInputName(input)} index={index} value={inputs[index]}
-                        onChange={(index, newValue) => {
-                          const newInputs = [...inputs]
-                          newInputs[index] = newValue
-                          setInputs(newInputs)
-                        }} />
-          )
-        })
-      }
+      <button
+        onClick={() => {
+          callContract().catch(console.error)
+        }}
+        className={`
+          btn btn-primary w-100 text-break mb-1 mt-1 px-0
+          ${element.stateMutability === 'view' ? '' : 'btn-warning'}
+        `}
+      >
+        {element.name}
+      </button>
+      {element.stateMutability === 'payable' ? (
+        <InputField
+          key={'value'}
+          placeholder={'Amount (ETH)'}
+          index={element.inputs.length}
+          value={value}
+          onChange={(_, newValue) => {
+            setValue(newValue)
+          }}
+        />
+      ) : (
+        <></>
+      )}
+      {element.inputs.map((input: Input, index: number) => (
+        <InputField
+          key={index}
+          placeholder={generateInputName(input)}
+          index={index}
+          value={inputs[index].value}
+          onChange={(index, newValue) => {
+            const newInputs = [...inputs]
+            newInputs[index] = {
+              internalType: input.internalType || 'string',
+              value: newValue
+            }
+            setInputs(newInputs)
+          }}
+        />
+      ))}
     </div>
   )
 }

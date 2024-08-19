@@ -2,43 +2,71 @@ use rocket::http::Status;
 use rocket::response::Responder;
 use rocket::Request;
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(crate = "rocket::serde")]
 pub struct CompileResponse {
     pub status: String,
     pub message: String,
-    pub file_content: Vec<SolFile>,
+    pub file_content: Vec<CompiledFile>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(crate = "rocket::serde")]
+pub struct CompiledFile {
+    pub file_name: String,
+    pub file_content: String,
+    #[serde(default)]
+    pub is_contract: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(crate = "rocket::serde")]
-pub struct SolFile {
-    pub file_name: String,
-    pub file_content: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct FileContentMap {
-    pub file_name: String,
-    pub file_content: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ScarbCompileResponse {
+pub struct VerifyResponse {
     pub status: String,
     pub message: String,
-    pub file_content_map_array: Vec<FileContentMap>,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
+#[serde(crate = "rocket::serde")]
+pub struct CompilationConfig {
+    pub version: String,
+    #[serde(default)]
+    pub user_libraries: Vec<String>,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
+#[serde(crate = "rocket::serde")]
+pub struct CompilationRequest {
+    pub config: CompilationConfig,
+    pub contracts: Vec<CompiledFile>,
+    pub target_path: Option<String>,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
+#[serde(crate = "rocket::serde")]
+pub struct VerifyConfig {
+    pub zksolc_version: String,
+    pub solc_version: Option<String>,
+    pub network: String,
+    pub contract_address: String,
+    pub inputs: Vec<String>,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
+#[serde(crate = "rocket::serde")]
+pub struct VerificationRequest {
+    pub config: VerifyConfig,
+    pub contracts: Vec<CompiledFile>,
+    // In format: path/Some.sol:ContractName
+    pub target_contract: Option<String>,
 }
 
 #[derive(Debug)]
 pub enum ApiCommand {
     CompilerVersion,
-    Compile {
-        version: String,
-        path: PathBuf,
-    },
+    Compile(CompilationRequest),
+    Verify(VerificationRequest),
     #[allow(dead_code)]
     Shutdown,
 }
@@ -47,6 +75,7 @@ pub enum ApiCommand {
 pub enum ApiCommandResult {
     CompilerVersion(String),
     Compile(CompileResponse),
+    Verify(VerifyResponse),
     #[allow(dead_code)]
     Shutdown,
 }
