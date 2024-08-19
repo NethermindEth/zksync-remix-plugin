@@ -2,6 +2,7 @@
 name = "zksync-lambdas"
 version = "0.0.1"
 edition = "2021"
+authors = ["edwinswatpako@gmail.com"]
 
 [dependencies]
 aws-config = "1.5.5"
@@ -22,3 +23,8 @@ uuid = { version = "1.10.0", features = ["serde", "v4"] }
 name = "generate-presigned-urls"
 version = "0.0.1"
 path = "src/generate_presigned_urls.rs"
+
+[[bin]]
+name = "compile"
+version = "0.0.1"
+path = "src/compile.rs"
