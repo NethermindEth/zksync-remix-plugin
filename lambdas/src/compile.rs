@@ -10,10 +10,12 @@ use tracing::{error, info};
 mod common;
 use crate::common::{errors::Error, utils::extract_request, Item, Status, BUCKET_NAME_DEFAULT};
 
+// TODO: remove on release
 const QUEUE_URL_DEFAULT: &str = "https://sqs.ap-southeast-2.amazonaws.com/266735844848/zksync-sqs";
 const TABLE_NAME_DEFAULT: &str = "zksync-table";
 
 const NO_OBJECTS_TO_COMPILE_ERROR: &str = "There are no objects to compile";
+const RECOMPILATION_ATTEMPT_ERROR: &str = "Recompilation attemp";
 
 #[derive(Debug, Deserialize)]
 struct Request {
@@ -60,7 +62,7 @@ async fn compile(
                 let response = lambda_http::Response::builder()
                     .status(400)
                     .header("content-type", "text/html")
-                    .body("Recompilation attempt".into())
+                    .body(RECOMPILATION_ATTEMPT_ERROR.into())
                     .map_err(Error::from)?;
 
                 return Err(Error::HttpError(response));
