@@ -77,9 +77,11 @@ const DeployedContracts = () => {
                     setDropdownControl(false)
                   }}
                 >
-                  {`[${contract.env}] ${getContractNameFromFullName(
-                    contract.contractName
-                  )}, ${getShortenedHash(contract.address, 8, 8)}`}
+                  <div className="py-1">
+                    {`[${contract.env}] ${getContractNameFromFullName(
+                      contract.contractName
+                    )}, ${getShortenedHash(contract.address, 8, 8)}`}
+                  </div>
                 </Dropdown.Item>
               )
             })}

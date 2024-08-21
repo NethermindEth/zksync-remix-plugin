@@ -92,7 +92,7 @@ export const ManualAccount = () => {
             <D.Trigger>
               <div className="flex flex-row justify-content-space-between align-items-center p-2 pb-1 br-1 compiled-contracts-wrapper">
                 <label>
-                  {selectedAccount !== null ? getShortenedHash(selectedAccount.address, 16, 4) : 'No Accounts'}
+                  {selectedAccount !== null ? getShortenedHash(selectedAccount.address, 12, 4) : 'No Accounts'}
                 </label>
                 <BsChevronDown
                   style={{
@@ -113,7 +113,7 @@ export const ManualAccount = () => {
                       }}
                       key={index}
                     >
-                      {getShortenedHash(account.address, 20, 4)}
+                      {getShortenedHash(account.address, 12, 4)}
                     </D.Item>
                   )
                 })}

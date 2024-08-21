@@ -36,11 +36,12 @@
 
 .devnet-account-item {
   position: relative;
+  padding: 4px 0;
 }
 
 .selected-account {
   position: absolute;
-  top: -2px;
+  top: 2px;
   left: -10px;
 }
 
