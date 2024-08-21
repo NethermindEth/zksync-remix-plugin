@@ -44,7 +44,7 @@
   width: auto;
   height: 100%;
   text-align: center;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem;
   border-bottom: 3px solid transparent;
   transition: border-bottom 0.3s ease;
 }
