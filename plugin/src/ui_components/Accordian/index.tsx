@@ -7,8 +7,8 @@ export interface IFCProps {
   children: React.ReactNode | null
 }
 
-// eslint-disable-next-line react/display-name
-export const AccordionTrigger = React.forwardRef<any, any>(({ children, ...props }, forwardedRef) => (
+// eslint-disable-next-line react/display-name, @typescript-eslint/no-unused-vars
+export const AccordionTrigger = React.forwardRef<any, any>(({ children, className, ...props }, forwardedRef) => (
   <AccordionPrimitive.Header className="AccordionHeader">
     <AccordionPrimitive.Trigger className={'AccordionTrigger'} {...props} ref={forwardedRef}>
       {children}
@@ -17,9 +17,9 @@ export const AccordionTrigger = React.forwardRef<any, any>(({ children, ...props
   </AccordionPrimitive.Header>
 ))
 
-// eslint-disable-next-line react/display-name
-export const AccordionContent = React.forwardRef<any, any>(({ children, ...props }, forwardedRef) => (
-  <AccordionPrimitive.Content className={'AccordionContent bg-primary'} {...props} ref={forwardedRef}>
+// eslint-disable-next-line react/display-name, @typescript-eslint/no-unused-vars
+export const AccordionContent = React.forwardRef<any, any>(({ children, className, ...props }, forwardedRef) => (
+  <AccordionPrimitive.Content className={'AccordionContent'} {...props} ref={forwardedRef}>
     <div className="AccordionContentText">{children}</div>
   </AccordionPrimitive.Content>
 ))
@@ -31,11 +31,11 @@ interface IAccordian {
   defaultValue: any
   value?: any
   children: React.ReactNode
+  className?: string
 }
-
-const Accordian: React.FC<IAccordian> = ({ type = 'single', children, defaultValue, value }) => (
+const Accordian: React.FC<IAccordian> = ({ type = 'single', children, defaultValue, value, className }) => (
   <AccordionPrimitive.Root
-    className="AccordionRoot"
+    className={className ?? 'AccordionRoot'}
     type={type}
     value={value}
     defaultValue={defaultValue}

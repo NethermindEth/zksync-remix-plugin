@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { Provider, Wallet } from 'zksync-ethers'
 import { MdCopyAll, MdRefresh } from 'react-icons/md'
 import copy from 'copy-to-clipboard'
@@ -11,6 +11,7 @@ import { accountAtom, providerAtom } from '@/atoms/connection'
 import {
   availableDevnetAccountsAtom,
   devnetAtom,
+  envAtom,
   isDevnetAliveAtom,
   selectedDevnetAccountAtom
 } from '@/atoms/environment'
@@ -23,7 +24,7 @@ import useAsyncFn from '@/hooks/useAsyncFn'
 
 const DEVNET_POLL_INTERVAL = 10_000
 
-const DevnetAccountSelector = () => {
+export const DevnetAccountSelector = () => {
   const remixClient = useAtomValue(remixClientAtom)
   const [account, setAccount] = useAtom(accountAtom)
   const [provider, setProvider] = useAtom(providerAtom)
@@ -35,37 +36,38 @@ const DevnetAccountSelector = () => {
   const [accountRefreshing, setAccountRefreshing] = useState(false)
   const [showCopied, setCopied] = useState(false)
   const [accountIdx, setAccountIdx] = useState(0)
+  const env = useAtomValue(envAtom)
 
-  useInterval(
-    () => {
-      fetch(`${devnet.url}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          jsonrpc: '2.0',
-          method: 'eth_blockNumber',
-          params: [],
-          id: 1
-        })
+  const fetchDevnetStatus = useCallback(() => {
+    fetch(`${devnet.url}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'eth_blockNumber',
+        params: [],
+        id: 1
       })
-        .then(async (res) => await res.json())
-        .then((res) => {
-          if (res.result) {
-            setIsDevnetAlive(true)
-          } else {
-            setIsDevnetAlive(false)
-          }
-        })
-        .catch(() => {
+    })
+      .then(async (res) => await res.json())
+      .then((res) => {
+        if (res.result) {
+          setIsDevnetAlive(true)
+        } else {
           setIsDevnetAlive(false)
-        })
-    },
-    devnet.url.length > 0 ? DEVNET_POLL_INTERVAL : null
-  )
+        }
+      })
+      .catch(() => {
+        setIsDevnetAlive(false)
+      })
+  }, [setIsDevnetAlive, devnet.url])
+
+  useInterval(fetchDevnetStatus, devnet.url.length > 0 ? DEVNET_POLL_INTERVAL : null)
 
   useEffect(() => {
+    fetchDevnetStatus()
     if (!isDevnetAlive) {
       remixClient
         .call(
@@ -77,12 +79,12 @@ const DevnetAccountSelector = () => {
           console.error(e)
         })
     }
-  }, [isDevnetAlive, remixClient, devnet])
+  }, [isDevnetAlive, remixClient, devnet, fetchDevnetStatus])
 
   useAsync(async () => {
     const updatedAccounts = await updateBalances(availableDevnetAccounts, devnet.url)
     setAvailableDevnetAccounts(updatedAccounts)
-  }, [devnet])
+  }, [devnet, env])
 
   const [, refreshDevnetAccounts] = useAsyncFn(async () => {
     try {
@@ -107,11 +109,15 @@ const DevnetAccountSelector = () => {
   useEffect(() => {
     if (
       !(selectedDevnetAccount !== null && availableDevnetAccounts.includes(selectedDevnetAccount)) &&
-      availableDevnetAccounts.length > 0
+      availableDevnetAccounts.length > 0 &&
+      isDevnetAlive
     ) {
       setSelectedDevnetAccount(availableDevnetAccounts[0])
     }
-  }, [availableDevnetAccounts, devnet, selectedDevnetAccount, setSelectedDevnetAccount])
+    if (!isDevnetAlive && selectedDevnetAccount !== null) {
+      setSelectedDevnetAccount(null)
+    }
+  }, [availableDevnetAccounts, devnet, selectedDevnetAccount, setSelectedDevnetAccount, env, isDevnetAlive])
 
   useEffect(() => {
     const newProvider = new Provider(devnet.url)
@@ -151,7 +157,9 @@ const DevnetAccountSelector = () => {
           <Dropdown.Trigger>
             <div className="flex flex-row justify-content-space-between align-items-center p-2 br-1 devnet-account-selector-trigger">
               <label className="text-light text-sm m-0">
-                {availableDevnetAccounts.length !== 0 && availableDevnetAccounts[accountIdx]?.address !== undefined
+                {isDevnetAlive &&
+                availableDevnetAccounts.length !== 0 &&
+                availableDevnetAccounts[accountIdx]?.address !== undefined
                   ? getShortenedHash(availableDevnetAccounts[accountIdx]?.address, 6, 4)
                   : 'No accounts found'}
               </label>
@@ -160,7 +168,7 @@ const DevnetAccountSelector = () => {
                   transform: dropdownControl ? 'rotate(180deg)' : 'none',
                   transition: 'all 0.3s ease'
                 }}
-              />{' '}
+              />
             </div>
           </Dropdown.Trigger>
           <Dropdown.Portal>
@@ -174,11 +182,15 @@ const DevnetAccountSelector = () => {
                         }}
                         key={index}
                       >
-                        {accountIdx === index && <BsCheck size={18} />}
-                        {`${getShortenedHash(account.address ?? '', 6, 4)} (${getRoundedNumber(
-                          weiToEth(account.initial_balance),
-                          2
-                        )} ether)`}
+                        <div className="devnet-account-item">
+                          <span className="selected-account">{accountIdx === index && <BsCheck size={18} />}</span>
+                          <span className="ml-2 chain-account-info">
+                            <span>{getShortenedHash(account.address ?? '', 6, 4)}</span>
+                            <span className="account-balance">
+                              {`(${getRoundedNumber(weiToEth(account.initial_balance), 2)} ETH)`}
+                            </span>
+                          </span>
+                        </div>
                       </Dropdown.Item>
                     )
                   })
@@ -195,9 +207,9 @@ const DevnetAccountSelector = () => {
             </Dropdown.Content>
           </Dropdown.Portal>
         </Dropdown.Root>
-        <div className="position-relative">
+        <div>
           <button
-            className="btn"
+            className="refresh"
             onClick={() => {
               copy((account as Wallet)?.address ?? '')
               setCopied(true)

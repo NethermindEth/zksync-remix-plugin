@@ -10,7 +10,7 @@ export {
   type CompilationType
 } from './compilation'
 export { contractsAtom, selectedContractAtom } from './compiledContracts'
-export { accountAtom, providerAtom } from './connection'
+export { accountAtom, providerAtom, accountInfoAtom } from './connection'
 export { deployedContractsAtom, deployedSelectedContractAtom } from './deployedContracts'
 export { constructorInputsAtom, deployStatusAtom, deploymentAtom, notEnoughInputsAtom } from './deployment'
 export {

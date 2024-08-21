@@ -96,21 +96,26 @@ const updateBalances = async (accounts: DevnetAccount[], customDevnetUrl: string
 }
 
 const getAccountBalance = async (address: string, customDevnetUrl: string): Promise<number> => {
-  const response = await fetch(`${customDevnetUrl}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      jsonrpc: '2.0',
-      id: '1',
-      method: 'eth_getBalance',
-      params: [`${address}`, 'latest']
+  try {
+    const response = await fetch(`${customDevnetUrl}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: '1',
+        method: 'eth_getBalance',
+        params: [`${address}`, 'latest']
+      })
     })
-  })
-  const account = await response.json()
-  const numberHex = account.result
-  return parseInt(numberHex, 16)
+    const account = await response.json()
+    const numberHex = account.result
+    return parseInt(numberHex, 16)
+  } catch (error) {
+    console.warn(`Failed to fetch account balance for ${address} from ${customDevnetUrl} endpoint`)
+    return 0
+  }
 }
 
 const getDevnetUrl = (network: string): string => {
@@ -143,3 +148,6 @@ export {
 }
 
 export type { Devnet, DevnetAccount }
+export const ZKSYNC_SEPOLIA_RPC_URL = process.env.VITE_ZKSYNC_SEPOLIA_RPC_URL || 'https://sepolia.era.zksync.dev'
+export const ZKSYNC_SEPOLIA_FAUCET_URL =
+  process.env.VITE_ZKSYNC_SEPOLIA_FAUCET_URL || 'https://learnweb3.io/faucets/zksync_sepolia/'

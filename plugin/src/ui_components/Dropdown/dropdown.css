@@ -9,12 +9,10 @@ button {
   border: 1px solid var(--secondary);
   border-radius: 6px;
   padding: 5px;
-  box-shadow:
-    0 10px 38px -10px var(--secondary),
-    0 10px 20px -15px var(--secondary);
   animation-duration: 400ms;
   animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform, opacity;
+  z-index: 1000;
 }
 
 .DropdownMenuContent[data-side='top'],
@@ -47,7 +45,7 @@ button {
   border-radius: 3px;
   display: flex;
   align-items: center;
-  height: 25px;
+  min-height: 25px;
   padding: 0 5px;
   position: relative;
   user-select: none;
