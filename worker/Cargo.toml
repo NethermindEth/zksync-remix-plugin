@@ -1,0 +1,11 @@
+[package]
+name = "worker"
+version = "0.0.1"
+edition = "2021"
+
+[dependencies]
+tokio = {version = "1.39.3", features = ["macros", "rt-multi-thread"]}
+aws-config = "1.5.5"
+aws-sdk-sqs = "1.39.0"
+aws-sdk-dynamodb = "1.42.0"
+aws-runtime = "1.4.0"

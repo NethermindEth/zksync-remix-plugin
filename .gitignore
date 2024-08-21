@@ -22,3 +22,6 @@ api/hardhat_env/workspaces
 
 # MacOS related
 .DS_Store
+
+# credentials
+/worker/credentials
