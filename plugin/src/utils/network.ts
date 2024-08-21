@@ -148,3 +148,6 @@ export {
 }
 
 export type { Devnet, DevnetAccount }
+export const ZKSYNC_SEPOLIA_RPC_URL = process.env.VITE_ZKSYNC_SEPOLIA_RPC_URL || 'https://sepolia.era.zksync.dev'
+export const ZKSYNC_SEPOLIA_FAUCET_URL =
+  process.env.VITE_ZKSYNC_SEPOLIA_FAUCET_URL || 'https://learnweb3.io/faucets/zksync_sepolia/'

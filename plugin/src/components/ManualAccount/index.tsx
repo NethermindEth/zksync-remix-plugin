@@ -9,11 +9,14 @@ import { BsChevronDown } from 'react-icons/bs'
 import { CiSquareCheck, CiSquarePlus } from 'react-icons/ci'
 import { accountsAtom, selectedAccountAtom } from '@/atoms/manualAccount'
 
-import * as D from '@/ui_components/Dropdown'
+import * as Dropdown from '@/ui_components/Dropdown'
 import { getShortenedHash } from '@/utils/utils'
 import { accountAtom } from '@/atoms/connection'
-import './index.css'
 import useInterval from '@/hooks/useInterval'
+import { ZKSYNC_SEPOLIA_FAUCET_URL, ZKSYNC_SEPOLIA_RPC_URL } from '@/utils/network'
+import './index.css'
+
+const provider = new Provider(ZKSYNC_SEPOLIA_RPC_URL)
 
 export const ManualAccount = () => {
   const [dropdownControl, setDropdownControl] = useState(false)
@@ -54,7 +57,6 @@ export const ManualAccount = () => {
     async () => {
       try {
         if (selectedAccount) {
-          const provider = new Provider('https://testnet.era.zksync.dev')
           const balance = await provider.getBalance(selectedAccount.address)
           setSelectedAccount((prevAccount) => {
             if (prevAccount != null && balance.toString() !== prevAccount.balance) {
@@ -72,7 +74,6 @@ export const ManualAccount = () => {
 
   useEffect(() => {
     if (selectedAccount !== null) {
-      const provider = new Provider('https://testnet.era.zksync.dev')
       const wallet = new Wallet(selectedAccount.private_key, provider)
 
       setAccount(wallet)
@@ -83,13 +84,13 @@ export const ManualAccount = () => {
     <div className="manual-root-wrapper">
       <div className={'flex flex-column'}>
         <div className={'flex flex-row justify-content-space-between'}>
-          <D.Root
+          <Dropdown.Root
             open={dropdownControl}
             onOpenChange={(e) => {
               setDropdownControl(e)
             }}
           >
-            <D.Trigger>
+            <Dropdown.Trigger>
               <div className="flex flex-row justify-content-space-between align-items-center p-2 pb-1 br-1 compiled-contracts-wrapper">
                 <label>
                   {selectedAccount !== null ? getShortenedHash(selectedAccount.address, 12, 4) : 'No Accounts'}
@@ -101,12 +102,12 @@ export const ManualAccount = () => {
                   }}
                 />
               </div>
-            </D.Trigger>
-            <D.Portal>
-              <D.Content>
+            </Dropdown.Trigger>
+            <Dropdown.Portal>
+              <Dropdown.Content>
                 {accounts.map((account, index) => {
                   return (
-                    <D.Item
+                    <Dropdown.Item
                       onClick={() => {
                         setSelectedAccount(account)
                         setDropdownControl(false)
@@ -114,12 +115,12 @@ export const ManualAccount = () => {
                       key={index}
                     >
                       {getShortenedHash(account.address, 12, 4)}
-                    </D.Item>
+                    </Dropdown.Item>
                   )
                 })}
-              </D.Content>
-            </D.Portal>
-          </D.Root>
+              </Dropdown.Content>
+            </Dropdown.Portal>
+          </Dropdown.Root>
           <button className={'add-account-button-plus ml-2'} onClick={addAccount}>
             {!isClicked ? <CiSquarePlus /> : <CiSquareCheck />}
           </button>
@@ -135,7 +136,7 @@ export const ManualAccount = () => {
             className="btn btn-primary btn-sm btn-block w-100 mb-0 btn-warning"
             onClick={() => {
               copyAddress()
-              window.open('https://faucet.triangleplatform.com/zksync/testnet')
+              window.open(ZKSYNC_SEPOLIA_FAUCET_URL)
             }}
           >
             Get Testnet Funds
