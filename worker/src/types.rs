@@ -67,27 +67,27 @@ impl From<Item> for HashMap<String, AttributeValue> {
 }
 
 impl TryFrom<&HashMap<String, AttributeValue>> for Status {
-    // TODO:
+    // TODO: error
     type Error = ();
     fn try_from(value: &HashMap<String, AttributeValue>) -> Result<Self, Self::Error> {
         let status = value.get("Status").ok_or(())?;
-        let status: u32 = status.as_n().map_err(())?.parse::<u32>().map_err(())?;
+        let status: u32 = status.as_n().map_err(|_| ())?.parse::<u32>().map_err(|_| ())?;
         let status = match status {
             0 => Status::Pending,
             1 => Status::Compiling,
             2 => {
                 let data = value.get("Data").ok_or(())?;
-                let data = data.as_s().map_err(())?;
+                let data = data.as_s().map_err(|_|())?;
 
                 Status::Ready(data.clone())
             }
             3 => {
                 let data = value.get("Data").ok_or(())?;
-                let data = data.as_s().map_err(())?;
+                let data = data.as_s().map_err(|_|())?;
 
                 Status::Failed(data.clone())
             }
-            _ => return Err(())
+            _ => return Err(()),
         };
 
         Ok(status)
@@ -95,38 +95,16 @@ impl TryFrom<&HashMap<String, AttributeValue>> for Status {
 }
 
 impl TryFrom<HashMap<String, AttributeValue>> for Item {
-    // TODO;
+    // TODO: error
     type Error = ();
     fn try_from(value: HashMap<String, AttributeValue>) -> Result<Item, Self::Error> {
         let id = value.get("ID").ok_or(())?;
-        let id = id.as_s().map_err(())?;
-
-        let status = value.get("Status").ok_or(())?;
-        let status: u32 = status.as_n().map_err(())?.parse::<u32>().map_err(())?;
-        let status= status.try_into()?;
-
-        // TODO: move to TryFrom
-        // let status = match status {
-        //     0 => Status::Pending,
-        //     1 => Status::Compiling,
-        //     2 => {
-        //         let data = value.get("Data").ok_or(())?;
-        //         let data = data.as_s().map_err(())?;
-        //
-        //         Status::Ready(data.clone())
-        //     }
-        //     3 => {
-        //         let data = value.get("Data").ok_or(())?;
-        //         let data = data.as_s().map_err(())?;
-        //
-        //         Status::Failed(data.clone())
-        //     }
-        //     _ => return Err(())
-        // };
+        let id = id.as_s().map_err(|_| ())?;
+        let status = (&value).try_into()?;
 
         Ok(Item {
             id: id.clone(),
-            status
+            status,
         })
     }
 }

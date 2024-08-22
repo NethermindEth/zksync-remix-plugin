@@ -1,4 +1,3 @@
-use rocket::tokio;
 use std::path::Path;
 
 pub struct AutoCleanUp<'a> {

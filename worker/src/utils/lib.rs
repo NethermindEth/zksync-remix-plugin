@@ -1,12 +1,6 @@
-use crate::errors::{ApiError, Result};
-use crate::handlers::types::{CompilationConfig, CompilationRequest, CompiledFile};
-use rocket::tokio;
-use rocket::tokio::fs;
-use solang_parser::diagnostics::{Diagnostic, ErrorType, Level};
-use solang_parser::pt::Loc;
 use std::path::{Path, PathBuf};
 use uuid::Uuid;
-use walkdir::WalkDir;
+use log::debug;
 
 pub const SOL_ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/", "hardhat_env/workspaces/");
 pub const ZK_CACHE_ROOT: &str = concat!(
@@ -43,39 +37,6 @@ pub fn get_file_ext(file_path: &str) -> String {
         }
     }
 }
-
-pub fn check_file_ext(file_path: &str, ext: &str) -> Result<()> {
-    let actual_ext = get_file_ext(file_path);
-    if actual_ext == *ext {
-        Ok(())
-    } else {
-        Err(ApiError::FileExtensionNotSupported(actual_ext))
-    }
-}
-
-pub fn path_buf_to_string(path_buf: PathBuf) -> Result<String> {
-    path_buf
-        .to_str()
-        .ok_or(ApiError::FailedToParseString)
-        .map(|s| s.to_string())
-}
-
-pub async fn init_parent_directories(file_path: PathBuf) {
-    match file_path.parent() {
-        Some(parent) => match fs::create_dir_all(parent).await {
-            Ok(_) => {
-                debug!("LOG: Created directory: {:?}", parent);
-            }
-            Err(e) => {
-                debug!("LOG: Error creating directory: {:?}", e);
-            }
-        },
-        None => {
-            debug!("LOG: Error creating directory");
-        }
-    }
-}
-
 pub fn status_code_to_message(status: Option<i32>) -> String {
     match status {
         Some(0) => "Success",
@@ -110,104 +71,104 @@ pub fn timestamp() -> u64 {
     chrono::Utc::now().timestamp() as u64
 }
 
-pub fn to_human_error(
-    Diagnostic {
-        loc,
-        level,
-        ty,
-        message,
-        notes,
-    }: Diagnostic,
-) -> String {
-    let level = match level {
-        Level::Debug => "Debug",
-        Level::Info => "Info",
-        Level::Warning => "Warning",
-        Level::Error => "Error",
-    };
+// pub fn to_human_error(
+//     Diagnostic {
+//         loc,
+//         level,
+//         ty,
+//         message,
+//         notes,
+//     }: Diagnostic,
+// ) -> String {
+//     let level = match level {
+//         Level::Debug => "Debug",
+//         Level::Info => "Info",
+//         Level::Warning => "Warning",
+//         Level::Error => "Error",
+//     };
+//
+//     let loc = match loc {
+//         Loc::Builtin => "Builtin".to_string(),
+//         Loc::CommandLine => "CommandLine".to_string(),
+//         Loc::Implicit => "Implicit".to_string(),
+//         Loc::Codegen => "Codegen".to_string(),
+//         Loc::File(_, start, end) => format!("{}:{}", start, end),
+//     };
+//
+//     let ty = match ty {
+//         ErrorType::None => "None",
+//         ErrorType::ParserError => "ParserError",
+//         ErrorType::SyntaxError => "SyntaxError",
+//         ErrorType::DeclarationError => "DeclarationError",
+//         ErrorType::CastError => "CastError",
+//         ErrorType::TypeError => "TypeError",
+//         ErrorType::Warning => "Warning",
+//     };
+//
+//     let notes = notes
+//         .iter()
+//         .map(|note| note.message.clone())
+//         .collect::<Vec<String>>()
+//         .join("\n");
+//
+//     format!(
+//         "level: {}, loc: {}, ty: {}, message: {}, notes: {}\n",
+//         level, loc, ty, message, notes
+//     )
+// }
 
-    let loc = match loc {
-        Loc::Builtin => "Builtin".to_string(),
-        Loc::CommandLine => "CommandLine".to_string(),
-        Loc::Implicit => "Implicit".to_string(),
-        Loc::Codegen => "Codegen".to_string(),
-        Loc::File(_, start, end) => format!("{}:{}", start, end),
-    };
+// pub fn to_human_error_batch(diagnostics: Vec<Diagnostic>) -> String {
+//     diagnostics
+//         .into_iter()
+//         .map(to_human_error)
+//         .collect::<Vec<String>>()
+//         .join("\n")
+// }
 
-    let ty = match ty {
-        ErrorType::None => "None",
-        ErrorType::ParserError => "ParserError",
-        ErrorType::SyntaxError => "SyntaxError",
-        ErrorType::DeclarationError => "DeclarationError",
-        ErrorType::CastError => "CastError",
-        ErrorType::TypeError => "TypeError",
-        ErrorType::Warning => "Warning",
-    };
-
-    let notes = notes
-        .iter()
-        .map(|note| note.message.clone())
-        .collect::<Vec<String>>()
-        .join("\n");
-
-    format!(
-        "level: {}, loc: {}, ty: {}, message: {}, notes: {}\n",
-        level, loc, ty, message, notes
-    )
-}
-
-pub fn to_human_error_batch(diagnostics: Vec<Diagnostic>) -> String {
-    diagnostics
-        .into_iter()
-        .map(to_human_error)
-        .collect::<Vec<String>>()
-        .join("\n")
-}
-
-pub async fn clean_up(paths: Vec<String>) {
-    for path in paths {
-        let _ = fs::remove_dir_all(path).await;
-    }
-
-    let _ = fs::remove_dir_all(ZK_CACHE_ROOT).await;
-}
+// pub async fn clean_up(paths: Vec<String>) {
+//     for path in paths {
+//         let _ = fs::remove_dir_all(path).await;
+//     }
+//
+//     let _ = fs::remove_dir_all(ZK_CACHE_ROOT).await;
+// }
 
 pub fn generate_folder_name() -> String {
     let uuid = Uuid::new_v4();
     uuid.to_string()
 }
 
-pub fn list_files_in_directory<P: AsRef<Path>>(path: P) -> Vec<String> {
-    let mut file_paths = Vec::new();
+// pub fn list_files_in_directory<P: AsRef<Path>>(path: P) -> Vec<String> {
+//     let mut file_paths = Vec::new();
+//
+//     for entry in WalkDir::new(path) {
+//         match entry {
+//             Ok(entry) => {
+//                 if entry.file_type().is_file() {
+//                     file_paths.push(entry.path().display().to_string());
+//                 }
+//             }
+//             Err(e) => println!("Error reading directory: {}", e),
+//         }
+//     }
+//
+//     file_paths
+// }
 
-    for entry in WalkDir::new(path) {
-        match entry {
-            Ok(entry) => {
-                if entry.file_type().is_file() {
-                    file_paths.push(entry.path().display().to_string());
-                }
-            }
-            Err(e) => println!("Error reading directory: {}", e),
-        }
-    }
-
-    file_paths
-}
-
-pub fn generate_mock_compile_request() -> CompilationRequest {
-    CompilationRequest {
-        config: CompilationConfig {
-            version: "1.4.1".to_string(),
-            user_libraries: vec![],
-        },
-        contracts: vec![CompiledFile {
-            file_name: "SimpleStorage.sol".to_string(),
-            file_content: generate_mock_solidity_file_content(),
-            is_contract: false,
-        }],
-        target_path: None,
-    }
-}
+// pub fn generate_mock_compile_request() -> CompilationRequest {
+//     CompilationRequest {
+//         config: CompilationConfig {
+//             version: "1.4.1".to_string(),
+//             user_libraries: vec![],
+//         },
+//         contracts: vec![CompiledFile {
+//             file_name: "SimpleStorage.sol".to_string(),
+//             file_content: generate_mock_solidity_file_content(),
+//             is_contract: false,
+//         }],
+//         target_path: None,
+//     }
+// }
 
 pub fn generate_mock_solidity_file_content() -> String {
     r#"
@@ -228,21 +189,21 @@ pub fn generate_mock_solidity_file_content() -> String {
     .to_string()
 }
 
-pub async fn initialize_files(files: Vec<CompiledFile>, file_path: &Path) -> Result<()> {
-    for file in files {
-        let file_path_str = format!("{}/{}", file_path.to_str().unwrap(), file.file_name);
-        let file_path = Path::new(&file_path_str);
-
-        // create parent directories
-        tokio::fs::create_dir_all(file_path.parent().unwrap())
-            .await
-            .map_err(ApiError::FailedToWriteFile)?;
-
-        // write file
-        tokio::fs::write(file_path, file.file_content.clone())
-            .await
-            .map_err(ApiError::FailedToWriteFile)?;
-    }
-
-    Ok(())
-}
+// pub async fn initialize_files(files: Vec<CompiledFile>, file_path: &Path) -> Result<()> {
+//     for file in files {
+//         let file_path_str = format!("{}/{}", file_path.to_str().unwrap(), file.file_name);
+//         let file_path = Path::new(&file_path_str);
+//
+//         // create parent directories
+//         tokio::fs::create_dir_all(file_path.parent().unwrap())
+//             .await
+//             .map_err(ApiError::FailedToWriteFile)?;
+//
+//         // write file
+//         tokio::fs::write(file_path, file.file_content.clone())
+//             .await
+//             .map_err(ApiError::FailedToWriteFile)?;
+//     }
+//
+//     Ok(())
+// }

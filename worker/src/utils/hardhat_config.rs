@@ -1,5 +1,4 @@
 use crate::utils::lib::{DEFAULT_SOLIDITY_VERSION, DEFAULT_ZKSOLC_VERSION};
-use rocket::serde::json::serde_json;
 use std::fmt::Formatter;
 
 const DEFAULT_CONTRACTS_LOCATION: &str = "./contracts";

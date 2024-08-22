@@ -11,8 +11,6 @@ use tokio::time::sleep;
 use tracing::{error, info, warn};
 use uuid::Uuid;
 
-use crate::handlers;
-use crate::handlers::types::{ApiCommand, ApiCommandResult};
 use crate::sqs_client::SqsClient;
 use crate::sqs_listener::{SqsListener, SqsReceiver};
 use crate::types::SqsMessage;
@@ -21,7 +19,7 @@ use crate::utils::lib::{timestamp, DURATION_TO_PURGE};
 pub type Timestamp = u64;
 pub struct RunningWorker {
     sqs_listener: SqsListener,
-    expiration_timestamps: Arc<Mutex<Vec(Uuid, Timestamp)>>,
+    expiration_timestamps: Arc<Mutex<Vec<(Uuid, Timestamp)>>>,
     num_workers: usize,
     worker_threads: Vec<JoinHandle<()>>,
 }
@@ -69,11 +67,12 @@ impl RunningWorker {
                 continue;
             };
 
-            let sqs_message = match serde_json::from_str::<SqsMessage>(body) {
+            let sqs_message = match serde_json::from_str::<SqsMessage>(&body) {
                 Ok(sqs_message) => sqs_message,
                 Err(err) => {
                     error!("Could not deserialize message: {}", err.to_string());
                     let _ = sqs_receiver.delete_message(receipt_handle).await;
+                    continue;
                 }
             };
 
@@ -81,6 +80,8 @@ impl RunningWorker {
                 SqsMessage::Compile { id } => {}
                 SqsMessage::Verify { id } => {}
             }
+
+            let _ = sqs_receiver.delete_message(receipt_handle).await;
         }
     }
 }
@@ -117,11 +118,12 @@ impl WorkerEngine {
             self.expiration_timestamps.clone(),
         ));
 
+        // TODO: not protection really
         if self.is_supervisor_enabled.load(Ordering::Acquire) && self.supervisor_thread.is_none() {
+            let db_client = self.db_client.clone();
             let expiration_timestamps = self.expiration_timestamps.clone();
-
             self.supervisor_thread = Arc::new(Some(tokio::spawn(async move {
-                WorkerEngine::supervisor(self.db_client.clone(), expiration_timestamps).await;
+                WorkerEngine::supervisor(db_client, expiration_timestamps).await;
             })));
         }
     }

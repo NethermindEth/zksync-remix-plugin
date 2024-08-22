@@ -20,13 +20,21 @@ impl DynamoDBClient {
         // TODO:
     }
 
-    pub async fn get_item(&self, id: String) -> Item {
+    // TODO: remove unwraps
+    pub async fn get_item(&self, id: String) -> Result<Option<Item>, ()> {
         let result = self
             .client
             .get_item()
             .table_name(self.table_name.clone())
             .key("ID", AttributeValue::S(id))
             .send()
-            .await?;
+            .await
+            .unwrap();
+
+        if let Some(item) = result.item {
+            Ok(Some(item.try_into().unwrap()))
+        } else {
+            Ok(None)
+        }
     }
 }
