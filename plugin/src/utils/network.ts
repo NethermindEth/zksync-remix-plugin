@@ -8,14 +8,17 @@ const remoteDevnetUrl = process.env.VITE_REMOTE_DEVNET_URL ?? 'https://zksync-de
 interface Devnet {
   name: string
   url: string
+  id: string
 }
 
 const devnets: Devnet[] = [
   {
+    id: 'localDevnet',
     name: 'Local Devnet',
     url: devnetUrl
   },
   {
+    id: 'remoteDevnet',
     name: 'Remote Devnet',
     url: remoteDevnetUrl
   }

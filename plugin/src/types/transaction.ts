@@ -1,7 +1,7 @@
 import { type Provider, type Signer, type Wallet } from 'zksync-ethers'
 import { type Chain, type ChainFormatters } from 'viem'
 
-export type EnvType = 'localDevnet' | 'remoteDevnet' | 'wallet' | 'manual'
+export type EnvType = 'localDevnet' | 'remoteDevnet' | 'wallet' | 'manual' | 'customNetwork'
 
 export interface Transaction {
   type: 'deploy' | 'invoke'
@@ -21,10 +21,8 @@ export const mockManualChain: Chain<ChainFormatters> = {
     decimals: 18
   },
   rpcUrls: {
-    default:
-      { http: [''], webSocket: [''] },
-    public:
-      { http: [''], webSocket: [''] }
+    default: { http: [''], webSocket: [''] },
+    public: { http: [''], webSocket: [''] }
   },
   network: 'testnet',
   name: 'testnet',

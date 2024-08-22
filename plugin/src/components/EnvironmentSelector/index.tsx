@@ -7,24 +7,29 @@ import * as Dropdown from '@/ui_components/Dropdown'
 import { envName } from '@/utils/misc'
 import './styles.css'
 
+const [localDevnet, remoteDevnet] = devnets
+
 export const EnvironmentSelector = () => {
   const [env, setEnv] = useAtom(envAtom)
   const setDevnet = useSetAtom(devnetAtom)
   const setProvider = useSetAtom(providerAtom)
   const [dropdownControl, setDropdownControl] = useState(false)
 
-  const handleEnvironmentChange = (ipValue: string): void => {
-    const value = parseInt(ipValue)
-    if (!isNaN(value) && value > 1) {
-      setDevnet(devnets[value - 2])
-      if (value === 3) {
-        setEnv('remoteDevnet')
-      } else if (value === 2) {
-        setEnv('localDevnet')
+  const handleEnvironmentChange = (env: string): void => {
+    switch (env) {
+      case 'localDevnet':
+      case 'remoteDevnet': {
+        const devnet = env === 'localDevnet' ? localDevnet : remoteDevnet
+        setDevnet(devnet)
+        setEnv(env)
+        setProvider(null)
+        break
       }
-      setProvider(null)
-    } else if (value === 0) {
-      setEnv('wallet')
+      case 'wallet':
+      case 'customNetwork':
+        setEnv('customNetwork')
+        break
+      default:
     }
   }
 
@@ -52,24 +57,35 @@ export const EnvironmentSelector = () => {
             <Dropdown.Item
               key={'0wallet'}
               onClick={() => {
-                handleEnvironmentChange('0')
+                handleEnvironmentChange('wallet')
               }}
             >
               Wallet
             </Dropdown.Item>
-
-            {devnets.map((devnet, i) => {
-              return (
-                <Dropdown.Item
-                  key={i.toString() + devnet?.name}
-                  onClick={() => {
-                    handleEnvironmentChange((i + 2).toString())
-                  }}
-                >
-                  {devnet?.name}
-                </Dropdown.Item>
-              )
-            })}
+            <Dropdown.Item
+              key={localDevnet?.id}
+              onClick={() => {
+                handleEnvironmentChange(localDevnet.id)
+              }}
+            >
+              {localDevnet?.name}
+            </Dropdown.Item>
+            <Dropdown.Item
+              key={remoteDevnet?.id}
+              onClick={() => {
+                handleEnvironmentChange(remoteDevnet.id)
+              }}
+            >
+              {remoteDevnet?.name}
+            </Dropdown.Item>
+            <Dropdown.Item
+              key={'customNetwork'}
+              onClick={() => {
+                handleEnvironmentChange('customNetwork')
+              }}
+            >
+              Custom Network
+            </Dropdown.Item>
           </Dropdown.Content>
         </Dropdown.Portal>
       </Dropdown.Root>
