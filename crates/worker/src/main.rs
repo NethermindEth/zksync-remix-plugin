@@ -19,6 +19,8 @@ const AWS_PROFILE_DEFAULT: &str = "dev";
 pub(crate) const QUEUE_URL_DEFAULT: &str =
     "https://sqs.ap-southeast-2.amazonaws.com/266735844848/zksync-sqs";
 
+// TODO: state synchronization
+
 #[tokio::main]
 async fn main() {
     let profile_name = std::env::var("AWS_PROFILE").unwrap_or(AWS_PROFILE_DEFAULT.into());

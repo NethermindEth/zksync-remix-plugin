@@ -40,7 +40,6 @@ pub struct CompilationConfig {
 pub struct CompilationRequest {
     pub config: CompilationConfig,
     pub contracts: Vec<CompiledFile>,
-    pub target_path: Option<String>,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]

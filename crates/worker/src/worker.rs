@@ -10,10 +10,10 @@ use tokio::task::JoinHandle;
 use tokio::time::sleep;
 use tracing::{error, info, warn};
 use uuid::Uuid;
+use types::SqsMessage;
 
 use crate::sqs_client::SqsClient;
 use crate::sqs_listener::{SqsListener, SqsReceiver};
-use crate::types::SqsMessage;
 use crate::utils::lib::{timestamp, DURATION_TO_PURGE};
 
 pub type Timestamp = u64;
