@@ -24,4 +24,4 @@ api/hardhat_env/workspaces
 .DS_Store
 
 # credentials
-/worker/credentials
+/crates/worker/credentials

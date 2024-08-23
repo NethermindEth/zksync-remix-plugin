@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
+use tracing::debug;
 use uuid::Uuid;
-use log::debug;
 
 pub const SOL_ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/", "hardhat_env/workspaces/");
 pub const ZK_CACHE_ROOT: &str = concat!(
