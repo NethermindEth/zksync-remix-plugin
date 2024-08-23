@@ -1,4 +1,4 @@
-use crate::types::Item;
+use types::Item;
 use aws_sdk_dynamodb::types::AttributeValue;
 use aws_sdk_dynamodb::Client;
 

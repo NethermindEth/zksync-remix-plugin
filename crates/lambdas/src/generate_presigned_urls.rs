@@ -110,5 +110,5 @@ async fn main() -> Result<(), LambdaError> {
             Err(Error::LambdaError(err)) => Err(err),
         }
     }))
-        .await
+    .await
 }
