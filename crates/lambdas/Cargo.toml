@@ -1,0 +1,32 @@
+[package]
+name = "zksync-lambdas"
+version = "0.0.1"
+edition = "2021"
+authors = ["edwinswatpako@gmail.com"]
+
+[dependencies]
+aws-config = {workspace = true}
+aws-sdk-s3 = {workspace = true}
+aws-sdk-sqs = {workspace = true}
+aws-sdk-dynamodb = {workspace = true}
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+uuid = {workspace = true}
+
+lambda_runtime = "0.13.0"
+lambda_http = "0.13.0"
+
+
+[[bin]]
+name = "generate-presigned-urls"
+version = "0.0.1"
+path = "src/generate_presigned_urls.rs"
+
+[[bin]]
+name = "compile"
+version = "0.0.1"
+path = "src/compile.rs"

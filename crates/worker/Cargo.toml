@@ -1,0 +1,22 @@
+[package]
+name = "worker"
+version = "0.0.1"
+edition = "2021"
+
+[dependencies]
+aws-config = { workspace = true }
+aws-sdk-s3 = {workspace = true }
+aws-sdk-sqs = {workspace = true}
+aws-sdk-dynamodb = {workspace = true}
+tokio = {workspace = true,  features = ["rt-multi-thread", "sync"]}
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+uuid = {workspace = true}
+
+aws-runtime = "1.4.0"
+async-channel = "2.3.1"
+chrono = "0.4.38"
+crossbeam-queue = "0.3.11"
