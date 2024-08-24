@@ -1,4 +1,4 @@
-use crate::errors::{DeleteError, ReceiveError};
+use crate::errors::{SqsDeleteError, SqsReceiveError};
 use aws_config::retry::ErrorKind;
 use aws_sdk_sqs::operation::delete_message::DeleteMessageOutput;
 use aws_sdk_sqs::operation::receive_message::ReceiveMessageOutput;
@@ -43,10 +43,10 @@ macro_rules! match_result {
 
 enum Action {
     Default,
-    Receive(oneshot::Sender<Result<ReceiveMessageOutput, ReceiveError>>),
+    Receive(oneshot::Sender<Result<ReceiveMessageOutput, SqsReceiveError>>),
     Delete {
         receipt_handle: String,
-        sender: oneshot::Sender<Result<DeleteMessageOutput, DeleteError>>,
+        sender: oneshot::Sender<Result<DeleteMessageOutput, SqsDeleteError>>,
     },
 }
 
@@ -71,15 +71,20 @@ pub struct SqsClient {
 
 impl SqsClient {
     pub fn new(client: Client, queue_url: impl Into<String>) -> Self {
-        Self {
+        let this = Self {
             client,
             queue_url: queue_url.into(),
             pending_actions: Arc::new(Mutex::new(vec![])),
             state: Arc::new(AtomicU8::new(State::Connected as u8)),
-        }
+        };
+
+        // TODO: improve the lauch
+        tokio::spawn(SqsClient::worker(this.clone()));
+
+        this
     }
 
-    async fn receive_attempt(&self) -> Result<Option<ReceiveMessageOutput>, ReceiveError> {
+    async fn receive_attempt(&self) -> Result<Option<ReceiveMessageOutput>, SqsReceiveError> {
         let result = self
             .client
             .receive_message()
@@ -88,13 +93,13 @@ impl SqsClient {
             .send()
             .await;
 
-        match_result!(ReceiveError, result)
+        match_result!(SqsReceiveError, result)
     }
 
     async fn delete_attempt(
         &self,
         receipt_handle: impl Into<String>,
-    ) -> Result<Option<DeleteMessageOutput>, DeleteError> {
+    ) -> Result<Option<DeleteMessageOutput>, SqsDeleteError> {
         let result = self
             .client
             .delete_message()
@@ -103,10 +108,12 @@ impl SqsClient {
             .send()
             .await;
 
-        match_result!(DeleteError, result)
+        match_result!(SqsDeleteError, result)
     }
 
+    // TODO: start
     async fn worker(self) {
+        // TODO: get the tasks through receiver + maintain the inner queue
         loop {
             let mut actions = self.pending_actions.lock().await;
 
@@ -166,7 +173,7 @@ impl SqsClient {
         }
     }
 
-    pub async fn receive_message(&self) -> Result<ReceiveMessageOutput, ReceiveError> {
+    pub async fn receive_message(&self) -> Result<ReceiveMessageOutput, SqsReceiveError> {
         match self.state.load(Ordering::Acquire) {
             0 => match self.receive_attempt().await {
                 Ok(None) => self
@@ -192,7 +199,7 @@ impl SqsClient {
     pub async fn delete_message(
         &self,
         receipt_handle: impl Into<String>,
-    ) -> Result<(), DeleteError> {
+    ) -> Result<(), SqsDeleteError> {
         let receipt_handle = receipt_handle.into();
         match self.state.load(Ordering::Acquire) {
             0 => match self.delete_attempt(receipt_handle.clone()).await {

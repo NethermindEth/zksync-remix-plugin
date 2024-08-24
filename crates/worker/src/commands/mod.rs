@@ -1,2 +1,2 @@
-mod compile;
-mod verify;
+pub mod compile;
+pub mod verify;

@@ -1,6 +1,8 @@
 use aws_sdk_dynamodb::types::AttributeValue;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::fmt;
+use std::fmt::Formatter;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct CompilationConfig {
@@ -52,6 +54,17 @@ pub enum Status {
     Compiling,
     Ready(String),
     Failed(String),
+}
+
+impl fmt::Display for Status {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Status::Pending => write!(f, "Pending"),
+            Status::Compiling => write!(f, "Compiling"),
+            Status::Ready(msg) => write!(f, "Ready: {}", msg),
+            Status::Failed(msg) => write!(f, "Failed: {}", msg),
+        }
+    }
 }
 
 impl From<&Status> for u32 {
