@@ -17,6 +17,7 @@ tracing-subscriber = { workspace = true }
 uuid = {workspace = true}
 
 aws-runtime = "1.4.0"
+aws-smithy-types = "1.2.2"
 async-channel = "2.3.1"
 chrono = "0.4.38"
 crossbeam-queue = "0.3.11"

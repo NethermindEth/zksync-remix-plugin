@@ -1,3 +1,4 @@
+use crate::commands::compile::compile;
 use crate::dynamodb_client::DynamoDBClient;
 use crossbeam_queue::ArrayQueue;
 use std::fmt::{Display, Formatter};
@@ -9,8 +10,8 @@ use tokio::sync::Mutex;
 use tokio::task::JoinHandle;
 use tokio::time::sleep;
 use tracing::{error, info, warn};
-use uuid::Uuid;
 use types::SqsMessage;
+use uuid::Uuid;
 
 use crate::sqs_client::SqsClient;
 use crate::sqs_listener::{SqsListener, SqsReceiver};
@@ -27,16 +28,27 @@ pub struct RunningWorker {
 impl RunningWorker {
     pub fn new(
         sqs_listener: SqsListener,
+        db_client: DynamoDBClient,
+        s3_client: aws_sdk_s3::Client,
         num_workers: usize,
         expiration_timestamps: Arc<Mutex<Vec<(Uuid, Timestamp)>>>,
     ) -> Self {
         let mut worker_threads = Vec::with_capacity(num_workers);
         for _ in 0..num_workers {
-            // add to collection
+            // Start worker
             let sqs_receiver = sqs_listener.receiver();
+            let db_client_copy = db_client.clone();
+            let s3_client_copy = s3_client.clone();
             let expiration_timestamps = expiration_timestamps.clone();
+
             worker_threads.push(tokio::spawn(async move {
-                RunningWorker::worker(sqs_receiver, expiration_timestamps).await;
+                RunningWorker::worker(
+                    sqs_receiver,
+                    db_client_copy,
+                    s3_client_copy,
+                    expiration_timestamps,
+                )
+                .await;
             }));
         }
 
@@ -50,6 +62,8 @@ impl RunningWorker {
 
     async fn worker(
         sqs_receiver: SqsReceiver,
+        db_client: DynamoDBClient,
+        s3_client: aws_sdk_s3::Client,
         expiration_timestamps: Arc<Mutex<Vec<(Uuid, Timestamp)>>>,
     ) {
         // TODO: process error
@@ -77,8 +91,10 @@ impl RunningWorker {
             };
 
             match sqs_message {
-                SqsMessage::Compile { id } => {}
-                SqsMessage::Verify { id } => {}
+                SqsMessage::Compile { request } => {
+                    let _ = compile(request, &db_client, &s3_client).await; // TODO:
+                }
+                SqsMessage::Verify { request } => {} // TODO;
             }
 
             let _ = sqs_receiver.delete_message(receipt_handle).await;
@@ -89,6 +105,7 @@ impl RunningWorker {
 pub struct WorkerEngine {
     sqs_client: SqsClient,
     db_client: DynamoDBClient,
+    s3_client: aws_sdk_s3::Client,
     expiration_timestamps: Arc<Mutex<Vec<(Uuid, Timestamp)>>>,
     is_supervisor_enabled: Arc<AtomicBool>,
     running_workers: Vec<RunningWorker>,
@@ -96,13 +113,19 @@ pub struct WorkerEngine {
 }
 
 impl WorkerEngine {
-    pub fn new(sqs_client: SqsClient, db_client: DynamoDBClient, supervisor_enabled: bool) -> Self {
+    pub fn new(
+        sqs_client: SqsClient,
+        db_client: DynamoDBClient,
+        s3_client: aws_sdk_s3::Client,
+        supervisor_enabled: bool,
+    ) -> Self {
         let is_supervisor_enabled = Arc::new(AtomicBool::new(supervisor_enabled));
         let expiration_timestamps = Arc::new(Mutex::new(vec![]));
 
         WorkerEngine {
             sqs_client,
             db_client,
+            s3_client,
             supervisor_thread: Arc::new(None),
             expiration_timestamps,
             running_workers: vec![],
@@ -112,8 +135,12 @@ impl WorkerEngine {
 
     pub fn start(&mut self, num_workers: NonZeroUsize) {
         let sqs_listener = SqsListener::new(self.sqs_client.clone(), Duration::from_millis(500));
+        let s3_client = self.s3_client.clone();
+        let db_client = self.db_client.clone();
         self.running_workers.push(RunningWorker::new(
             sqs_listener,
+            db_client,
+            s3_client,
             num_workers.get(),
             self.expiration_timestamps.clone(),
         ));

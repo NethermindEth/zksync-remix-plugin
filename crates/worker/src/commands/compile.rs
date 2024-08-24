@@ -1,28 +1,27 @@
 use aws_sdk_s3::types::Object;
-use std::path::Path;
-use std::process::Stdio;
-use tracing::{instrument, warn};
-use tracing::{error, info};
-use uuid::Uuid;
-use std::io::BufWriter;
-use std::io::{Write, IoSlice};
 use std::ops::Add;
-use tokio::io::AsyncWriteExt;
+use std::process::Stdio;
+use tracing::log::Level::Error;
+use tracing::warn;
+use tracing::{error, info};
+use types::{CompilationRequest, Item, Status};
+use uuid::Uuid;
 
 use crate::dynamodb_client::DynamoDBClient;
+use crate::errors::CompilationError::NoDBItemError;
+use crate::errors::{CompilationError, DBError, S3Error};
 use crate::utils::cleaner::AutoCleanUp;
 use crate::utils::hardhat_config::HardhatConfigBuilder;
 use crate::utils::lib::{
-    generate_folder_name, status_code_to_message,
-    DEFAULT_SOLIDITY_VERSION, SOL_ROOT, ZKSOLC_VERSIONS,
+    generate_folder_name, status_code_to_message, DEFAULT_SOLIDITY_VERSION, SOL_ROOT,
+    ZKSOLC_VERSIONS,
 };
 
 async fn list_all_keys(
     client: &aws_sdk_s3::Client,
     id: String,
     bucket: &str,
-) -> Result<Vec<Object>, ()> {
-    // TODO: errors
+) -> Result<Vec<Object>, S3Error> {
     let mut objects = Vec::new();
     let mut continuation_token: Option<String> = None;
 
@@ -37,7 +36,7 @@ async fn list_all_keys(
             request = request.continuation_token(token);
         }
 
-        let response = request.send().await.map_err(|_| ())?;
+        let response = request.send().await?;
         if let Some(contents) = response.contents {
             objects.extend(contents);
         }
@@ -63,40 +62,66 @@ async fn list_all_keys(
     Ok(objects)
 }
 
+async fn extract_files(
+    id: String,
+    s3_client: &aws_sdk_s3::Client,
+) -> Result<Vec<Vec<u8>>, S3Error> {
+    let objects = list_all_keys(&s3_client, id.to_string(), "TODO").await?;
+
+    let mut files = vec![];
+    for object in objects {
+        let key = object.key().ok_or(S3Error::InvalidObjectError)?;
+        let expected_size = object.size.ok_or(S3Error::InvalidObjectError)?;
+
+        let mut object = s3_client
+            .get_object()
+            .bucket("TODO:")
+            .key(key)
+            .send()
+            .await?;
+
+        let mut byte_count = 0;
+        let mut contents = Vec::new();
+        while let Some(bytes) = object.body.try_next().await? {
+            let bytes_len = bytes.len();
+            std::io::Write::write_all(&mut contents, &bytes)?;
+            byte_count += bytes_len;
+        }
+
+        if byte_count as i64 != expected_size {
+            error!("Fetched num bytes != expected size of file.");
+            return Err(S3Error::InvalidObjectError);
+        }
+
+        files.push(contents);
+    }
+
+    Ok(files)
+}
+
 pub async fn compile(
-    id: Uuid,
-    db_client: DynamoDBClient,
-    s3_client: aws_sdk_s3::Client,
-) -> Result<(), ()> {
-    // TODO: errors
-    let item = db_client.get_item(id.to_string()).await.unwrap();
-    let item = match item {
+    request: CompilationRequest,
+    db_client: &DynamoDBClient,
+    s3_client: &aws_sdk_s3::Client,
+) -> Result<(), CompilationError> {
+    let item = db_client.get_item(request.id.clone()).await?;
+    let item: Item = match item {
         Some(item) => item,
         None => {
-            error!("No item id: {}", id);
-            return Err(());
+            error!("No item id: {}", request.id);
+            return Err(NoDBItemError(request.id));
         }
     };
 
-    let objects = list_all_keys(&s3_client, id.to_string(), "TODO").await?;
-    for object in objects {
-        let key = object.key().ok_or(())?;
-        let mut object = s3_client
-            .get_object()
-            .bucket("TODO")
-            .key(key)
-            .send()
-            .await
-            .map_err(|_| ())?;
-
-        let mut byte_count = 0_usize;
-        let mut contents = Vec::new();
-        while let Some(bytes) = object.body.try_next().await.map_err(|_| ())? {
-            let bytes_len = bytes.len();
-            std::io::Write::write_all(&mut contents, &bytes).map_err(|_| ());
-            byte_count += bytes_len;
+    match item.status {
+        Status::Pending => {}
+        status => {
+            warn!("Item already processing: {}", status);
+            return Err(CompilationError::UnexpectedStatusError(status));
         }
     }
+
+    let files = extract_files(request.id, s3_client).await?;
 
     // TODO:
     Ok(())

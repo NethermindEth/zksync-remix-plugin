@@ -3,7 +3,6 @@ mod dynamodb_client;
 mod errors;
 mod sqs_client;
 mod sqs_listener;
-mod types;
 mod utils;
 mod worker;
 

@@ -1,11 +1,12 @@
-use types::Item;
+use crate::errors::{DBDeleteError, DBError, DBGetError};
 use aws_sdk_dynamodb::types::AttributeValue;
 use aws_sdk_dynamodb::Client;
+use types::Item;
 
 #[derive(Clone)]
 pub struct DynamoDBClient {
-    client: Client,
-    table_name: String,
+    pub client: Client,
+    pub table_name: String,
 }
 
 impl DynamoDBClient {
@@ -16,23 +17,29 @@ impl DynamoDBClient {
         }
     }
 
-    pub async fn delete_item(&self, id: String) {
-        // TODO:
+    pub async fn delete_item(&self, id: String) -> Result<(), DBError> {
+        self.client
+            .delete_item()
+            .table_name(self.table_name.clone())
+            .key("ID", AttributeValue::S(id))
+            .send()
+            .await?;
+
+        Ok(())
     }
 
-    // TODO: remove unwraps
-    pub async fn get_item(&self, id: String) -> Result<Option<Item>, ()> {
+    pub async fn get_item(&self, id: String) -> Result<Option<Item>, DBError> {
         let result = self
             .client
             .get_item()
             .table_name(self.table_name.clone())
             .key("ID", AttributeValue::S(id))
             .send()
-            .await
-            .unwrap();
+            .await?;
 
         if let Some(item) = result.item {
-            Ok(Some(item.try_into().unwrap()))
+            // TODO: maybe change status when error?
+            Ok(Some(item.try_into()?))
         } else {
             Ok(None)
         }

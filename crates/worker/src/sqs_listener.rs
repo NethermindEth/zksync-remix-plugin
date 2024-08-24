@@ -1,4 +1,4 @@
-use crate::errors::{DeleteError, ReceiveError};
+use crate::errors::{SqsDeleteError, SqsReceiveError};
 use async_channel::{Receiver, Recv, Sender};
 use aws_sdk_sqs::config::http::HttpResponse;
 use aws_sdk_sqs::error::SdkError;
@@ -11,7 +11,7 @@ use tokio::time::sleep;
 use crate::sqs_client::SqsClient;
 
 pub struct SqsListener {
-    handle: JoinHandle<Result<(), ReceiveError>>,
+    handle: JoinHandle<Result<(), SqsReceiveError>>,
     receiver: Receiver<Message>,
     client: SqsClient,
 }
@@ -59,7 +59,7 @@ impl SqsListener {
         }
     }
 
-    pub fn handle(self) -> JoinHandle<Result<(), ReceiveError>> {
+    pub fn handle(self) -> JoinHandle<Result<(), SqsReceiveError>> {
         self.handle
     }
 }
@@ -77,7 +77,7 @@ impl SqsReceiver {
     pub async fn delete_message(
         &self,
         receipt_handle: impl Into<String>,
-    ) -> Result<(), DeleteError> {
+    ) -> Result<(), SqsDeleteError> {
         self.client.delete_message(receipt_handle).await
     }
 }
