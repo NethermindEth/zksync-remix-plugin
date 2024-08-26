@@ -4,6 +4,7 @@ members = [
 	"crates/lambdas",
 	"crates/worker",
 ]
+exclude = ["api"]
 
 [workspace.dependencies]
 aws-config = "1.5.5"
