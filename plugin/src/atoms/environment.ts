@@ -11,5 +11,15 @@ const isDevnetAliveAtom = atom<boolean>(true)
 const selectedDevnetAccountAtom = atom<null | DevnetAccount>(null)
 
 const availableDevnetAccountsAtom = atom<DevnetAccount[]>([])
+const customNetworkAtom = atom('')
+const isCustomNetworkAliveAtom = atom<boolean>(false)
 
-export { devnetAtom, envAtom, isDevnetAliveAtom, selectedDevnetAccountAtom, availableDevnetAccountsAtom }
+export {
+  devnetAtom,
+  envAtom,
+  isDevnetAliveAtom,
+  selectedDevnetAccountAtom,
+  availableDevnetAccountsAtom,
+  customNetworkAtom,
+  isCustomNetworkAliveAtom
+}

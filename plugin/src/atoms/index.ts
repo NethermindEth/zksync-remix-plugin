@@ -18,7 +18,9 @@ export {
   devnetAtom,
   envAtom,
   isDevnetAliveAtom,
-  selectedDevnetAccountAtom
+  selectedDevnetAccountAtom,
+  customNetworkAtom,
+  isCustomNetworkAliveAtom
 } from './environment'
 export { accountsAtom, networkNameAtom, selectedAccountAtom } from './manualAccount'
 export { transactionsAtom } from './transaction'

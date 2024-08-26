@@ -2,7 +2,7 @@ import React from 'react'
 import { useAtom } from 'jotai'
 import * as Tabs from '@radix-ui/react-tabs'
 import {
-  DevnetAccountSelector,
+  AccountSelector,
   EnvironmentSelector,
   Wallet,
   ManualAccount,
@@ -61,7 +61,7 @@ export const Environment = () => {
                           </div>
                         </div>
                         <div className="flex flex-column">
-                          {['localDevnet', 'remoteDevnet'].includes(env) && <DevnetAccountSelector />}
+                          {['localDevnet', 'remoteDevnet'].includes(env) && <AccountSelector accountsType="devnet" />}
                           {env === 'wallet' && <Wallet />}
                           {env === 'customNetwork' && <CustomNetwork />}
                         </div>

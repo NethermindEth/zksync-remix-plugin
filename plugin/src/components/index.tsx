@@ -1,4 +1,4 @@
-export { DevnetAccountSelector } from './DevnetAccountSelector'
+export { AccountSelector } from './DevnetAccountSelector'
 export { EnvironmentSelector } from './EnvironmentSelector'
 export { ManualAccount } from './ManualAccount'
 export { Wallet } from './Wallet'

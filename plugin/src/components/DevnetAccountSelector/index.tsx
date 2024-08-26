@@ -10,8 +10,10 @@ import { getAccounts, updateBalances } from '@/utils/network'
 import { accountAtom, providerAtom } from '@/atoms/connection'
 import {
   availableDevnetAccountsAtom,
+  customNetworkAtom,
   devnetAtom,
   envAtom,
+  isCustomNetworkAliveAtom,
   isDevnetAliveAtom,
   selectedDevnetAccountAtom
 } from '@/atoms/environment'
@@ -24,19 +26,24 @@ import useAsyncFn from '@/hooks/useAsyncFn'
 
 const DEVNET_POLL_INTERVAL = 10_000
 
-export const DevnetAccountSelector = () => {
+export const AccountSelector = ({ accountsType }: { accountsType: 'devnet' | 'customNet' }) => {
   const remixClient = useAtomValue(remixClientAtom)
   const [account, setAccount] = useAtom(accountAtom)
   const [provider, setProvider] = useAtom(providerAtom)
 
   const devnet = useAtomValue(devnetAtom)
   const [isDevnetAlive, setIsDevnetAlive] = useAtom(isDevnetAliveAtom)
+  const customNetwork = useAtomValue(customNetworkAtom)
+  const isCustomNetworkAlive = useAtomValue(isCustomNetworkAliveAtom)
   const [selectedDevnetAccount, setSelectedDevnetAccount] = useAtom(selectedDevnetAccountAtom)
   const [availableDevnetAccounts, setAvailableDevnetAccounts] = useAtom(availableDevnetAccountsAtom)
   const [accountRefreshing, setAccountRefreshing] = useState(false)
   const [showCopied, setCopied] = useState(false)
   const [accountIdx, setAccountIdx] = useState(0)
   const env = useAtomValue(envAtom)
+
+  const isAlive = accountsType === 'devnet' ? isDevnetAlive : isCustomNetworkAlive
+  const networkUrl = accountsType === 'devnet' ? devnet.url : customNetwork
 
   const fetchDevnetStatus = useCallback(() => {
     fetch(`${devnet.url}`, {
@@ -64,43 +71,45 @@ export const DevnetAccountSelector = () => {
       })
   }, [setIsDevnetAlive, devnet.url])
 
-  useInterval(fetchDevnetStatus, devnet.url.length > 0 ? DEVNET_POLL_INTERVAL : null)
+  useInterval(fetchDevnetStatus, accountsType === 'devnet' && devnet.url.length > 0 ? DEVNET_POLL_INTERVAL : null)
 
   useEffect(() => {
-    fetchDevnetStatus()
-    if (!isDevnetAlive) {
-      remixClient
-        .call(
-          'notification' as any,
-          'toast',
-          `❗️ Server ${devnet.name} - ${devnet.url} is not healthy or not reachable at the moment`
-        )
-        .catch((e) => {
-          console.error(e)
-        })
+    if (accountsType === 'devnet') {
+      fetchDevnetStatus()
+      if (!isDevnetAlive) {
+        remixClient
+          .call(
+            'notification' as any,
+            'toast',
+            `❗️ Server ${devnet.name} - ${devnet.url} is not healthy or not reachable at the moment`
+          )
+          .catch((e) => {
+            console.error(e)
+          })
+      }
     }
-  }, [isDevnetAlive, remixClient, devnet, fetchDevnetStatus])
+  }, [isDevnetAlive, remixClient, devnet, fetchDevnetStatus, accountsType])
 
   useAsync(async () => {
-    const updatedAccounts = await updateBalances(availableDevnetAccounts, devnet.url)
+    const updatedAccounts = await updateBalances(availableDevnetAccounts, networkUrl)
     setAvailableDevnetAccounts(updatedAccounts)
-  }, [devnet, env])
+  }, [networkUrl, env])
 
   const [, refreshDevnetAccounts] = useAsyncFn(async () => {
     try {
       setAccountRefreshing(true)
-      const accounts = await getAccounts(`${devnet.url}`)
+      const accounts = await getAccounts(networkUrl)
       if (JSON.stringify(accounts) !== JSON.stringify(availableDevnetAccounts)) {
         setAvailableDevnetAccounts(accounts)
       }
     } catch (error) {
       await remixClient.terminal.log({
         type: 'error',
-        value: `Failed to get accounts information from ${devnet.url}`
+        value: `Failed to get accounts information from ${networkUrl}`
       })
     }
     setAccountRefreshing(false)
-  }, [remixClient, devnet])
+  }, [remixClient, networkUrl])
 
   useEffect(() => {
     refreshDevnetAccounts()
@@ -110,22 +119,22 @@ export const DevnetAccountSelector = () => {
     if (
       !(selectedDevnetAccount !== null && availableDevnetAccounts.includes(selectedDevnetAccount)) &&
       availableDevnetAccounts.length > 0 &&
-      isDevnetAlive
+      isAlive
     ) {
       setSelectedDevnetAccount(availableDevnetAccounts[0])
     }
-    if (!isDevnetAlive && selectedDevnetAccount !== null) {
+    if (!isAlive && selectedDevnetAccount !== null) {
       setSelectedDevnetAccount(null)
     }
-  }, [availableDevnetAccounts, devnet, selectedDevnetAccount, setSelectedDevnetAccount, env, isDevnetAlive])
+  }, [availableDevnetAccounts, devnet, selectedDevnetAccount, setSelectedDevnetAccount, env, isAlive])
 
   useEffect(() => {
-    const newProvider = new Provider(devnet.url)
+    const newProvider = new Provider(networkUrl)
     if (selectedDevnetAccount != null) {
       setAccount(new Wallet(selectedDevnetAccount.private_key, newProvider))
     }
     setProvider(newProvider)
-  }, [devnet, selectedDevnetAccount, setAccount, setProvider])
+  }, [networkUrl, selectedDevnetAccount, setAccount, setProvider])
 
   function handleAccountChange(index: number): void {
     if (index === -1) {
@@ -146,7 +155,7 @@ export const DevnetAccountSelector = () => {
 
   return (
     <div className="mt-2">
-      <label className="">Devnet account selection</label>
+      <label className="">{accountsType === 'devnet' && 'Devnet'}account selection</label>
       <div className="devnet-account-selector-wrapper">
         <Dropdown.Root
           open={dropdownControl}
@@ -233,5 +242,3 @@ export const DevnetAccountSelector = () => {
     </div>
   )
 }
-
-export default DevnetAccountSelector

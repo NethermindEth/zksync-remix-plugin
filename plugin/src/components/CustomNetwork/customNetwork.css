@@ -1,8 +1,5 @@
-
-
 .custom-network-container {
-    align-items: center;
-    display: flex;
-    flex-direction: row-reverse;
-    justify-content: space-between;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
