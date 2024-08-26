@@ -115,7 +115,7 @@ fn create_metrics_server(registry: Registry) -> Rocket<Build> {
 
     let config = Config {
         port,
-        address: Ipv4Addr::LOCALHOST.into(),
+        address: Ipv4Addr::UNSPECIFIED.into(),
         ..Config::default()
     };
 

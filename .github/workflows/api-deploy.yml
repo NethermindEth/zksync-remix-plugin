@@ -115,6 +115,7 @@ jobs:
             PROMTAIL_PASSWORD=${{secrets.PROMTAIL_PASSWORD}}
             PROMETHEUS_USERNAME=${{secrets.PROMETHEUS_USERNAME}}
             PROMETHEUS_PASSWORD=${{secrets.PROMETHEUS_PASSWORD}}
+            ENVIRONMENT=dev
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
@@ -154,6 +155,7 @@ jobs:
             PROMTAIL_PASSWORD=${{secrets.PROMTAIL_PASSWORD}}
             PROMETHEUS_USERNAME=${{secrets.PROMETHEUS_USERNAME}}
             PROMETHEUS_PASSWORD=${{secrets.PROMETHEUS_PASSWORD}}
+            ENVIRONMENT=prod
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
