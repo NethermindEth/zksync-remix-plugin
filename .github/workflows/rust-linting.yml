@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly
+          toolchain: stable
           override: true
           components: clippy
       - run: cd api && cargo clippy --all -- -D warnings
