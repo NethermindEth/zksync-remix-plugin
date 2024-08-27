@@ -27015,8 +27015,10 @@
 							"opcodes": "",
 							"sourceMap": ""
 						},
-						"gasEstimates": null,
-						"legacyAssembly": null,
+						"gasEstimates": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
+						"legacyAssembly": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 						"methodIdentifiers": {
 							"supportsInterface(bytes4)": "01ffc9a7"
 						}
@@ -27024,7 +27026,8 @@
 					"metadata": "{\"compiler\":{\"version\":\"0.6.11+commit.5ef660b1\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"bytes4\",\"name\":\"interfaceId\",\"type\":\"bytes4\"}],\"name\":\"supportsInterface\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"pure\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"supportsInterface(bytes4)\":{\"details\":\"Interface identification is specified in ERC-165. This function  uses less than 30,000 gas.\",\"params\":{\"interfaceId\":\"The interface identifier, as specified in ERC-165\"},\"returns\":{\"_0\":\"`true` if the contract implements `interfaceId` and  `interfaceId` is not 0xffffffff, `false` otherwise\"}}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"supportsInterface(bytes4)\":{\"notice\":\"Query if a contract implements an interface\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"verified-sources/0x00000000219ab540356cbb839cbe05303d7705fa/sources/deposit_contract.sol\":\"ERC165\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"verified-sources/0x00000000219ab540356cbb839cbe05303d7705fa/sources/deposit_contract.sol\":{\"keccak256\":\"0xeb4884395e470268e1ff14dca32e7a030425557a23cb16013c4d25914fd1e4a1\",\"license\":\"CC0-1.0\",\"urls\":[\"bzz-raw://d913ab893984d6b4895b60c1591cf3800df03044f216ed899ea7ab515d68111c\",\"dweb:/ipfs/Qmau1t7agdwiQzhfp9LenBMnknz9NMeNzHpRdBidKiHgKs\"]}},\"version\":1}",
 					"storageLayout": {
 						"storage": [],
-						"types": null
+						"types": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+
 					},
 					"userdoc": {
 						"kind": "user",
@@ -27169,8 +27172,10 @@
 							"opcodes": "",
 							"sourceMap": ""
 						},
-						"gasEstimates": null,
-						"legacyAssembly": null,
+						"gasEstimates": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
+						"legacyAssembly": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 						"methodIdentifiers": {
 							"deposit(bytes,bytes,bytes,bytes32)": "22895118",
 							"get_deposit_count()": "621fd130",
@@ -27180,7 +27185,8 @@
 					"metadata": "{\"compiler\":{\"version\":\"0.6.11+commit.5ef660b1\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"pubkey\",\"type\":\"bytes\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"withdrawal_credentials\",\"type\":\"bytes\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"amount\",\"type\":\"bytes\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"index\",\"type\":\"bytes\"}],\"name\":\"DepositEvent\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"pubkey\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"withdrawal_credentials\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"},{\"internalType\":\"bytes32\",\"name\":\"deposit_data_root\",\"type\":\"bytes32\"}],\"name\":\"deposit\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"get_deposit_count\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"get_deposit_root\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"deposit(bytes,bytes,bytes,bytes32)\":{\"params\":{\"deposit_data_root\":\"The SHA-256 hash of the SSZ-encoded DepositData object. Used as a protection against malformed input.\",\"pubkey\":\"A BLS12-381 public key.\",\"signature\":\"A BLS12-381 signature.\",\"withdrawal_credentials\":\"Commitment to a public key for withdrawals.\"}},\"get_deposit_count()\":{\"returns\":{\"_0\":\"The deposit count encoded as a little endian 64-bit number.\"}},\"get_deposit_root()\":{\"returns\":{\"_0\":\"The deposit root hash.\"}}},\"version\":1},\"userdoc\":{\"events\":{\"DepositEvent(bytes,bytes,bytes,bytes,bytes)\":{\"notice\":\"A processed deposit event.\"}},\"kind\":\"user\",\"methods\":{\"deposit(bytes,bytes,bytes,bytes32)\":{\"notice\":\"Submit a Phase 0 DepositData object.\"},\"get_deposit_count()\":{\"notice\":\"Query the current deposit count.\"},\"get_deposit_root()\":{\"notice\":\"Query the current deposit root hash.\"}},\"notice\":\"This is the Ethereum 2.0 deposit contract interface. For more information see the Phase 0 specification under https://github.com/ethereum/eth2.0-specs\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"verified-sources/0x00000000219ab540356cbb839cbe05303d7705fa/sources/deposit_contract.sol\":\"IDepositContract\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"verified-sources/0x00000000219ab540356cbb839cbe05303d7705fa/sources/deposit_contract.sol\":{\"keccak256\":\"0xeb4884395e470268e1ff14dca32e7a030425557a23cb16013c4d25914fd1e4a1\",\"license\":\"CC0-1.0\",\"urls\":[\"bzz-raw://d913ab893984d6b4895b60c1591cf3800df03044f216ed899ea7ab515d68111c\",\"dweb:/ipfs/Qmau1t7agdwiQzhfp9LenBMnknz9NMeNzHpRdBidKiHgKs\"]}},\"version\":1}",
 					"storageLayout": {
 						"storage": [],
-						"types": null
+						"types": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+
 					},
 					"userdoc": {
 						"events": {
@@ -27276,7 +27282,8 @@
 												"mutability": "mutable",
 												"name": "pubkey",
 												"nodeType": "VariableDeclaration",
-												"overrides": null,
+												"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"scope": 15,
 												"src": "2669:12:0",
 												"stateVariable": false,
@@ -27295,7 +27302,8 @@
 														"typeString": "bytes"
 													}
 												},
-												"value": null,
+												"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"visibility": "internal"
 											},
 											{
@@ -27305,7 +27313,8 @@
 												"mutability": "mutable",
 												"name": "withdrawal_credentials",
 												"nodeType": "VariableDeclaration",
-												"overrides": null,
+												"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"scope": 15,
 												"src": "2691:28:0",
 												"stateVariable": false,
@@ -27324,7 +27333,8 @@
 														"typeString": "bytes"
 													}
 												},
-												"value": null,
+												"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"visibility": "internal"
 											},
 											{
@@ -27334,7 +27344,8 @@
 												"mutability": "mutable",
 												"name": "amount",
 												"nodeType": "VariableDeclaration",
-												"overrides": null,
+												"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"scope": 15,
 												"src": "2729:12:0",
 												"stateVariable": false,
@@ -27353,7 +27364,8 @@
 														"typeString": "bytes"
 													}
 												},
-												"value": null,
+												"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"visibility": "internal"
 											},
 											{
@@ -27363,7 +27375,8 @@
 												"mutability": "mutable",
 												"name": "signature",
 												"nodeType": "VariableDeclaration",
-												"overrides": null,
+												"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"scope": 15,
 												"src": "2751:15:0",
 												"stateVariable": false,
@@ -27382,7 +27395,8 @@
 														"typeString": "bytes"
 													}
 												},
-												"value": null,
+												"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"visibility": "internal"
 											},
 											{
@@ -27392,7 +27406,8 @@
 												"mutability": "mutable",
 												"name": "index",
 												"nodeType": "VariableDeclaration",
-												"overrides": null,
+												"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"scope": 15,
 												"src": "2776:11:0",
 												"stateVariable": false,
@@ -27411,7 +27426,8 @@
 														"typeString": "bytes"
 													}
 												},
-												"value": null,
+												"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"visibility": "internal"
 											}
 										],
@@ -27420,7 +27436,8 @@
 									"src": "2641:153:0"
 								},
 								{
-									"body": null,
+									"body": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 									"documentation": {
 										"id": 16,
 										"nodeType": "StructuredDocumentation",
@@ -27434,7 +27451,8 @@
 									"modifiers": [],
 									"name": "deposit",
 									"nodeType": "FunctionDefinition",
-									"overrides": null,
+									"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 									"parameters": {
 										"id": 25,
 										"nodeType": "ParameterList",
@@ -27445,7 +27463,8 @@
 												"mutability": "mutable",
 												"name": "pubkey",
 												"nodeType": "VariableDeclaration",
-												"overrides": null,
+												"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"scope": 27,
 												"src": "3198:21:0",
 												"stateVariable": false,
@@ -27464,7 +27483,8 @@
 														"typeString": "bytes"
 													}
 												},
-												"value": null,
+												"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"visibility": "internal"
 											},
 											{
@@ -27473,7 +27493,8 @@
 												"mutability": "mutable",
 												"name": "withdrawal_credentials",
 												"nodeType": "VariableDeclaration",
-												"overrides": null,
+												"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"scope": 27,
 												"src": "3229:37:0",
 												"stateVariable": false,
@@ -27492,7 +27513,8 @@
 														"typeString": "bytes"
 													}
 												},
-												"value": null,
+												"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"visibility": "internal"
 											},
 											{
@@ -27501,7 +27523,8 @@
 												"mutability": "mutable",
 												"name": "signature",
 												"nodeType": "VariableDeclaration",
-												"overrides": null,
+												"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"scope": 27,
 												"src": "3276:24:0",
 												"stateVariable": false,
@@ -27520,7 +27543,8 @@
 														"typeString": "bytes"
 													}
 												},
-												"value": null,
+												"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"visibility": "internal"
 											},
 											{
@@ -27529,7 +27553,8 @@
 												"mutability": "mutable",
 												"name": "deposit_data_root",
 												"nodeType": "VariableDeclaration",
-												"overrides": null,
+												"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"scope": 27,
 												"src": "3310:25:0",
 												"stateVariable": false,
@@ -27548,7 +27573,8 @@
 														"typeString": "bytes32"
 													}
 												},
-												"value": null,
+												"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"visibility": "internal"
 											}
 										],
@@ -27567,7 +27593,8 @@
 									"visibility": "external"
 								},
 								{
-									"body": null,
+									"body": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 									"documentation": {
 										"id": 28,
 										"nodeType": "StructuredDocumentation",
@@ -27581,7 +27608,8 @@
 									"modifiers": [],
 									"name": "get_deposit_root",
 									"nodeType": "FunctionDefinition",
-									"overrides": null,
+									"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 									"parameters": {
 										"id": 29,
 										"nodeType": "ParameterList",
@@ -27598,7 +27626,8 @@
 												"mutability": "mutable",
 												"name": "",
 												"nodeType": "VariableDeclaration",
-												"overrides": null,
+												"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"scope": 33,
 												"src": "3508:7:0",
 												"stateVariable": false,
@@ -27617,7 +27646,8 @@
 														"typeString": "bytes32"
 													}
 												},
-												"value": null,
+												"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"visibility": "internal"
 											}
 										],
@@ -27630,7 +27660,8 @@
 									"visibility": "external"
 								},
 								{
-									"body": null,
+									"body": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 									"documentation": {
 										"id": 34,
 										"nodeType": "StructuredDocumentation",
@@ -27644,7 +27675,8 @@
 									"modifiers": [],
 									"name": "get_deposit_count",
 									"nodeType": "FunctionDefinition",
-									"overrides": null,
+									"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 									"parameters": {
 										"id": 35,
 										"nodeType": "ParameterList",
@@ -27661,7 +27693,8 @@
 												"mutability": "mutable",
 												"name": "",
 												"nodeType": "VariableDeclaration",
-												"overrides": null,
+												"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"scope": 39,
 												"src": "3700:12:0",
 												"stateVariable": false,
@@ -27680,7 +27713,8 @@
 														"typeString": "bytes"
 													}
 												},
-												"value": null,
+												"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"visibility": "internal"
 											}
 										],
@@ -27701,7 +27735,8 @@
 							"baseContracts": [],
 							"contractDependencies": [],
 							"contractKind": "interface",
-							"documentation": null,
+							"documentation": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 							"fullyImplemented": false,
 							"id": 49,
 							"linearizedBaseContracts": [
@@ -27711,7 +27746,8 @@
 							"nodeType": "ContractDefinition",
 							"nodes": [
 								{
-									"body": null,
+									"body": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 									"documentation": {
 										"id": 41,
 										"nodeType": "StructuredDocumentation",
@@ -27725,7 +27761,8 @@
 									"modifiers": [],
 									"name": "supportsInterface",
 									"nodeType": "FunctionDefinition",
-									"overrides": null,
+									"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 									"parameters": {
 										"id": 44,
 										"nodeType": "ParameterList",
@@ -27736,7 +27773,8 @@
 												"mutability": "mutable",
 												"name": "interfaceId",
 												"nodeType": "VariableDeclaration",
-												"overrides": null,
+												"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"scope": 48,
 												"src": "4223:18:0",
 												"stateVariable": false,
@@ -27755,7 +27793,8 @@
 														"typeString": "bytes4"
 													}
 												},
-												"value": null,
+												"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"visibility": "internal"
 											}
 										],
@@ -27771,7 +27810,8 @@
 												"mutability": "mutable",
 												"name": "",
 												"nodeType": "VariableDeclaration",
-												"overrides": null,
+												"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"scope": 48,
 												"src": "4266:4:0",
 												"stateVariable": false,
@@ -27790,7 +27830,8 @@
 														"typeString": "bool"
 													}
 												},
-												"value": null,
+												"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"visibility": "internal"
 											}
 										],
@@ -27810,9 +27851,11 @@
 							"abstract": false,
 							"baseContracts": [
 								{
-									"arguments": null,
+									"arguments": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 									"baseName": {
-										"contractScope": null,
+										"contractScope": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 										"id": 51,
 										"name": "IDepositContract",
 										"nodeType": "UserDefinedTypeName",
@@ -27828,9 +27871,11 @@
 									"src": "4612:16:0"
 								},
 								{
-									"arguments": null,
+									"arguments": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 									"baseName": {
-										"contractScope": null,
+										"contractScope": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 										"id": 53,
 										"name": "ERC165",
 										"nodeType": "UserDefinedTypeName",
@@ -27873,7 +27918,8 @@
 									"mutability": "constant",
 									"name": "DEPOSIT_CONTRACT_TREE_DEPTH",
 									"nodeType": "VariableDeclaration",
-									"overrides": null,
+									"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 									"scope": 542,
 									"src": "4643:46:0",
 									"stateVariable": true,
@@ -27893,7 +27939,8 @@
 										}
 									},
 									"value": {
-										"argumentTypes": null,
+										"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 										"hexValue": "3332",
 										"id": 56,
 										"isConstant": false,
@@ -27903,7 +27950,8 @@
 										"lValueRequested": false,
 										"nodeType": "Literal",
 										"src": "4687:2:0",
-										"subdenomination": null,
+										"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 										"typeDescriptions": {
 											"typeIdentifier": "t_rational_32_by_1",
 											"typeString": "int_const 32"
@@ -27918,7 +27966,8 @@
 									"mutability": "constant",
 									"name": "MAX_DEPOSIT_COUNT",
 									"nodeType": "VariableDeclaration",
-									"overrides": null,
+									"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 									"scope": 542,
 									"src": "4764:68:0",
 									"stateVariable": true,
@@ -27938,7 +27987,8 @@
 										}
 									},
 									"value": {
-										"argumentTypes": null,
+										"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 										"commonType": {
 											"typeIdentifier": "t_uint256",
 											"typeString": "uint256"
@@ -27949,7 +27999,8 @@
 										"isPure": true,
 										"lValueRequested": false,
 										"leftExpression": {
-											"argumentTypes": null,
+											"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 											"commonType": {
 												"typeIdentifier": "t_uint256",
 												"typeString": "uint256"
@@ -27960,7 +28011,8 @@
 											"isPure": true,
 											"lValueRequested": false,
 											"leftExpression": {
-												"argumentTypes": null,
+												"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"hexValue": "32",
 												"id": 59,
 												"isConstant": false,
@@ -27970,7 +28022,8 @@
 												"lValueRequested": false,
 												"nodeType": "Literal",
 												"src": "4798:1:0",
-												"subdenomination": null,
+												"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"typeDescriptions": {
 													"typeIdentifier": "t_rational_2_by_1",
 													"typeString": "int_const 2"
@@ -27980,7 +28033,8 @@
 											"nodeType": "BinaryOperation",
 											"operator": "**",
 											"rightExpression": {
-												"argumentTypes": null,
+												"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"id": 60,
 												"name": "DEPOSIT_CONTRACT_TREE_DEPTH",
 												"nodeType": "Identifier",
@@ -28001,7 +28055,8 @@
 										"nodeType": "BinaryOperation",
 										"operator": "-",
 										"rightExpression": {
-											"argumentTypes": null,
+											"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 											"hexValue": "31",
 											"id": 62,
 											"isConstant": false,
@@ -28011,7 +28066,8 @@
 											"lValueRequested": false,
 											"nodeType": "Literal",
 											"src": "4831:1:0",
-											"subdenomination": null,
+											"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 											"typeDescriptions": {
 												"typeIdentifier": "t_rational_1_by_1",
 												"typeString": "int_const 1"
@@ -28032,7 +28088,8 @@
 									"mutability": "mutable",
 									"name": "branch",
 									"nodeType": "VariableDeclaration",
-									"overrides": null,
+									"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 									"scope": 542,
 									"src": "4839:43:0",
 									"stateVariable": true,
@@ -28054,7 +28111,8 @@
 										},
 										"id": 67,
 										"length": {
-											"argumentTypes": null,
+											"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 											"id": 66,
 											"name": "DEPOSIT_CONTRACT_TREE_DEPTH",
 											"nodeType": "Identifier",
@@ -28073,7 +28131,8 @@
 											"typeString": "bytes32[32]"
 										}
 									},
-									"value": null,
+									"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 									"visibility": "internal"
 								},
 								{
@@ -28082,7 +28141,8 @@
 									"mutability": "mutable",
 									"name": "deposit_count",
 									"nodeType": "VariableDeclaration",
-									"overrides": null,
+									"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 									"scope": 542,
 									"src": "4888:21:0",
 									"stateVariable": true,
@@ -28101,7 +28161,8 @@
 											"typeString": "uint256"
 										}
 									},
-									"value": null,
+									"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 									"visibility": "internal"
 								},
 								{
@@ -28110,7 +28171,8 @@
 									"mutability": "mutable",
 									"name": "zero_hashes",
 									"nodeType": "VariableDeclaration",
-									"overrides": null,
+									"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 									"scope": 542,
 									"src": "4916:48:0",
 									"stateVariable": true,
@@ -28132,7 +28194,8 @@
 										},
 										"id": 73,
 										"length": {
-											"argumentTypes": null,
+											"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 											"id": 72,
 											"name": "DEPOSIT_CONTRACT_TREE_DEPTH",
 											"nodeType": "Identifier",
@@ -28151,7 +28214,8 @@
 											"typeString": "bytes32[32]"
 										}
 									},
-									"value": null,
+									"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 									"visibility": "internal"
 								},
 								{
@@ -28163,16 +28227,19 @@
 											{
 												"body": {
 													"expression": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"id": 105,
 														"isConstant": false,
 														"isLValue": false,
 														"isPure": false,
 														"lValueRequested": false,
 														"leftHandSide": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"baseExpression": {
-																"argumentTypes": null,
+																"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"id": 89,
 																"name": "zero_hashes",
 																"nodeType": "Identifier",
@@ -28186,7 +28253,8 @@
 															},
 															"id": 93,
 															"indexExpression": {
-																"argumentTypes": null,
+																"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"commonType": {
 																	"typeIdentifier": "t_uint256",
 																	"typeString": "uint256"
@@ -28197,7 +28265,8 @@
 																"isPure": false,
 																"lValueRequested": false,
 																"leftExpression": {
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"id": 90,
 																	"name": "height",
 																	"nodeType": "Identifier",
@@ -28212,7 +28281,8 @@
 																"nodeType": "BinaryOperation",
 																"operator": "+",
 																"rightExpression": {
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"hexValue": "31",
 																	"id": 91,
 																	"isConstant": false,
@@ -28222,7 +28292,8 @@
 																	"lValueRequested": false,
 																	"nodeType": "Literal",
 																	"src": "5163:1:0",
-																	"subdenomination": null,
+																	"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"typeDescriptions": {
 																		"typeIdentifier": "t_rational_1_by_1",
 																		"typeString": "int_const 1"
@@ -28249,15 +28320,19 @@
 														"nodeType": "Assignment",
 														"operator": "=",
 														"rightHandSide": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"arguments": [
 																{
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"arguments": [
 																		{
-																			"argumentTypes": null,
+																			"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																			"baseExpression": {
-																				"argumentTypes": null,
+																				"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																				"id": 97,
 																				"name": "zero_hashes",
 																				"nodeType": "Identifier",
@@ -28271,7 +28346,8 @@
 																			},
 																			"id": 99,
 																			"indexExpression": {
-																				"argumentTypes": null,
+																				"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																				"id": 98,
 																				"name": "height",
 																				"nodeType": "Identifier",
@@ -28295,9 +28371,11 @@
 																			}
 																		},
 																		{
-																			"argumentTypes": null,
+																			"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																			"baseExpression": {
-																				"argumentTypes": null,
+																				"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																				"id": 100,
 																				"name": "zero_hashes",
 																				"nodeType": "Identifier",
@@ -28311,7 +28389,8 @@
 																			},
 																			"id": 102,
 																			"indexExpression": {
-																				"argumentTypes": null,
+																				"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																				"id": 101,
 																				"name": "height",
 																				"nodeType": "Identifier",
@@ -28347,7 +28426,8 @@
 																			}
 																		],
 																		"expression": {
-																			"argumentTypes": null,
+																			"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																			"id": 95,
 																			"name": "abi",
 																			"nodeType": "Identifier",
@@ -28366,7 +28446,8 @@
 																		"lValueRequested": false,
 																		"memberName": "encodePacked",
 																		"nodeType": "MemberAccess",
-																		"referencedDeclaration": null,
+																		"referencedDeclaration": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																		"src": "5175:16:0",
 																		"typeDescriptions": {
 																			"typeIdentifier": "t_function_abiencodepacked_pure$__$returns$_t_bytes_memory_ptr_$",
@@ -28433,7 +28514,8 @@
 													"src": "5142:92:0"
 												},
 												"condition": {
-													"argumentTypes": null,
+													"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 													"commonType": {
 														"typeIdentifier": "t_uint256",
 														"typeString": "uint256"
@@ -28444,7 +28526,8 @@
 													"isPure": false,
 													"lValueRequested": false,
 													"leftExpression": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"id": 81,
 														"name": "height",
 														"nodeType": "Identifier",
@@ -28459,7 +28542,8 @@
 													"nodeType": "BinaryOperation",
 													"operator": "<",
 													"rightExpression": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"commonType": {
 															"typeIdentifier": "t_uint256",
 															"typeString": "uint256"
@@ -28470,7 +28554,8 @@
 														"isPure": true,
 														"lValueRequested": false,
 														"leftExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"id": 82,
 															"name": "DEPOSIT_CONTRACT_TREE_DEPTH",
 															"nodeType": "Identifier",
@@ -28485,7 +28570,8 @@
 														"nodeType": "BinaryOperation",
 														"operator": "-",
 														"rightExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"hexValue": "31",
 															"id": 83,
 															"isConstant": false,
@@ -28495,7 +28581,8 @@
 															"lValueRequested": false,
 															"nodeType": "Literal",
 															"src": "5117:1:0",
-															"subdenomination": null,
+															"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"typeDescriptions": {
 																"typeIdentifier": "t_rational_1_by_1",
 																"typeString": "int_const 1"
@@ -28526,7 +28613,8 @@
 															"mutability": "mutable",
 															"name": "height",
 															"nodeType": "VariableDeclaration",
-															"overrides": null,
+															"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"scope": 107,
 															"src": "5061:11:0",
 															"stateVariable": false,
@@ -28545,13 +28633,15 @@
 																	"typeString": "uint256"
 																}
 															},
-															"value": null,
+															"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"visibility": "internal"
 														}
 													],
 													"id": 80,
 													"initialValue": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"hexValue": "30",
 														"id": 79,
 														"isConstant": false,
@@ -28561,7 +28651,8 @@
 														"lValueRequested": false,
 														"nodeType": "Literal",
 														"src": "5075:1:0",
-														"subdenomination": null,
+														"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"typeDescriptions": {
 															"typeIdentifier": "t_rational_0_by_1",
 															"typeString": "int_const 0"
@@ -28573,7 +28664,8 @@
 												},
 												"loopExpression": {
 													"expression": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"id": 87,
 														"isConstant": false,
 														"isLValue": false,
@@ -28584,7 +28676,8 @@
 														"prefix": false,
 														"src": "5120:8:0",
 														"subExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"id": 86,
 															"name": "height",
 															"nodeType": "Identifier",
@@ -28610,14 +28703,16 @@
 											}
 										]
 									},
-									"documentation": null,
+									"documentation": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 									"id": 109,
 									"implemented": true,
 									"kind": "constructor",
 									"modifiers": [],
 									"name": "",
 									"nodeType": "FunctionDefinition",
-									"overrides": null,
+									"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 									"parameters": {
 										"id": 75,
 										"nodeType": "ParameterList",
@@ -28656,7 +28751,8 @@
 														"mutability": "mutable",
 														"name": "node",
 														"nodeType": "VariableDeclaration",
-														"overrides": null,
+														"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"scope": 186,
 														"src": "5326:12:0",
 														"stateVariable": false,
@@ -28675,12 +28771,14 @@
 																"typeString": "bytes32"
 															}
 														},
-														"value": null,
+														"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"visibility": "internal"
 													}
 												],
 												"id": 117,
-												"initialValue": null,
+												"initialValue": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"nodeType": "VariableDeclarationStatement",
 												"src": "5326:12:0"
 											},
@@ -28695,7 +28793,8 @@
 														"mutability": "mutable",
 														"name": "size",
 														"nodeType": "VariableDeclaration",
-														"overrides": null,
+														"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"scope": 186,
 														"src": "5348:9:0",
 														"stateVariable": false,
@@ -28714,13 +28813,15 @@
 																"typeString": "uint256"
 															}
 														},
-														"value": null,
+														"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"visibility": "internal"
 													}
 												],
 												"id": 121,
 												"initialValue": {
-													"argumentTypes": null,
+													"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 													"id": 120,
 													"name": "deposit_count",
 													"nodeType": "Identifier",
@@ -28743,7 +28844,8 @@
 													"statements": [
 														{
 															"condition": {
-																"argumentTypes": null,
+																"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"commonType": {
 																	"typeIdentifier": "t_uint256",
 																	"typeString": "uint256"
@@ -28754,10 +28856,12 @@
 																"isPure": false,
 																"lValueRequested": false,
 																"leftExpression": {
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"components": [
 																		{
-																			"argumentTypes": null,
+																			"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																			"commonType": {
 																				"typeIdentifier": "t_uint256",
 																				"typeString": "uint256"
@@ -28768,7 +28872,8 @@
 																			"isPure": false,
 																			"lValueRequested": false,
 																			"leftExpression": {
-																				"argumentTypes": null,
+																				"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																				"id": 132,
 																				"name": "size",
 																				"nodeType": "Identifier",
@@ -28783,7 +28888,8 @@
 																			"nodeType": "BinaryOperation",
 																			"operator": "&",
 																			"rightExpression": {
-																				"argumentTypes": null,
+																				"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																				"hexValue": "31",
 																				"id": 133,
 																				"isConstant": false,
@@ -28793,7 +28899,8 @@
 																				"lValueRequested": false,
 																				"nodeType": "Literal",
 																				"src": "5479:1:0",
-																				"subdenomination": null,
+																				"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																				"typeDescriptions": {
 																					"typeIdentifier": "t_rational_1_by_1",
 																					"typeString": "int_const 1"
@@ -28823,7 +28930,8 @@
 																"nodeType": "BinaryOperation",
 																"operator": "==",
 																"rightExpression": {
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"hexValue": "31",
 																	"id": 136,
 																	"isConstant": false,
@@ -28833,7 +28941,8 @@
 																	"lValueRequested": false,
 																	"nodeType": "Literal",
 																	"src": "5485:1:0",
-																	"subdenomination": null,
+																	"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"typeDescriptions": {
 																		"typeIdentifier": "t_rational_1_by_1",
 																		"typeString": "int_const 1"
@@ -28848,14 +28957,16 @@
 															},
 															"falseBody": {
 																"expression": {
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"id": 160,
 																	"isConstant": false,
 																	"isLValue": false,
 																	"isPure": false,
 																	"lValueRequested": false,
 																	"leftHandSide": {
-																		"argumentTypes": null,
+																		"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																		"id": 150,
 																		"name": "node",
 																		"nodeType": "Identifier",
@@ -28870,13 +28981,16 @@
 																	"nodeType": "Assignment",
 																	"operator": "=",
 																	"rightHandSide": {
-																		"argumentTypes": null,
+																		"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																		"arguments": [
 																			{
-																				"argumentTypes": null,
+																				"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																				"arguments": [
 																					{
-																						"argumentTypes": null,
+																						"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																						"id": 154,
 																						"name": "node",
 																						"nodeType": "Identifier",
@@ -28889,9 +29003,11 @@
 																						}
 																					},
 																					{
-																						"argumentTypes": null,
+																						"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																						"baseExpression": {
-																							"argumentTypes": null,
+																							"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																							"id": 155,
 																							"name": "zero_hashes",
 																							"nodeType": "Identifier",
@@ -28905,7 +29021,8 @@
 																						},
 																						"id": 157,
 																						"indexExpression": {
-																							"argumentTypes": null,
+																							"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																							"id": 156,
 																							"name": "height",
 																							"nodeType": "Identifier",
@@ -28941,7 +29058,8 @@
 																						}
 																					],
 																					"expression": {
-																						"argumentTypes": null,
+																						"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																						"id": 152,
 																						"name": "abi",
 																						"nodeType": "Identifier",
@@ -28960,7 +29078,8 @@
 																					"lValueRequested": false,
 																					"memberName": "encodePacked",
 																					"nodeType": "MemberAccess",
-																					"referencedDeclaration": null,
+																					"referencedDeclaration": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																					"src": "5606:16:0",
 																					"typeDescriptions": {
 																						"typeIdentifier": "t_function_abiencodepacked_pure$__$returns$_t_bytes_memory_ptr_$",
@@ -29031,14 +29150,16 @@
 															"src": "5467:183:0",
 															"trueBody": {
 																"expression": {
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"id": 148,
 																	"isConstant": false,
 																	"isLValue": false,
 																	"isPure": false,
 																	"lValueRequested": false,
 																	"leftHandSide": {
-																		"argumentTypes": null,
+																		"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																		"id": 138,
 																		"name": "node",
 																		"nodeType": "Identifier",
@@ -29053,15 +29174,19 @@
 																	"nodeType": "Assignment",
 																	"operator": "=",
 																	"rightHandSide": {
-																		"argumentTypes": null,
+																		"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																		"arguments": [
 																			{
-																				"argumentTypes": null,
+																				"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																				"arguments": [
 																					{
-																						"argumentTypes": null,
+																						"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																						"baseExpression": {
-																							"argumentTypes": null,
+																							"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																							"id": 142,
 																							"name": "branch",
 																							"nodeType": "Identifier",
@@ -29075,7 +29200,8 @@
 																						},
 																						"id": 144,
 																						"indexExpression": {
-																							"argumentTypes": null,
+																							"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																							"id": 143,
 																							"name": "height",
 																							"nodeType": "Identifier",
@@ -29099,7 +29225,8 @@
 																						}
 																					},
 																					{
-																						"argumentTypes": null,
+																						"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																						"id": 145,
 																						"name": "node",
 																						"nodeType": "Identifier",
@@ -29124,7 +29251,8 @@
 																						}
 																					],
 																					"expression": {
-																						"argumentTypes": null,
+																						"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																						"id": 140,
 																						"name": "abi",
 																						"nodeType": "Identifier",
@@ -29143,7 +29271,8 @@
 																					"lValueRequested": false,
 																					"memberName": "encodePacked",
 																					"nodeType": "MemberAccess",
-																					"referencedDeclaration": null,
+																					"referencedDeclaration": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																					"src": "5518:16:0",
 																					"typeDescriptions": {
 																						"typeIdentifier": "t_function_abiencodepacked_pure$__$returns$_t_bytes_memory_ptr_$",
@@ -29212,14 +29341,16 @@
 														},
 														{
 															"expression": {
-																"argumentTypes": null,
+																"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"id": 165,
 																"isConstant": false,
 																"isLValue": false,
 																"isPure": false,
 																"lValueRequested": false,
 																"leftHandSide": {
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"id": 163,
 																	"name": "size",
 																	"nodeType": "Identifier",
@@ -29234,7 +29365,8 @@
 																"nodeType": "Assignment",
 																"operator": "/=",
 																"rightHandSide": {
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"hexValue": "32",
 																	"id": 164,
 																	"isConstant": false,
@@ -29244,7 +29376,8 @@
 																	"lValueRequested": false,
 																	"nodeType": "Literal",
 																	"src": "5672:1:0",
-																	"subdenomination": null,
+																	"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"typeDescriptions": {
 																		"typeIdentifier": "t_rational_2_by_1",
 																		"typeString": "int_const 2"
@@ -29264,7 +29397,8 @@
 													]
 												},
 												"condition": {
-													"argumentTypes": null,
+													"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 													"commonType": {
 														"typeIdentifier": "t_uint256",
 														"typeString": "uint256"
@@ -29275,7 +29409,8 @@
 													"isPure": false,
 													"lValueRequested": false,
 													"leftExpression": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"id": 126,
 														"name": "height",
 														"nodeType": "Identifier",
@@ -29290,7 +29425,8 @@
 													"nodeType": "BinaryOperation",
 													"operator": "<",
 													"rightExpression": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"id": 127,
 														"name": "DEPOSIT_CONTRACT_TREE_DEPTH",
 														"nodeType": "Identifier",
@@ -29320,7 +29456,8 @@
 															"mutability": "mutable",
 															"name": "height",
 															"nodeType": "VariableDeclaration",
-															"overrides": null,
+															"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"scope": 168,
 															"src": "5388:11:0",
 															"stateVariable": false,
@@ -29339,13 +29476,15 @@
 																	"typeString": "uint256"
 																}
 															},
-															"value": null,
+															"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"visibility": "internal"
 														}
 													],
 													"id": 125,
 													"initialValue": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"hexValue": "30",
 														"id": 124,
 														"isConstant": false,
@@ -29355,7 +29494,8 @@
 														"lValueRequested": false,
 														"nodeType": "Literal",
 														"src": "5402:1:0",
-														"subdenomination": null,
+														"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"typeDescriptions": {
 															"typeIdentifier": "t_rational_0_by_1",
 															"typeString": "int_const 0"
@@ -29367,7 +29507,8 @@
 												},
 												"loopExpression": {
 													"expression": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"id": 130,
 														"isConstant": false,
 														"isLValue": false,
@@ -29378,7 +29519,8 @@
 														"prefix": false,
 														"src": "5443:8:0",
 														"subExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"id": 129,
 															"name": "height",
 															"nodeType": "Identifier",
@@ -29404,13 +29546,16 @@
 											},
 											{
 												"expression": {
-													"argumentTypes": null,
+													"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 													"arguments": [
 														{
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"arguments": [
 																{
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"id": 172,
 																	"name": "node",
 																	"nodeType": "Identifier",
@@ -29423,13 +29568,16 @@
 																	}
 																},
 																{
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"arguments": [
 																		{
-																			"argumentTypes": null,
+																			"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																			"arguments": [
 																				{
-																					"argumentTypes": null,
+																					"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																					"id": 176,
 																					"name": "deposit_count",
 																					"nodeType": "Identifier",
@@ -29466,8 +29614,10 @@
 																					"nodeType": "ElementaryTypeName",
 																					"src": "5775:6:0",
 																					"typeDescriptions": {
-																						"typeIdentifier": null,
-																						"typeString": null
+																						"typeIdentifier": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
+																						"typeString": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+
 																					}
 																				}
 																			},
@@ -29521,10 +29671,12 @@
 																	}
 																},
 																{
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"arguments": [
 																		{
-																			"argumentTypes": null,
+																			"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																			"hexValue": "30",
 																			"id": 181,
 																			"isConstant": false,
@@ -29534,7 +29686,8 @@
 																			"lValueRequested": false,
 																			"nodeType": "Literal",
 																			"src": "5819:1:0",
-																			"subdenomination": null,
+																			"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																			"typeDescriptions": {
 																				"typeIdentifier": "t_rational_0_by_1",
 																				"typeString": "int_const 0"
@@ -29566,8 +29719,10 @@
 																			"nodeType": "ElementaryTypeName",
 																			"src": "5811:7:0",
 																			"typeDescriptions": {
-																				"typeIdentifier": null,
-																				"typeString": null
+																				"typeIdentifier": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
+																				"typeString": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+
 																			}
 																		}
 																	},
@@ -29603,7 +29758,8 @@
 																	}
 																],
 																"expression": {
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"id": 170,
 																	"name": "abi",
 																	"nodeType": "Identifier",
@@ -29622,7 +29778,8 @@
 																"lValueRequested": false,
 																"memberName": "encodePacked",
 																"nodeType": "MemberAccess",
-																"referencedDeclaration": null,
+																"referencedDeclaration": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"src": "5707:16:0",
 																"typeDescriptions": {
 																	"typeIdentifier": "t_function_abiencodepacked_pure$__$returns$_t_bytes_memory_ptr_$",
@@ -29685,7 +29842,8 @@
 											}
 										]
 									},
-									"documentation": null,
+									"documentation": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 									"functionSelector": "c5f2892f",
 									"id": 187,
 									"implemented": true,
@@ -29715,7 +29873,8 @@
 												"mutability": "mutable",
 												"name": "",
 												"nodeType": "VariableDeclaration",
-												"overrides": null,
+												"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"scope": 187,
 												"src": "5307:7:0",
 												"stateVariable": false,
@@ -29734,7 +29893,8 @@
 														"typeString": "bytes32"
 													}
 												},
-												"value": null,
+												"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"visibility": "internal"
 											}
 										],
@@ -29757,13 +29917,16 @@
 										"statements": [
 											{
 												"expression": {
-													"argumentTypes": null,
+													"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 													"arguments": [
 														{
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"arguments": [
 																{
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"id": 196,
 																	"name": "deposit_count",
 																	"nodeType": "Identifier",
@@ -29800,8 +29963,10 @@
 																	"nodeType": "ElementaryTypeName",
 																	"src": "5957:6:0",
 																	"typeDescriptions": {
-																		"typeIdentifier": null,
-																		"typeString": null
+																		"typeIdentifier": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
+																		"typeString": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+
 																	}
 																}
 															},
@@ -29861,7 +30026,8 @@
 											}
 										]
 									},
-									"documentation": null,
+									"documentation": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 									"functionSelector": "621fd130",
 									"id": 201,
 									"implemented": true,
@@ -29891,7 +30057,8 @@
 												"mutability": "mutable",
 												"name": "",
 												"nodeType": "VariableDeclaration",
-												"overrides": null,
+												"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"scope": 201,
 												"src": "5906:12:0",
 												"stateVariable": false,
@@ -29910,7 +30077,8 @@
 														"typeString": "bytes"
 													}
 												},
-												"value": null,
+												"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"visibility": "internal"
 											}
 										],
@@ -29933,10 +30101,12 @@
 										"statements": [
 											{
 												"expression": {
-													"argumentTypes": null,
+													"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 													"arguments": [
 														{
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"commonType": {
 																"typeIdentifier": "t_uint256",
 																"typeString": "uint256"
@@ -29947,9 +30117,11 @@
 															"isPure": false,
 															"lValueRequested": false,
 															"leftExpression": {
-																"argumentTypes": null,
+																"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"expression": {
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"id": 214,
 																	"name": "pubkey",
 																	"nodeType": "Identifier",
@@ -29968,7 +30140,8 @@
 																"lValueRequested": false,
 																"memberName": "length",
 																"nodeType": "MemberAccess",
-																"referencedDeclaration": null,
+																"referencedDeclaration": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"src": "6274:13:0",
 																"typeDescriptions": {
 																	"typeIdentifier": "t_uint256",
@@ -29978,7 +30151,8 @@
 															"nodeType": "BinaryOperation",
 															"operator": "==",
 															"rightExpression": {
-																"argumentTypes": null,
+																"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"hexValue": "3438",
 																"id": 216,
 																"isConstant": false,
@@ -29988,7 +30162,8 @@
 																"lValueRequested": false,
 																"nodeType": "Literal",
 																"src": "6291:2:0",
-																"subdenomination": null,
+																"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"typeDescriptions": {
 																	"typeIdentifier": "t_rational_48_by_1",
 																	"typeString": "int_const 48"
@@ -30002,7 +30177,8 @@
 															}
 														},
 														{
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"hexValue": "4465706f736974436f6e74726163743a20696e76616c6964207075626b6579206c656e677468",
 															"id": 218,
 															"isConstant": false,
@@ -30012,7 +30188,8 @@
 															"lValueRequested": false,
 															"nodeType": "Literal",
 															"src": "6295:40:0",
-															"subdenomination": null,
+															"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"typeDescriptions": {
 																"typeIdentifier": "t_stringliteral_c3b50b094eada99b5a9dfa8cfadfa82355edd40e0591c544071d0112172c4c5e",
 																"typeString": "literal_string \"DepositContract: invalid pubkey length\""
@@ -30066,10 +30243,12 @@
 											},
 											{
 												"expression": {
-													"argumentTypes": null,
+													"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 													"arguments": [
 														{
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"commonType": {
 																"typeIdentifier": "t_uint256",
 																"typeString": "uint256"
@@ -30080,9 +30259,11 @@
 															"isPure": false,
 															"lValueRequested": false,
 															"leftExpression": {
-																"argumentTypes": null,
+																"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"expression": {
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"id": 222,
 																	"name": "withdrawal_credentials",
 																	"nodeType": "Identifier",
@@ -30101,7 +30282,8 @@
 																"lValueRequested": false,
 																"memberName": "length",
 																"nodeType": "MemberAccess",
-																"referencedDeclaration": null,
+																"referencedDeclaration": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"src": "6354:29:0",
 																"typeDescriptions": {
 																	"typeIdentifier": "t_uint256",
@@ -30111,7 +30293,8 @@
 															"nodeType": "BinaryOperation",
 															"operator": "==",
 															"rightExpression": {
-																"argumentTypes": null,
+																"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"hexValue": "3332",
 																"id": 224,
 																"isConstant": false,
@@ -30121,7 +30304,8 @@
 																"lValueRequested": false,
 																"nodeType": "Literal",
 																"src": "6387:2:0",
-																"subdenomination": null,
+																"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"typeDescriptions": {
 																	"typeIdentifier": "t_rational_32_by_1",
 																	"typeString": "int_const 32"
@@ -30135,7 +30319,8 @@
 															}
 														},
 														{
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"hexValue": "4465706f736974436f6e74726163743a20696e76616c6964207769746864726177616c5f63726564656e7469616c73206c656e677468",
 															"id": 226,
 															"isConstant": false,
@@ -30145,7 +30330,8 @@
 															"lValueRequested": false,
 															"nodeType": "Literal",
 															"src": "6391:56:0",
-															"subdenomination": null,
+															"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"typeDescriptions": {
 																"typeIdentifier": "t_stringliteral_747182c86d19950fc1e3554e7b3e3a1972fcfdcf01419aa5598a57f4869840e0",
 																"typeString": "literal_string \"DepositContract: invalid withdrawal_credentials length\""
@@ -30199,10 +30385,12 @@
 											},
 											{
 												"expression": {
-													"argumentTypes": null,
+													"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 													"arguments": [
 														{
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"commonType": {
 																"typeIdentifier": "t_uint256",
 																"typeString": "uint256"
@@ -30213,9 +30401,11 @@
 															"isPure": false,
 															"lValueRequested": false,
 															"leftExpression": {
-																"argumentTypes": null,
+																"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"expression": {
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"id": 230,
 																	"name": "signature",
 																	"nodeType": "Identifier",
@@ -30234,7 +30424,8 @@
 																"lValueRequested": false,
 																"memberName": "length",
 																"nodeType": "MemberAccess",
-																"referencedDeclaration": null,
+																"referencedDeclaration": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"src": "6466:16:0",
 																"typeDescriptions": {
 																	"typeIdentifier": "t_uint256",
@@ -30244,7 +30435,8 @@
 															"nodeType": "BinaryOperation",
 															"operator": "==",
 															"rightExpression": {
-																"argumentTypes": null,
+																"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"hexValue": "3936",
 																"id": 232,
 																"isConstant": false,
@@ -30254,7 +30446,8 @@
 																"lValueRequested": false,
 																"nodeType": "Literal",
 																"src": "6486:2:0",
-																"subdenomination": null,
+																"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"typeDescriptions": {
 																	"typeIdentifier": "t_rational_96_by_1",
 																	"typeString": "int_const 96"
@@ -30268,7 +30461,8 @@
 															}
 														},
 														{
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"hexValue": "4465706f736974436f6e74726163743a20696e76616c6964207369676e6174757265206c656e677468",
 															"id": 234,
 															"isConstant": false,
@@ -30278,7 +30472,8 @@
 															"lValueRequested": false,
 															"nodeType": "Literal",
 															"src": "6490:43:0",
-															"subdenomination": null,
+															"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"typeDescriptions": {
 																"typeIdentifier": "t_stringliteral_e15de1a983e2181dc403952307f19cbe1ac366f85accb46ba7ec34e71736287b",
 																"typeString": "literal_string \"DepositContract: invalid signature length\""
@@ -30332,10 +30527,12 @@
 											},
 											{
 												"expression": {
-													"argumentTypes": null,
+													"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 													"arguments": [
 														{
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"commonType": {
 																"typeIdentifier": "t_uint256",
 																"typeString": "uint256"
@@ -30346,9 +30543,11 @@
 															"isPure": false,
 															"lValueRequested": false,
 															"leftExpression": {
-																"argumentTypes": null,
+																"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"expression": {
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"id": 238,
 																	"name": "msg",
 																	"nodeType": "Identifier",
@@ -30367,7 +30566,8 @@
 																"lValueRequested": false,
 																"memberName": "value",
 																"nodeType": "MemberAccess",
-																"referencedDeclaration": null,
+																"referencedDeclaration": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"src": "6585:9:0",
 																"typeDescriptions": {
 																	"typeIdentifier": "t_uint256",
@@ -30377,7 +30577,8 @@
 															"nodeType": "BinaryOperation",
 															"operator": ">=",
 															"rightExpression": {
-																"argumentTypes": null,
+																"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"hexValue": "31",
 																"id": 240,
 																"isConstant": false,
@@ -30401,7 +30602,8 @@
 															}
 														},
 														{
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"hexValue": "4465706f736974436f6e74726163743a206465706f7369742076616c756520746f6f206c6f77",
 															"id": 242,
 															"isConstant": false,
@@ -30411,7 +30613,8 @@
 															"lValueRequested": false,
 															"nodeType": "Literal",
 															"src": "6607:40:0",
-															"subdenomination": null,
+															"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"typeDescriptions": {
 																"typeIdentifier": "t_stringliteral_d4d9a14975cc31a7dc18afc82ee6e59efa15377b990098eeaab4cc403f9d1217",
 																"typeString": "literal_string \"DepositContract: deposit value too low\""
@@ -30465,10 +30668,12 @@
 											},
 											{
 												"expression": {
-													"argumentTypes": null,
+													"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 													"arguments": [
 														{
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"commonType": {
 																"typeIdentifier": "t_uint256",
 																"typeString": "uint256"
@@ -30479,7 +30684,8 @@
 															"isPure": false,
 															"lValueRequested": false,
 															"leftExpression": {
-																"argumentTypes": null,
+																"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"commonType": {
 																	"typeIdentifier": "t_uint256",
 																	"typeString": "uint256"
@@ -30490,9 +30696,11 @@
 																"isPure": false,
 																"lValueRequested": false,
 																"leftExpression": {
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"expression": {
-																		"argumentTypes": null,
+																		"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																		"id": 246,
 																		"name": "msg",
 																		"nodeType": "Identifier",
@@ -30511,7 +30719,8 @@
 																	"lValueRequested": false,
 																	"memberName": "value",
 																	"nodeType": "MemberAccess",
-																	"referencedDeclaration": null,
+																	"referencedDeclaration": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"src": "6666:9:0",
 																	"typeDescriptions": {
 																		"typeIdentifier": "t_uint256",
@@ -30521,7 +30730,8 @@
 																"nodeType": "BinaryOperation",
 																"operator": "%",
 																"rightExpression": {
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"hexValue": "31",
 																	"id": 248,
 																	"isConstant": false,
@@ -30547,7 +30757,8 @@
 															"nodeType": "BinaryOperation",
 															"operator": "==",
 															"rightExpression": {
-																"argumentTypes": null,
+																"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"hexValue": "30",
 																"id": 250,
 																"isConstant": false,
@@ -30557,7 +30768,8 @@
 																"lValueRequested": false,
 																"nodeType": "Literal",
 																"src": "6688:1:0",
-																"subdenomination": null,
+																"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"typeDescriptions": {
 																	"typeIdentifier": "t_rational_0_by_1",
 																	"typeString": "int_const 0"
@@ -30571,7 +30783,8 @@
 															}
 														},
 														{
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"hexValue": "4465706f736974436f6e74726163743a206465706f7369742076616c7565206e6f74206d756c7469706c65206f662067776569",
 															"id": 252,
 															"isConstant": false,
@@ -30581,7 +30794,8 @@
 															"lValueRequested": false,
 															"nodeType": "Literal",
 															"src": "6691:53:0",
-															"subdenomination": null,
+															"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"typeDescriptions": {
 																"typeIdentifier": "t_stringliteral_7db03c60fbfd1382397614fc537e65f67f687dbb18307bed297bda7f864590e0",
 																"typeString": "literal_string \"DepositContract: deposit value not multiple of gwei\""
@@ -30644,7 +30858,8 @@
 														"mutability": "mutable",
 														"name": "deposit_amount",
 														"nodeType": "VariableDeclaration",
-														"overrides": null,
+														"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"scope": 431,
 														"src": "6755:19:0",
 														"stateVariable": false,
@@ -30663,13 +30878,15 @@
 																"typeString": "uint256"
 															}
 														},
-														"value": null,
+														"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"visibility": "internal"
 													}
 												],
 												"id": 261,
 												"initialValue": {
-													"argumentTypes": null,
+													"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 													"commonType": {
 														"typeIdentifier": "t_uint256",
 														"typeString": "uint256"
@@ -30680,9 +30897,11 @@
 													"isPure": false,
 													"lValueRequested": false,
 													"leftExpression": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"expression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"id": 257,
 															"name": "msg",
 															"nodeType": "Identifier",
@@ -30701,7 +30920,8 @@
 														"lValueRequested": false,
 														"memberName": "value",
 														"nodeType": "MemberAccess",
-														"referencedDeclaration": null,
+														"referencedDeclaration": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"src": "6777:9:0",
 														"typeDescriptions": {
 															"typeIdentifier": "t_uint256",
@@ -30711,7 +30931,8 @@
 													"nodeType": "BinaryOperation",
 													"operator": "/",
 													"rightExpression": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"hexValue": "31",
 														"id": 259,
 														"isConstant": false,
@@ -30739,10 +30960,12 @@
 											},
 											{
 												"expression": {
-													"argumentTypes": null,
+													"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 													"arguments": [
 														{
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"commonType": {
 																"typeIdentifier": "t_uint256",
 																"typeString": "uint256"
@@ -30753,7 +30976,8 @@
 															"isPure": false,
 															"lValueRequested": false,
 															"leftExpression": {
-																"argumentTypes": null,
+																"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"id": 263,
 																"name": "deposit_amount",
 																"nodeType": "Identifier",
@@ -30768,12 +30992,15 @@
 															"nodeType": "BinaryOperation",
 															"operator": "<=",
 															"rightExpression": {
-																"argumentTypes": null,
+																"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"expression": {
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"arguments": [
 																		{
-																			"argumentTypes": null,
+																			"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																			"id": 266,
 																			"isConstant": false,
 																			"isLValue": false,
@@ -30791,8 +31018,10 @@
 																				"nodeType": "ElementaryTypeName",
 																				"src": "6836:6:0",
 																				"typeDescriptions": {
-																					"typeIdentifier": null,
-																					"typeString": null
+																					"typeIdentifier": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
+																					"typeString": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+
 																				}
 																			}
 																		}
@@ -30837,7 +31066,8 @@
 																"lValueRequested": false,
 																"memberName": "max",
 																"nodeType": "MemberAccess",
-																"referencedDeclaration": null,
+																"referencedDeclaration": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"src": "6831:16:0",
 																"typeDescriptions": {
 																	"typeIdentifier": "t_uint64",
@@ -30851,7 +31081,8 @@
 															}
 														},
 														{
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"hexValue": "4465706f736974436f6e74726163743a206465706f7369742076616c756520746f6f2068696768",
 															"id": 270,
 															"isConstant": false,
@@ -30861,7 +31092,8 @@
 															"lValueRequested": false,
 															"nodeType": "Literal",
 															"src": "6849:41:0",
-															"subdenomination": null,
+															"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"typeDescriptions": {
 																"typeIdentifier": "t_stringliteral_c445cee017c8884423c583c4e1697a8e774197f1748cc887aa73775ef891882f",
 																"typeString": "literal_string \"DepositContract: deposit value too high\""
@@ -30924,7 +31156,8 @@
 														"mutability": "mutable",
 														"name": "amount",
 														"nodeType": "VariableDeclaration",
-														"overrides": null,
+														"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"scope": 431,
 														"src": "6937:19:0",
 														"stateVariable": false,
@@ -30943,19 +31176,23 @@
 																"typeString": "bytes"
 															}
 														},
-														"value": null,
+														"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"visibility": "internal"
 													}
 												],
 												"id": 281,
 												"initialValue": {
-													"argumentTypes": null,
+													"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 													"arguments": [
 														{
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"arguments": [
 																{
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"id": 278,
 																	"name": "deposit_amount",
 																	"nodeType": "Identifier",
@@ -30992,8 +31229,10 @@
 																	"nodeType": "ElementaryTypeName",
 																	"src": "6979:6:0",
 																	"typeDescriptions": {
-																		"typeIdentifier": null,
-																		"typeString": null
+																		"typeIdentifier": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
+																		"typeString": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+
 																	}
 																}
 															},
@@ -31051,10 +31290,12 @@
 											},
 											{
 												"eventCall": {
-													"argumentTypes": null,
+													"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 													"arguments": [
 														{
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"id": 283,
 															"name": "pubkey",
 															"nodeType": "Identifier",
@@ -31067,7 +31308,8 @@
 															}
 														},
 														{
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"id": 284,
 															"name": "withdrawal_credentials",
 															"nodeType": "Identifier",
@@ -31080,7 +31322,8 @@
 															}
 														},
 														{
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"id": 285,
 															"name": "amount",
 															"nodeType": "Identifier",
@@ -31093,7 +31336,8 @@
 															}
 														},
 														{
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"id": 286,
 															"name": "signature",
 															"nodeType": "Identifier",
@@ -31106,13 +31350,16 @@
 															}
 														},
 														{
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"arguments": [
 																{
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"arguments": [
 																		{
-																			"argumentTypes": null,
+																			"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																			"id": 290,
 																			"name": "deposit_count",
 																			"nodeType": "Identifier",
@@ -31149,8 +31396,10 @@
 																			"nodeType": "ElementaryTypeName",
 																			"src": "7162:6:0",
 																			"typeDescriptions": {
-																				"typeIdentifier": null,
-																				"typeString": null
+																				"typeIdentifier": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
+																				"typeString": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+
 																			}
 																		}
 																	},
@@ -31268,7 +31517,8 @@
 														"mutability": "mutable",
 														"name": "pubkey_root",
 														"nodeType": "VariableDeclaration",
-														"overrides": null,
+														"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"scope": 431,
 														"src": "7273:19:0",
 														"stateVariable": false,
@@ -31287,19 +31537,23 @@
 																"typeString": "bytes32"
 															}
 														},
-														"value": null,
+														"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"visibility": "internal"
 													}
 												],
 												"id": 307,
 												"initialValue": {
-													"argumentTypes": null,
+													"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 													"arguments": [
 														{
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"arguments": [
 																{
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"id": 300,
 																	"name": "pubkey",
 																	"nodeType": "Identifier",
@@ -31312,10 +31566,12 @@
 																	}
 																},
 																{
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"arguments": [
 																		{
-																			"argumentTypes": null,
+																			"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																			"hexValue": "30",
 																			"id": 303,
 																			"isConstant": false,
@@ -31325,7 +31581,8 @@
 																			"lValueRequested": false,
 																			"nodeType": "Literal",
 																			"src": "7335:1:0",
-																			"subdenomination": null,
+																			"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																			"typeDescriptions": {
 																				"typeIdentifier": "t_rational_0_by_1",
 																				"typeString": "int_const 0"
@@ -31357,8 +31614,10 @@
 																			"nodeType": "ElementaryTypeName",
 																			"src": "7327:7:0",
 																			"typeDescriptions": {
-																				"typeIdentifier": null,
-																				"typeString": null
+																				"typeIdentifier": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
+																				"typeString": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+
 																			}
 																		}
 																	},
@@ -31390,7 +31649,8 @@
 																	}
 																],
 																"expression": {
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"id": 298,
 																	"name": "abi",
 																	"nodeType": "Identifier",
@@ -31409,7 +31669,8 @@
 																"lValueRequested": false,
 																"memberName": "encodePacked",
 																"nodeType": "MemberAccess",
-																"referencedDeclaration": null,
+																"referencedDeclaration": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"src": "7302:16:0",
 																"typeDescriptions": {
 																	"typeIdentifier": "t_function_abiencodepacked_pure$__$returns$_t_bytes_memory_ptr_$",
@@ -31479,7 +31740,8 @@
 														"mutability": "mutable",
 														"name": "signature_root",
 														"nodeType": "VariableDeclaration",
-														"overrides": null,
+														"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"scope": 431,
 														"src": "7349:22:0",
 														"stateVariable": false,
@@ -31498,27 +31760,34 @@
 																"typeString": "bytes32"
 															}
 														},
-														"value": null,
+														"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"visibility": "internal"
 													}
 												],
 												"id": 335,
 												"initialValue": {
-													"argumentTypes": null,
+													"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 													"arguments": [
 														{
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"arguments": [
 																{
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"arguments": [
 																		{
-																			"argumentTypes": null,
+																			"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																			"arguments": [
 																				{
-																					"argumentTypes": null,
+																					"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																					"baseExpression": {
-																						"argumentTypes": null,
+																						"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																						"id": 316,
 																						"name": "signature",
 																						"nodeType": "Identifier",
@@ -31531,7 +31800,8 @@
 																						}
 																					},
 																					"endExpression": {
-																						"argumentTypes": null,
+																						"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																						"hexValue": "3634",
 																						"id": 317,
 																						"isConstant": false,
@@ -31541,7 +31811,8 @@
 																						"lValueRequested": false,
 																						"nodeType": "Literal",
 																						"src": "7446:2:0",
-																						"subdenomination": null,
+																						"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																						"typeDescriptions": {
 																							"typeIdentifier": "t_rational_64_by_1",
 																							"typeString": "int_const 64"
@@ -31555,7 +31826,8 @@
 																					"lValueRequested": false,
 																					"nodeType": "IndexRangeAccess",
 																					"src": "7435:14:0",
-																					"startExpression": null,
+																					"startExpression": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																					"typeDescriptions": {
 																						"typeIdentifier": "t_bytes_calldata_ptr_slice",
 																						"typeString": "bytes calldata slice"
@@ -31570,7 +31842,8 @@
 																					}
 																				],
 																				"expression": {
-																					"argumentTypes": null,
+																					"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																					"id": 314,
 																					"name": "abi",
 																					"nodeType": "Identifier",
@@ -31589,7 +31862,8 @@
 																				"lValueRequested": false,
 																				"memberName": "encodePacked",
 																				"nodeType": "MemberAccess",
-																				"referencedDeclaration": null,
+																				"referencedDeclaration": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																				"src": "7418:16:0",
 																				"typeDescriptions": {
 																					"typeIdentifier": "t_function_abiencodepacked_pure$__$returns$_t_bytes_memory_ptr_$",
@@ -31646,15 +31920,19 @@
 																	}
 																},
 																{
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"arguments": [
 																		{
-																			"argumentTypes": null,
+																			"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																			"arguments": [
 																				{
-																					"argumentTypes": null,
+																					"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																					"baseExpression": {
-																						"argumentTypes": null,
+																						"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																						"id": 324,
 																						"name": "signature",
 																						"nodeType": "Identifier",
@@ -31666,7 +31944,8 @@
 																							"typeString": "bytes calldata"
 																						}
 																					},
-																					"endExpression": null,
+																					"endExpression": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																					"id": 326,
 																					"isConstant": false,
 																					"isLValue": false,
@@ -31675,7 +31954,8 @@
 																					"nodeType": "IndexRangeAccess",
 																					"src": "7489:14:0",
 																					"startExpression": {
-																						"argumentTypes": null,
+																						"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																						"hexValue": "3634",
 																						"id": 325,
 																						"isConstant": false,
@@ -31685,7 +31965,8 @@
 																						"lValueRequested": false,
 																						"nodeType": "Literal",
 																						"src": "7499:2:0",
-																						"subdenomination": null,
+																						"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																						"typeDescriptions": {
 																							"typeIdentifier": "t_rational_64_by_1",
 																							"typeString": "int_const 64"
@@ -31698,10 +31979,12 @@
 																					}
 																				},
 																				{
-																					"argumentTypes": null,
+																					"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																					"arguments": [
 																						{
-																							"argumentTypes": null,
+																							"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																							"hexValue": "30",
 																							"id": 329,
 																							"isConstant": false,
@@ -31711,7 +31994,8 @@
 																							"lValueRequested": false,
 																							"nodeType": "Literal",
 																							"src": "7513:1:0",
-																							"subdenomination": null,
+																							"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																							"typeDescriptions": {
 																								"typeIdentifier": "t_rational_0_by_1",
 																								"typeString": "int_const 0"
@@ -31743,8 +32027,10 @@
 																							"nodeType": "ElementaryTypeName",
 																							"src": "7505:7:0",
 																							"typeDescriptions": {
-																								"typeIdentifier": null,
-																								"typeString": null
+																								"typeIdentifier": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
+																								"typeString": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+
 																							}
 																						}
 																					},
@@ -31776,7 +32062,8 @@
 																					}
 																				],
 																				"expression": {
-																					"argumentTypes": null,
+																					"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																					"id": 322,
 																					"name": "abi",
 																					"nodeType": "Identifier",
@@ -31795,7 +32082,8 @@
 																				"lValueRequested": false,
 																				"memberName": "encodePacked",
 																				"nodeType": "MemberAccess",
-																				"referencedDeclaration": null,
+																				"referencedDeclaration": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																				"src": "7472:16:0",
 																				"typeDescriptions": {
 																					"typeIdentifier": "t_function_abiencodepacked_pure$__$returns$_t_bytes_memory_ptr_$",
@@ -31864,7 +32152,8 @@
 																	}
 																],
 																"expression": {
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"id": 311,
 																	"name": "abi",
 																	"nodeType": "Identifier",
@@ -31883,7 +32172,8 @@
 																"lValueRequested": false,
 																"memberName": "encodePacked",
 																"nodeType": "MemberAccess",
-																"referencedDeclaration": null,
+																"referencedDeclaration": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"src": "7381:16:0",
 																"typeDescriptions": {
 																	"typeIdentifier": "t_function_abiencodepacked_pure$__$returns$_t_bytes_memory_ptr_$",
@@ -31953,7 +32243,8 @@
 														"mutability": "mutable",
 														"name": "node",
 														"nodeType": "VariableDeclaration",
-														"overrides": null,
+														"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"scope": 431,
 														"src": "7538:12:0",
 														"stateVariable": false,
@@ -31972,25 +32263,31 @@
 																"typeString": "bytes32"
 															}
 														},
-														"value": null,
+														"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"visibility": "internal"
 													}
 												],
 												"id": 361,
 												"initialValue": {
-													"argumentTypes": null,
+													"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 													"arguments": [
 														{
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"arguments": [
 																{
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"arguments": [
 																		{
-																			"argumentTypes": null,
+																			"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																			"arguments": [
 																				{
-																					"argumentTypes": null,
+																					"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																					"id": 344,
 																					"name": "pubkey_root",
 																					"nodeType": "Identifier",
@@ -32003,7 +32300,8 @@
 																					}
 																				},
 																				{
-																					"argumentTypes": null,
+																					"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																					"id": 345,
 																					"name": "withdrawal_credentials",
 																					"nodeType": "Identifier",
@@ -32028,7 +32326,8 @@
 																					}
 																				],
 																				"expression": {
-																					"argumentTypes": null,
+																					"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																					"id": 342,
 																					"name": "abi",
 																					"nodeType": "Identifier",
@@ -32047,7 +32346,8 @@
 																				"lValueRequested": false,
 																				"memberName": "encodePacked",
 																				"nodeType": "MemberAccess",
-																				"referencedDeclaration": null,
+																				"referencedDeclaration": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																				"src": "7597:16:0",
 																				"typeDescriptions": {
 																					"typeIdentifier": "t_function_abiencodepacked_pure$__$returns$_t_bytes_memory_ptr_$",
@@ -32104,13 +32404,16 @@
 																	}
 																},
 																{
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"arguments": [
 																		{
-																			"argumentTypes": null,
+																			"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																			"arguments": [
 																				{
-																					"argumentTypes": null,
+																					"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																					"id": 351,
 																					"name": "amount",
 																					"nodeType": "Identifier",
@@ -32123,10 +32426,12 @@
 																					}
 																				},
 																				{
-																					"argumentTypes": null,
+																					"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																					"arguments": [
 																						{
-																							"argumentTypes": null,
+																							"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																							"hexValue": "30",
 																							"id": 354,
 																							"isConstant": false,
@@ -32136,7 +32441,8 @@
 																							"lValueRequested": false,
 																							"nodeType": "Literal",
 																							"src": "7705:1:0",
-																							"subdenomination": null,
+																							"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																							"typeDescriptions": {
 																								"typeIdentifier": "t_rational_0_by_1",
 																								"typeString": "int_const 0"
@@ -32168,8 +32474,10 @@
 																							"nodeType": "ElementaryTypeName",
 																							"src": "7697:7:0",
 																							"typeDescriptions": {
-																								"typeIdentifier": null,
-																								"typeString": null
+																								"typeIdentifier": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
+																								"typeString": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+
 																							}
 																						}
 																					},
@@ -32189,7 +32497,8 @@
 																					}
 																				},
 																				{
-																					"argumentTypes": null,
+																					"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																					"id": 356,
 																					"name": "signature_root",
 																					"nodeType": "Identifier",
@@ -32218,7 +32527,8 @@
 																					}
 																				],
 																				"expression": {
-																					"argumentTypes": null,
+																					"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																					"id": 349,
 																					"name": "abi",
 																					"nodeType": "Identifier",
@@ -32237,7 +32547,8 @@
 																				"lValueRequested": false,
 																				"memberName": "encodePacked",
 																				"nodeType": "MemberAccess",
-																				"referencedDeclaration": null,
+																				"referencedDeclaration": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																				"src": "7672:16:0",
 																				"typeDescriptions": {
 																					"typeIdentifier": "t_function_abiencodepacked_pure$__$returns$_t_bytes_memory_ptr_$",
@@ -32306,7 +32617,8 @@
 																	}
 																],
 																"expression": {
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"id": 339,
 																	"name": "abi",
 																	"nodeType": "Identifier",
@@ -32325,7 +32637,8 @@
 																"lValueRequested": false,
 																"memberName": "encodePacked",
 																"nodeType": "MemberAccess",
-																"referencedDeclaration": null,
+																"referencedDeclaration": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"src": "7560:16:0",
 																"typeDescriptions": {
 																	"typeIdentifier": "t_function_abiencodepacked_pure$__$returns$_t_bytes_memory_ptr_$",
@@ -32386,10 +32699,12 @@
 											},
 											{
 												"expression": {
-													"argumentTypes": null,
+													"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 													"arguments": [
 														{
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"commonType": {
 																"typeIdentifier": "t_bytes32",
 																"typeString": "bytes32"
@@ -32400,7 +32715,8 @@
 															"isPure": false,
 															"lValueRequested": false,
 															"leftExpression": {
-																"argumentTypes": null,
+																"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"id": 363,
 																"name": "node",
 																"nodeType": "Identifier",
@@ -32415,7 +32731,8 @@
 															"nodeType": "BinaryOperation",
 															"operator": "==",
 															"rightExpression": {
-																"argumentTypes": null,
+																"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"id": 364,
 																"name": "deposit_data_root",
 																"nodeType": "Identifier",
@@ -32434,7 +32751,8 @@
 															}
 														},
 														{
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"hexValue": "4465706f736974436f6e74726163743a207265636f6e7374727563746564204465706f7369744461746120646f6573206e6f74206d6174636820737570706c696564206465706f7369745f646174615f726f6f74",
 															"id": 366,
 															"isConstant": false,
@@ -32444,7 +32762,8 @@
 															"lValueRequested": false,
 															"nodeType": "Literal",
 															"src": "7847:86:0",
-															"subdenomination": null,
+															"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"typeDescriptions": {
 																"typeIdentifier": "t_stringliteral_18a67971568b2dbad4353dfdc385098cc004c2a5070a439e010bb919d851babb",
 																"typeString": "literal_string \"DepositContract: reconstructed DepositData does not match supplied deposit_data_root\""
@@ -32498,10 +32817,12 @@
 											},
 											{
 												"expression": {
-													"argumentTypes": null,
+													"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 													"arguments": [
 														{
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"commonType": {
 																"typeIdentifier": "t_uint256",
 																"typeString": "uint256"
@@ -32512,7 +32833,8 @@
 															"isPure": false,
 															"lValueRequested": false,
 															"leftExpression": {
-																"argumentTypes": null,
+																"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"id": 370,
 																"name": "deposit_count",
 																"nodeType": "Identifier",
@@ -32527,7 +32849,8 @@
 															"nodeType": "BinaryOperation",
 															"operator": "<",
 															"rightExpression": {
-																"argumentTypes": null,
+																"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"id": 371,
 																"name": "MAX_DEPOSIT_COUNT",
 																"nodeType": "Identifier",
@@ -32546,7 +32869,8 @@
 															}
 														},
 														{
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"hexValue": "4465706f736974436f6e74726163743a206d65726b6c6520747265652066756c6c",
 															"id": 373,
 															"isConstant": false,
@@ -32556,7 +32880,8 @@
 															"lValueRequested": false,
 															"nodeType": "Literal",
 															"src": "8079:35:0",
-															"subdenomination": null,
+															"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"typeDescriptions": {
 																"typeIdentifier": "t_stringliteral_122aa4bcac592fd535cb6d2558ebbf28083cd32a46ad577d847ea313cd3a6be7",
 																"typeString": "literal_string \"DepositContract: merkle tree full\""
@@ -32610,14 +32935,16 @@
 											},
 											{
 												"expression": {
-													"argumentTypes": null,
+													"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 													"id": 378,
 													"isConstant": false,
 													"isLValue": false,
 													"isPure": false,
 													"lValueRequested": false,
 													"leftHandSide": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"id": 376,
 														"name": "deposit_count",
 														"nodeType": "Identifier",
@@ -32632,7 +32959,8 @@
 													"nodeType": "Assignment",
 													"operator": "+=",
 													"rightHandSide": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"hexValue": "31",
 														"id": 377,
 														"isConstant": false,
@@ -32642,7 +32970,8 @@
 														"lValueRequested": false,
 														"nodeType": "Literal",
 														"src": "8223:1:0",
-														"subdenomination": null,
+														"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"typeDescriptions": {
 															"typeIdentifier": "t_rational_1_by_1",
 															"typeString": "int_const 1"
@@ -32670,7 +32999,8 @@
 														"mutability": "mutable",
 														"name": "size",
 														"nodeType": "VariableDeclaration",
-														"overrides": null,
+														"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"scope": 431,
 														"src": "8234:9:0",
 														"stateVariable": false,
@@ -32689,13 +33019,15 @@
 																"typeString": "uint256"
 															}
 														},
-														"value": null,
+														"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"visibility": "internal"
 													}
 												],
 												"id": 383,
 												"initialValue": {
-													"argumentTypes": null,
+													"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 													"id": 382,
 													"name": "deposit_count",
 													"nodeType": "Identifier",
@@ -32718,7 +33050,8 @@
 													"statements": [
 														{
 															"condition": {
-																"argumentTypes": null,
+																"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"commonType": {
 																	"typeIdentifier": "t_uint256",
 																	"typeString": "uint256"
@@ -32729,10 +33062,12 @@
 																"isPure": false,
 																"lValueRequested": false,
 																"leftExpression": {
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"components": [
 																		{
-																			"argumentTypes": null,
+																			"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																			"commonType": {
 																				"typeIdentifier": "t_uint256",
 																				"typeString": "uint256"
@@ -32743,7 +33078,8 @@
 																			"isPure": false,
 																			"lValueRequested": false,
 																			"leftExpression": {
-																				"argumentTypes": null,
+																				"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																				"id": 394,
 																				"name": "size",
 																				"nodeType": "Identifier",
@@ -32758,7 +33094,8 @@
 																			"nodeType": "BinaryOperation",
 																			"operator": "&",
 																			"rightExpression": {
-																				"argumentTypes": null,
+																				"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																				"hexValue": "31",
 																				"id": 395,
 																				"isConstant": false,
@@ -32768,7 +33105,8 @@
 																				"lValueRequested": false,
 																				"nodeType": "Literal",
 																				"src": "8365:1:0",
-																				"subdenomination": null,
+																				"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																				"typeDescriptions": {
 																					"typeIdentifier": "t_rational_1_by_1",
 																					"typeString": "int_const 1"
@@ -32798,7 +33136,8 @@
 																"nodeType": "BinaryOperation",
 																"operator": "==",
 																"rightExpression": {
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"hexValue": "31",
 																	"id": 398,
 																	"isConstant": false,
@@ -32808,7 +33147,8 @@
 																	"lValueRequested": false,
 																	"nodeType": "Literal",
 																	"src": "8371:1:0",
-																	"subdenomination": null,
+																	"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"typeDescriptions": {
 																		"typeIdentifier": "t_rational_1_by_1",
 																		"typeString": "int_const 1"
@@ -32821,7 +33161,8 @@
 																	"typeString": "bool"
 																}
 															},
-															"falseBody": null,
+															"falseBody": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"id": 408,
 															"nodeType": "IfStatement",
 															"src": "8353:99:0",
@@ -32832,16 +33173,19 @@
 																"statements": [
 																	{
 																		"expression": {
-																			"argumentTypes": null,
+																			"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																			"id": 404,
 																			"isConstant": false,
 																			"isLValue": false,
 																			"isPure": false,
 																			"lValueRequested": false,
 																			"leftHandSide": {
-																				"argumentTypes": null,
+																				"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																				"baseExpression": {
-																					"argumentTypes": null,
+																					"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																					"id": 400,
 																					"name": "branch",
 																					"nodeType": "Identifier",
@@ -32855,7 +33199,8 @@
 																				},
 																				"id": 402,
 																				"indexExpression": {
-																					"argumentTypes": null,
+																					"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																					"id": 401,
 																					"name": "height",
 																					"nodeType": "Identifier",
@@ -32881,7 +33226,8 @@
 																			"nodeType": "Assignment",
 																			"operator": "=",
 																			"rightHandSide": {
-																				"argumentTypes": null,
+																				"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																				"id": 403,
 																				"name": "node",
 																				"nodeType": "Identifier",
@@ -32904,7 +33250,8 @@
 																		"src": "8392:21:0"
 																	},
 																	{
-																		"expression": null,
+																		"expression": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																		"functionReturnParameters": 212,
 																		"id": 406,
 																		"nodeType": "Return",
@@ -32915,14 +33262,16 @@
 														},
 														{
 															"expression": {
-																"argumentTypes": null,
+																"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"id": 419,
 																"isConstant": false,
 																"isLValue": false,
 																"isPure": false,
 																"lValueRequested": false,
 																"leftHandSide": {
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"id": 409,
 																	"name": "node",
 																	"nodeType": "Identifier",
@@ -32937,15 +33286,19 @@
 																"nodeType": "Assignment",
 																"operator": "=",
 																"rightHandSide": {
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"arguments": [
 																		{
-																			"argumentTypes": null,
+																			"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																			"arguments": [
 																				{
-																					"argumentTypes": null,
+																					"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																					"baseExpression": {
-																						"argumentTypes": null,
+																						"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																						"id": 413,
 																						"name": "branch",
 																						"nodeType": "Identifier",
@@ -32959,7 +33312,8 @@
 																					},
 																					"id": 415,
 																					"indexExpression": {
-																						"argumentTypes": null,
+																						"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																						"id": 414,
 																						"name": "height",
 																						"nodeType": "Identifier",
@@ -32983,7 +33337,8 @@
 																					}
 																				},
 																				{
-																					"argumentTypes": null,
+																					"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																					"id": 416,
 																					"name": "node",
 																					"nodeType": "Identifier",
@@ -33008,7 +33363,8 @@
 																					}
 																				],
 																				"expression": {
-																					"argumentTypes": null,
+																					"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																					"id": 411,
 																					"name": "abi",
 																					"nodeType": "Identifier",
@@ -33027,7 +33383,8 @@
 																				"lValueRequested": false,
 																				"memberName": "encodePacked",
 																				"nodeType": "MemberAccess",
-																				"referencedDeclaration": null,
+																				"referencedDeclaration": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																				"src": "8479:16:0",
 																				"typeDescriptions": {
 																					"typeIdentifier": "t_function_abiencodepacked_pure$__$returns$_t_bytes_memory_ptr_$",
@@ -33095,14 +33452,16 @@
 														},
 														{
 															"expression": {
-																"argumentTypes": null,
+																"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"id": 423,
 																"isConstant": false,
 																"isLValue": false,
 																"isPure": false,
 																"lValueRequested": false,
 																"leftHandSide": {
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"id": 421,
 																	"name": "size",
 																	"nodeType": "Identifier",
@@ -33117,7 +33476,8 @@
 																"nodeType": "Assignment",
 																"operator": "/=",
 																"rightHandSide": {
-																	"argumentTypes": null,
+																	"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"hexValue": "32",
 																	"id": 422,
 																	"isConstant": false,
@@ -33127,7 +33487,8 @@
 																	"lValueRequested": false,
 																	"nodeType": "Literal",
 																	"src": "8540:1:0",
-																	"subdenomination": null,
+																	"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																	"typeDescriptions": {
 																		"typeIdentifier": "t_rational_2_by_1",
 																		"typeString": "int_const 2"
@@ -33147,7 +33508,8 @@
 													]
 												},
 												"condition": {
-													"argumentTypes": null,
+													"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 													"commonType": {
 														"typeIdentifier": "t_uint256",
 														"typeString": "uint256"
@@ -33158,7 +33520,8 @@
 													"isPure": false,
 													"lValueRequested": false,
 													"leftExpression": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"id": 388,
 														"name": "height",
 														"nodeType": "Identifier",
@@ -33173,7 +33536,8 @@
 													"nodeType": "BinaryOperation",
 													"operator": "<",
 													"rightExpression": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"id": 389,
 														"name": "DEPOSIT_CONTRACT_TREE_DEPTH",
 														"nodeType": "Identifier",
@@ -33203,7 +33567,8 @@
 															"mutability": "mutable",
 															"name": "height",
 															"nodeType": "VariableDeclaration",
-															"overrides": null,
+															"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"scope": 426,
 															"src": "8274:11:0",
 															"stateVariable": false,
@@ -33222,13 +33587,15 @@
 																	"typeString": "uint256"
 																}
 															},
-															"value": null,
+															"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"visibility": "internal"
 														}
 													],
 													"id": 387,
 													"initialValue": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"hexValue": "30",
 														"id": 386,
 														"isConstant": false,
@@ -33238,7 +33605,8 @@
 														"lValueRequested": false,
 														"nodeType": "Literal",
 														"src": "8288:1:0",
-														"subdenomination": null,
+														"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"typeDescriptions": {
 															"typeIdentifier": "t_rational_0_by_1",
 															"typeString": "int_const 0"
@@ -33250,7 +33618,8 @@
 												},
 												"loopExpression": {
 													"expression": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"id": 392,
 														"isConstant": false,
 														"isLValue": false,
@@ -33261,7 +33630,8 @@
 														"prefix": false,
 														"src": "8329:8:0",
 														"subExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"id": 391,
 															"name": "height",
 															"nodeType": "Identifier",
@@ -33287,10 +33657,12 @@
 											},
 											{
 												"expression": {
-													"argumentTypes": null,
+													"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 													"arguments": [
 														{
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"hexValue": "66616c7365",
 															"id": 428,
 															"isConstant": false,
@@ -33300,7 +33672,8 @@
 															"lValueRequested": false,
 															"nodeType": "Literal",
 															"src": "8729:5:0",
-															"subdenomination": null,
+															"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"typeDescriptions": {
 																"typeIdentifier": "t_bool",
 																"typeString": "bool"
@@ -33347,7 +33720,8 @@
 											}
 										]
 									},
-									"documentation": null,
+									"documentation": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 									"functionSelector": "22895118",
 									"id": 432,
 									"implemented": true,
@@ -33371,7 +33745,8 @@
 												"mutability": "mutable",
 												"name": "pubkey",
 												"nodeType": "VariableDeclaration",
-												"overrides": null,
+												"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"scope": 432,
 												"src": "6018:21:0",
 												"stateVariable": false,
@@ -33390,7 +33765,8 @@
 														"typeString": "bytes"
 													}
 												},
-												"value": null,
+												"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"visibility": "internal"
 											},
 											{
@@ -33399,7 +33775,8 @@
 												"mutability": "mutable",
 												"name": "withdrawal_credentials",
 												"nodeType": "VariableDeclaration",
-												"overrides": null,
+												"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"scope": 432,
 												"src": "6049:37:0",
 												"stateVariable": false,
@@ -33418,7 +33795,8 @@
 														"typeString": "bytes"
 													}
 												},
-												"value": null,
+												"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"visibility": "internal"
 											},
 											{
@@ -33427,7 +33805,8 @@
 												"mutability": "mutable",
 												"name": "signature",
 												"nodeType": "VariableDeclaration",
-												"overrides": null,
+												"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"scope": 432,
 												"src": "6096:24:0",
 												"stateVariable": false,
@@ -33446,7 +33825,8 @@
 														"typeString": "bytes"
 													}
 												},
-												"value": null,
+												"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"visibility": "internal"
 											},
 											{
@@ -33455,7 +33835,8 @@
 												"mutability": "mutable",
 												"name": "deposit_data_root",
 												"nodeType": "VariableDeclaration",
-												"overrides": null,
+												"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"scope": 432,
 												"src": "6130:25:0",
 												"stateVariable": false,
@@ -33474,7 +33855,8 @@
 														"typeString": "bytes32"
 													}
 												},
-												"value": null,
+												"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"visibility": "internal"
 											}
 										],
@@ -33503,7 +33885,8 @@
 										"statements": [
 											{
 												"expression": {
-													"argumentTypes": null,
+													"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 													"commonType": {
 														"typeIdentifier": "t_bool",
 														"typeString": "bool"
@@ -33514,7 +33897,8 @@
 													"isPure": false,
 													"lValueRequested": false,
 													"leftExpression": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"commonType": {
 															"typeIdentifier": "t_bytes4",
 															"typeString": "bytes4"
@@ -33525,7 +33909,8 @@
 														"isPure": false,
 														"lValueRequested": false,
 														"leftExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"id": 440,
 															"name": "interfaceId",
 															"nodeType": "Identifier",
@@ -33540,12 +33925,15 @@
 														"nodeType": "BinaryOperation",
 														"operator": "==",
 														"rightExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"expression": {
-																"argumentTypes": null,
+																"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"arguments": [
 																	{
-																		"argumentTypes": null,
+																		"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																		"id": 442,
 																		"name": "ERC165",
 																		"nodeType": "Identifier",
@@ -33598,7 +33986,8 @@
 															"lValueRequested": false,
 															"memberName": "interfaceId",
 															"nodeType": "MemberAccess",
-															"referencedDeclaration": null,
+															"referencedDeclaration": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"src": "8865:24:0",
 															"typeDescriptions": {
 																"typeIdentifier": "t_bytes4",
@@ -33614,7 +34003,8 @@
 													"nodeType": "BinaryOperation",
 													"operator": "||",
 													"rightExpression": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"commonType": {
 															"typeIdentifier": "t_bytes4",
 															"typeString": "bytes4"
@@ -33625,7 +34015,8 @@
 														"isPure": false,
 														"lValueRequested": false,
 														"leftExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"id": 446,
 															"name": "interfaceId",
 															"nodeType": "Identifier",
@@ -33640,12 +34031,15 @@
 														"nodeType": "BinaryOperation",
 														"operator": "==",
 														"rightExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"expression": {
-																"argumentTypes": null,
+																"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"arguments": [
 																	{
-																		"argumentTypes": null,
+																		"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																		"id": 448,
 																		"name": "IDepositContract",
 																		"nodeType": "Identifier",
@@ -33698,7 +34092,8 @@
 															"lValueRequested": false,
 															"memberName": "interfaceId",
 															"nodeType": "MemberAccess",
-															"referencedDeclaration": null,
+															"referencedDeclaration": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"src": "8908:34:0",
 															"typeDescriptions": {
 																"typeIdentifier": "t_bytes4",
@@ -33724,7 +34119,8 @@
 											}
 										]
 									},
-									"documentation": null,
+									"documentation": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 									"functionSelector": "01ffc9a7",
 									"id": 455,
 									"implemented": true,
@@ -33748,7 +34144,8 @@
 												"mutability": "mutable",
 												"name": "interfaceId",
 												"nodeType": "VariableDeclaration",
-												"overrides": null,
+												"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"scope": 455,
 												"src": "8775:18:0",
 												"stateVariable": false,
@@ -33767,7 +34164,8 @@
 														"typeString": "bytes4"
 													}
 												},
-												"value": null,
+												"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"visibility": "internal"
 											}
 										],
@@ -33783,7 +34181,8 @@
 												"mutability": "mutable",
 												"name": "",
 												"nodeType": "VariableDeclaration",
-												"overrides": null,
+												"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"scope": 455,
 												"src": "8827:4:0",
 												"stateVariable": false,
@@ -33802,7 +34201,8 @@
 														"typeString": "bool"
 													}
 												},
-												"value": null,
+												"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"visibility": "internal"
 											}
 										],
@@ -33822,14 +34222,16 @@
 										"statements": [
 											{
 												"expression": {
-													"argumentTypes": null,
+													"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 													"id": 467,
 													"isConstant": false,
 													"isLValue": false,
 													"isPure": false,
 													"lValueRequested": false,
 													"leftHandSide": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"id": 462,
 														"name": "ret",
 														"nodeType": "Identifier",
@@ -33844,10 +34246,12 @@
 													"nodeType": "Assignment",
 													"operator": "=",
 													"rightHandSide": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"arguments": [
 															{
-																"argumentTypes": null,
+																"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"hexValue": "38",
 																"id": 465,
 																"isConstant": false,
@@ -33857,7 +34261,8 @@
 																"lValueRequested": false,
 																"nodeType": "Literal",
 																"src": "9065:1:0",
-																"subdenomination": null,
+																"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 																"typeDescriptions": {
 																	"typeIdentifier": "t_rational_8_by_1",
 																	"typeString": "int_const 8"
@@ -33930,7 +34335,8 @@
 														"mutability": "mutable",
 														"name": "bytesValue",
 														"nodeType": "VariableDeclaration",
-														"overrides": null,
+														"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"scope": 540,
 														"src": "9077:17:0",
 														"stateVariable": false,
@@ -33949,16 +34355,19 @@
 																"typeString": "bytes8"
 															}
 														},
-														"value": null,
+														"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"visibility": "internal"
 													}
 												],
 												"id": 475,
 												"initialValue": {
-													"argumentTypes": null,
+													"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 													"arguments": [
 														{
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"id": 473,
 															"name": "value",
 															"nodeType": "Identifier",
@@ -33995,8 +34404,10 @@
 															"nodeType": "ElementaryTypeName",
 															"src": "9097:6:0",
 															"typeDescriptions": {
-																"typeIdentifier": null,
-																"typeString": null
+																"typeIdentifier": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
+																"typeString": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+
 															}
 														}
 													},
@@ -34020,16 +34431,19 @@
 											},
 											{
 												"expression": {
-													"argumentTypes": null,
+													"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 													"id": 482,
 													"isConstant": false,
 													"isLValue": false,
 													"isPure": false,
 													"lValueRequested": false,
 													"leftHandSide": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"baseExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"id": 476,
 															"name": "ret",
 															"nodeType": "Identifier",
@@ -34043,7 +34457,8 @@
 														},
 														"id": 478,
 														"indexExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"hexValue": "30",
 															"id": 477,
 															"isConstant": false,
@@ -34053,7 +34468,8 @@
 															"lValueRequested": false,
 															"nodeType": "Literal",
 															"src": "9173:1:0",
-															"subdenomination": null,
+															"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"typeDescriptions": {
 																"typeIdentifier": "t_rational_0_by_1",
 																"typeString": "int_const 0"
@@ -34074,9 +34490,11 @@
 													"nodeType": "Assignment",
 													"operator": "=",
 													"rightHandSide": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"baseExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"id": 479,
 															"name": "bytesValue",
 															"nodeType": "Identifier",
@@ -34090,7 +34508,8 @@
 														},
 														"id": 481,
 														"indexExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"hexValue": "37",
 															"id": 480,
 															"isConstant": false,
@@ -34100,7 +34519,8 @@
 															"lValueRequested": false,
 															"nodeType": "Literal",
 															"src": "9189:1:0",
-															"subdenomination": null,
+															"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"typeDescriptions": {
 																"typeIdentifier": "t_rational_7_by_1",
 																"typeString": "int_const 7"
@@ -34130,16 +34550,19 @@
 											},
 											{
 												"expression": {
-													"argumentTypes": null,
+													"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 													"id": 490,
 													"isConstant": false,
 													"isLValue": false,
 													"isPure": false,
 													"lValueRequested": false,
 													"leftHandSide": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"baseExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"id": 484,
 															"name": "ret",
 															"nodeType": "Identifier",
@@ -34153,7 +34576,8 @@
 														},
 														"id": 486,
 														"indexExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"hexValue": "31",
 															"id": 485,
 															"isConstant": false,
@@ -34163,7 +34587,8 @@
 															"lValueRequested": false,
 															"nodeType": "Literal",
 															"src": "9205:1:0",
-															"subdenomination": null,
+															"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"typeDescriptions": {
 																"typeIdentifier": "t_rational_1_by_1",
 																"typeString": "int_const 1"
@@ -34184,9 +34609,11 @@
 													"nodeType": "Assignment",
 													"operator": "=",
 													"rightHandSide": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"baseExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"id": 487,
 															"name": "bytesValue",
 															"nodeType": "Identifier",
@@ -34200,7 +34627,8 @@
 														},
 														"id": 489,
 														"indexExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"hexValue": "36",
 															"id": 488,
 															"isConstant": false,
@@ -34210,7 +34638,8 @@
 															"lValueRequested": false,
 															"nodeType": "Literal",
 															"src": "9221:1:0",
-															"subdenomination": null,
+															"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"typeDescriptions": {
 																"typeIdentifier": "t_rational_6_by_1",
 																"typeString": "int_const 6"
@@ -34240,16 +34669,19 @@
 											},
 											{
 												"expression": {
-													"argumentTypes": null,
+													"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 													"id": 498,
 													"isConstant": false,
 													"isLValue": false,
 													"isPure": false,
 													"lValueRequested": false,
 													"leftHandSide": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"baseExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"id": 492,
 															"name": "ret",
 															"nodeType": "Identifier",
@@ -34263,7 +34695,8 @@
 														},
 														"id": 494,
 														"indexExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"hexValue": "32",
 															"id": 493,
 															"isConstant": false,
@@ -34273,7 +34706,8 @@
 															"lValueRequested": false,
 															"nodeType": "Literal",
 															"src": "9237:1:0",
-															"subdenomination": null,
+															"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"typeDescriptions": {
 																"typeIdentifier": "t_rational_2_by_1",
 																"typeString": "int_const 2"
@@ -34294,9 +34728,11 @@
 													"nodeType": "Assignment",
 													"operator": "=",
 													"rightHandSide": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"baseExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"id": 495,
 															"name": "bytesValue",
 															"nodeType": "Identifier",
@@ -34310,7 +34746,8 @@
 														},
 														"id": 497,
 														"indexExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"hexValue": "35",
 															"id": 496,
 															"isConstant": false,
@@ -34320,7 +34757,8 @@
 															"lValueRequested": false,
 															"nodeType": "Literal",
 															"src": "9253:1:0",
-															"subdenomination": null,
+															"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"typeDescriptions": {
 																"typeIdentifier": "t_rational_5_by_1",
 																"typeString": "int_const 5"
@@ -34350,16 +34788,19 @@
 											},
 											{
 												"expression": {
-													"argumentTypes": null,
+													"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 													"id": 506,
 													"isConstant": false,
 													"isLValue": false,
 													"isPure": false,
 													"lValueRequested": false,
 													"leftHandSide": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"baseExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"id": 500,
 															"name": "ret",
 															"nodeType": "Identifier",
@@ -34373,7 +34814,8 @@
 														},
 														"id": 502,
 														"indexExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"hexValue": "33",
 															"id": 501,
 															"isConstant": false,
@@ -34383,7 +34825,8 @@
 															"lValueRequested": false,
 															"nodeType": "Literal",
 															"src": "9269:1:0",
-															"subdenomination": null,
+															"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"typeDescriptions": {
 																"typeIdentifier": "t_rational_3_by_1",
 																"typeString": "int_const 3"
@@ -34404,9 +34847,11 @@
 													"nodeType": "Assignment",
 													"operator": "=",
 													"rightHandSide": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"baseExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"id": 503,
 															"name": "bytesValue",
 															"nodeType": "Identifier",
@@ -34420,7 +34865,8 @@
 														},
 														"id": 505,
 														"indexExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"hexValue": "34",
 															"id": 504,
 															"isConstant": false,
@@ -34430,7 +34876,8 @@
 															"lValueRequested": false,
 															"nodeType": "Literal",
 															"src": "9285:1:0",
-															"subdenomination": null,
+															"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"typeDescriptions": {
 																"typeIdentifier": "t_rational_4_by_1",
 																"typeString": "int_const 4"
@@ -34460,16 +34907,19 @@
 											},
 											{
 												"expression": {
-													"argumentTypes": null,
+													"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 													"id": 514,
 													"isConstant": false,
 													"isLValue": false,
 													"isPure": false,
 													"lValueRequested": false,
 													"leftHandSide": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"baseExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"id": 508,
 															"name": "ret",
 															"nodeType": "Identifier",
@@ -34483,7 +34933,8 @@
 														},
 														"id": 510,
 														"indexExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"hexValue": "34",
 															"id": 509,
 															"isConstant": false,
@@ -34493,7 +34944,8 @@
 															"lValueRequested": false,
 															"nodeType": "Literal",
 															"src": "9301:1:0",
-															"subdenomination": null,
+															"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"typeDescriptions": {
 																"typeIdentifier": "t_rational_4_by_1",
 																"typeString": "int_const 4"
@@ -34514,9 +34966,11 @@
 													"nodeType": "Assignment",
 													"operator": "=",
 													"rightHandSide": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"baseExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"id": 511,
 															"name": "bytesValue",
 															"nodeType": "Identifier",
@@ -34530,7 +34984,8 @@
 														},
 														"id": 513,
 														"indexExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"hexValue": "33",
 															"id": 512,
 															"isConstant": false,
@@ -34540,7 +34995,8 @@
 															"lValueRequested": false,
 															"nodeType": "Literal",
 															"src": "9317:1:0",
-															"subdenomination": null,
+															"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"typeDescriptions": {
 																"typeIdentifier": "t_rational_3_by_1",
 																"typeString": "int_const 3"
@@ -34570,16 +35026,19 @@
 											},
 											{
 												"expression": {
-													"argumentTypes": null,
+													"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 													"id": 522,
 													"isConstant": false,
 													"isLValue": false,
 													"isPure": false,
 													"lValueRequested": false,
 													"leftHandSide": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"baseExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"id": 516,
 															"name": "ret",
 															"nodeType": "Identifier",
@@ -34593,7 +35052,8 @@
 														},
 														"id": 518,
 														"indexExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"hexValue": "35",
 															"id": 517,
 															"isConstant": false,
@@ -34603,7 +35063,8 @@
 															"lValueRequested": false,
 															"nodeType": "Literal",
 															"src": "9333:1:0",
-															"subdenomination": null,
+															"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"typeDescriptions": {
 																"typeIdentifier": "t_rational_5_by_1",
 																"typeString": "int_const 5"
@@ -34624,9 +35085,11 @@
 													"nodeType": "Assignment",
 													"operator": "=",
 													"rightHandSide": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"baseExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"id": 519,
 															"name": "bytesValue",
 															"nodeType": "Identifier",
@@ -34640,7 +35103,8 @@
 														},
 														"id": 521,
 														"indexExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"hexValue": "32",
 															"id": 520,
 															"isConstant": false,
@@ -34650,7 +35114,8 @@
 															"lValueRequested": false,
 															"nodeType": "Literal",
 															"src": "9349:1:0",
-															"subdenomination": null,
+															"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"typeDescriptions": {
 																"typeIdentifier": "t_rational_2_by_1",
 																"typeString": "int_const 2"
@@ -34680,16 +35145,19 @@
 											},
 											{
 												"expression": {
-													"argumentTypes": null,
+													"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 													"id": 530,
 													"isConstant": false,
 													"isLValue": false,
 													"isPure": false,
 													"lValueRequested": false,
 													"leftHandSide": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"baseExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"id": 524,
 															"name": "ret",
 															"nodeType": "Identifier",
@@ -34703,7 +35171,8 @@
 														},
 														"id": 526,
 														"indexExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"hexValue": "36",
 															"id": 525,
 															"isConstant": false,
@@ -34713,7 +35182,8 @@
 															"lValueRequested": false,
 															"nodeType": "Literal",
 															"src": "9365:1:0",
-															"subdenomination": null,
+															"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"typeDescriptions": {
 																"typeIdentifier": "t_rational_6_by_1",
 																"typeString": "int_const 6"
@@ -34734,9 +35204,11 @@
 													"nodeType": "Assignment",
 													"operator": "=",
 													"rightHandSide": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"baseExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"id": 527,
 															"name": "bytesValue",
 															"nodeType": "Identifier",
@@ -34750,7 +35222,8 @@
 														},
 														"id": 529,
 														"indexExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"hexValue": "31",
 															"id": 528,
 															"isConstant": false,
@@ -34760,7 +35233,8 @@
 															"lValueRequested": false,
 															"nodeType": "Literal",
 															"src": "9381:1:0",
-															"subdenomination": null,
+															"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"typeDescriptions": {
 																"typeIdentifier": "t_rational_1_by_1",
 																"typeString": "int_const 1"
@@ -34790,16 +35264,19 @@
 											},
 											{
 												"expression": {
-													"argumentTypes": null,
+													"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 													"id": 538,
 													"isConstant": false,
 													"isLValue": false,
 													"isPure": false,
 													"lValueRequested": false,
 													"leftHandSide": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"baseExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"id": 532,
 															"name": "ret",
 															"nodeType": "Identifier",
@@ -34813,7 +35290,8 @@
 														},
 														"id": 534,
 														"indexExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"hexValue": "37",
 															"id": 533,
 															"isConstant": false,
@@ -34823,7 +35301,8 @@
 															"lValueRequested": false,
 															"nodeType": "Literal",
 															"src": "9397:1:0",
-															"subdenomination": null,
+															"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"typeDescriptions": {
 																"typeIdentifier": "t_rational_7_by_1",
 																"typeString": "int_const 7"
@@ -34844,9 +35323,11 @@
 													"nodeType": "Assignment",
 													"operator": "=",
 													"rightHandSide": {
-														"argumentTypes": null,
+														"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 														"baseExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"id": 535,
 															"name": "bytesValue",
 															"nodeType": "Identifier",
@@ -34860,7 +35341,8 @@
 														},
 														"id": 537,
 														"indexExpression": {
-															"argumentTypes": null,
+															"argumentTypes": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"hexValue": "30",
 															"id": 536,
 															"isConstant": false,
@@ -34870,7 +35352,8 @@
 															"lValueRequested": false,
 															"nodeType": "Literal",
 															"src": "9413:1:0",
-															"subdenomination": null,
+															"subdenomination": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 															"typeDescriptions": {
 																"typeIdentifier": "t_rational_0_by_1",
 																"typeString": "int_const 0"
@@ -34900,14 +35383,16 @@
 											}
 										]
 									},
-									"documentation": null,
+									"documentation": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 									"id": 541,
 									"implemented": true,
 									"kind": "function",
 									"modifiers": [],
 									"name": "to_little_endian_64",
 									"nodeType": "FunctionDefinition",
-									"overrides": null,
+									"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 									"parameters": {
 										"id": 458,
 										"nodeType": "ParameterList",
@@ -34918,7 +35403,8 @@
 												"mutability": "mutable",
 												"name": "value",
 												"nodeType": "VariableDeclaration",
-												"overrides": null,
+												"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"scope": 541,
 												"src": "8984:12:0",
 												"stateVariable": false,
@@ -34937,7 +35423,8 @@
 														"typeString": "uint64"
 													}
 												},
-												"value": null,
+												"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"visibility": "internal"
 											}
 										],
@@ -34953,7 +35440,8 @@
 												"mutability": "mutable",
 												"name": "ret",
 												"nodeType": "VariableDeclaration",
-												"overrides": null,
+												"overrides": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"scope": 541,
 												"src": "9021:16:0",
 												"stateVariable": false,
@@ -34972,7 +35460,8 @@
 														"typeString": "bytes"
 													}
 												},
-												"value": null,
+												"value": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 												"visibility": "internal"
 											}
 										],

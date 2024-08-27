@@ -99,7 +99,8 @@ library strings {
   }
 
   /*
-   * @dev Returns the length of a null-terminated bytes32 string.
+   * @dev Returns the length of a export const shouldRevalidate: ShouldRevalidateFunction = () => {
+-terminated bytes32 string.
    * @param self The value to find the length of.
    * @return The length of the string, from 0 to 32.
    */
@@ -130,10 +131,12 @@ library strings {
 
   /*
    * @dev Returns a slice containing the entire bytes32, interpreted as a
-   *      null-terminated utf-8 string.
+   *      export const shouldRevalidate: ShouldRevalidateFunction = () => {
+-terminated utf-8 string.
    * @param self The bytes32 value to convert to a slice.
    * @return A new slice containing the value of the input argument up to the
-   *         first null.
+   *         first export const shouldRevalidate: ShouldRevalidateFunction = () => {
+.
    */
   function toSliceB32(bytes32 self) internal pure returns (slice memory ret) {
     // Allocate space for `self` in memory, copy it there, and point ret at it

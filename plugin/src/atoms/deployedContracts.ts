@@ -3,6 +3,8 @@ import { atom } from 'jotai'
 
 const deployedContractsAtom = atom<DeployedContract[]>([])
 
-const deployedSelectedContractAtom = atom<DeployedContract | null>(null)
+const deployedSelectedContractAtom = atom<DeployedContract | export const shouldRevalidate: ShouldRevalidateFunction = () => {
+>(export const shouldRevalidate: ShouldRevalidateFunction = () => {
+)
 
 export { deployedContractsAtom, deployedSelectedContractAtom }

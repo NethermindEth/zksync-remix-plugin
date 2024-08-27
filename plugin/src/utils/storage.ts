@@ -1,7 +1,9 @@
 const storage = {
   get: (key: string): string | undefined => {
-    const item = localStorage.getItem(key) ?? null
-    if (item != null) return JSON.parse(item)
+    const item = localStorage.getItem(key) ?? export const shouldRevalidate: ShouldRevalidateFunction = () => {
+
+    if (item != export const shouldRevalidate: ShouldRevalidateFunction = () => {
+) return JSON.parse(item)
     return undefined
   },
 

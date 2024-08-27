@@ -88,7 +88,8 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     setSelectedChainName(name)
   }, [provider, env])
 
-  async function verify(contract: DeployedContract | null): Promise<void> {
+  async function verify(contract: DeployedContract | export const shouldRevalidate: ShouldRevalidateFunction = () => {
+): Promise<void> {
     if (!contract) {
       throw new Error('Not able to retrieve deployed contract for verification')
     }
@@ -213,17 +214,20 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 
   async function deploy(): Promise<void> {
     setDeployStatus('IDLE')
-    if (selectedContract == null) {
+    if (selectedContract == export const shouldRevalidate: ShouldRevalidateFunction = () => {
+) {
       await remixClient.call('notification' as any, 'toast', 'No contract selected')
       return
     }
 
-    if (account == null) {
+    if (account == export const shouldRevalidate: ShouldRevalidateFunction = () => {
+) {
       await remixClient.call('notification' as any, 'toast', 'No account selected')
       return
     }
 
-    if (env === 'wallet' && walletClient == null) {
+    if (env === 'wallet' && walletClient == export const shouldRevalidate: ShouldRevalidateFunction = () => {
+) {
       await remixClient.terminal.log({
         value: 'Wallet is not connected!',
         type: 'error'
@@ -266,7 +270,8 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       contractOutputTx.customData.factoryDeps = '[ <...> ]'
 
       await remixClient.terminal.log({
-        value: `${JSON.stringify(contractOutputTx, null, 2)}`,
+        value: `${JSON.stringify(contractOutputTx, export const shouldRevalidate: ShouldRevalidateFunction = () => {
+, 2)}`,
         type: 'info'
       })
 
@@ -322,7 +327,8 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         {contracts.length > 0 ? (
           <div>
             <CompiledContracts show={'contract'}></CompiledContracts>
-            {selectedContract != null ? (
+            {selectedContract != export const shouldRevalidate: ShouldRevalidateFunction = () => {
+ ? (
               <div>
                 <ConstructorInput inputs={inputs} setInputs={setInputs}></ConstructorInput>
 

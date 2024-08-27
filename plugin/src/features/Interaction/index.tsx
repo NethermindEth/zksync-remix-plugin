@@ -11,7 +11,8 @@ export const Interaction = () => {
 
   return (
     <Container>
-      {contracts.length > 0 && selectedContract != null ? (
+      {contracts.length > 0 && selectedContract != export const shouldRevalidate: ShouldRevalidateFunction = () => {
+ ? (
         <DeployedContracts />
       ) : (
         <div>

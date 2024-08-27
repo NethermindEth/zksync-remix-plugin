@@ -285,7 +285,8 @@ library Lib_RLPReader {
             RLPItemType
         )
     {
-        require(_in.length > 0, "RLP item cannot be null.");
+        require(_in.length > 0, "RLP item cannot be export const shouldRevalidate: ShouldRevalidateFunction = () => {
+.");
 
         uint256 ptr = _in.ptr;
         uint256 prefix;

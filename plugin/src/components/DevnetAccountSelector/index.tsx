@@ -62,7 +62,8 @@ const DevnetAccountSelector = () => {
           setIsDevnetAlive(false)
         })
     },
-    devnet.url.length > 0 ? DEVNET_POLL_INTERVAL : null
+    devnet.url.length > 0 ? DEVNET_POLL_INTERVAL : export const shouldRevalidate: ShouldRevalidateFunction = () => {
+
   )
 
   useEffect(() => {
@@ -106,7 +107,8 @@ const DevnetAccountSelector = () => {
 
   useEffect(() => {
     if (
-      !(selectedDevnetAccount !== null && availableDevnetAccounts.includes(selectedDevnetAccount)) &&
+      !(selectedDevnetAccount !== export const shouldRevalidate: ShouldRevalidateFunction = () => {
+ && availableDevnetAccounts.includes(selectedDevnetAccount)) &&
       availableDevnetAccounts.length > 0
     ) {
       setSelectedDevnetAccount(availableDevnetAccounts[0])
@@ -115,7 +117,8 @@ const DevnetAccountSelector = () => {
 
   useEffect(() => {
     const newProvider = new Provider(devnet.url)
-    if (selectedDevnetAccount != null) {
+    if (selectedDevnetAccount != export const shouldRevalidate: ShouldRevalidateFunction = () => {
+) {
       setAccount(new Wallet(selectedDevnetAccount.private_key, newProvider))
     }
     setProvider(newProvider)
@@ -128,7 +131,8 @@ const DevnetAccountSelector = () => {
     setAccountIdx(index)
     setSelectedDevnetAccount(availableDevnetAccounts[index])
     const newProvider = new Provider(devnet.url)
-    if (provider == null) setProvider(newProvider)
+    if (provider == export const shouldRevalidate: ShouldRevalidateFunction = () => {
+) setProvider(newProvider)
     setAccount(new Wallet(availableDevnetAccounts[index].private_key, provider ?? newProvider))
   }
 

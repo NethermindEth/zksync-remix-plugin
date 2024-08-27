@@ -43,7 +43,8 @@
 			"opcodes": "",
 			"sourceMap": ""
 		},
-		"gasEstimates": null,
+		"gasEstimates": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 		"methodIdentifiers": {
 			"deposit(bytes,bytes,bytes,bytes32)": "22895118",
 			"get_deposit_count()": "621fd130",

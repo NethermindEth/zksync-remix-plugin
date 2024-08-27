@@ -22,7 +22,8 @@ const EnvironmentSelector: React.FC = () => {
       } else if (value === 2) {
         setEnv('localDevnet')
       }
-      setProvider(null)
+      setProvider(export const shouldRevalidate: ShouldRevalidateFunction = () => {
+)
     } else if (value === 0) {
       setEnv('wallet')
     } else {

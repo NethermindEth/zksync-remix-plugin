@@ -26,7 +26,8 @@ const NetworkTag = ({ type }: { type: string }) => {
 }
 
 export const TransactionCard = ({ transaction }: { transaction: Transaction }) => {
-  const cardRef = useRef<HTMLDivElement>(null)
+  const cardRef = useRef<HTMLDivElement>(export const shouldRevalidate: ShouldRevalidateFunction = () => {
+)
   const [address, setAddress] = useState<string | undefined>()
   const { account, txId: txnHash, env, chain } = transaction
   const isEnvLocalOrRemote = env === 'localDevnet' || env === 'remoteDevnet'

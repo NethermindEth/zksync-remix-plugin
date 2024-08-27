@@ -7,10 +7,14 @@ export interface Transaction {
   type: 'deploy' | 'invoke'
   txId: string
   env: EnvType
-  account: Wallet | Signer | null
-  provider: Provider | null
-  chain: Chain | undefined | null
-  value: string | undefined | null
+  account: Wallet | Signer | export const shouldRevalidate: ShouldRevalidateFunction = () => {
+
+  provider: Provider | export const shouldRevalidate: ShouldRevalidateFunction = () => {
+
+  chain: Chain | undefined | export const shouldRevalidate: ShouldRevalidateFunction = () => {
+
+  value: string | undefined | export const shouldRevalidate: ShouldRevalidateFunction = () => {
+
 }
 
 export const mockManualChain: Chain<ChainFormatters> = {

@@ -5,19 +5,22 @@
 	"bytecode": {
 		"functionDebugData": {
 			"@_66": {
-				"entryPoint": null,
+				"entryPoint": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"id": 66,
 				"parameterSlots": 2,
 				"returnSlots": 0
 			},
 			"@_673": {
-				"entryPoint": null,
+				"entryPoint": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"id": 673,
 				"parameterSlots": 0,
 				"returnSlots": 0
 			},
 			"@_825": {
-				"entryPoint": null,
+				"entryPoint": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"id": 825,
 				"parameterSlots": 0,
 				"returnSlots": 0
@@ -35,38 +38,46 @@
 				"returnSlots": 0
 			},
 			"array_dataslot_string_storage": {
-				"entryPoint": null,
-				"id": null,
+				"entryPoint": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
+				"id": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"parameterSlots": 1,
 				"returnSlots": 1
 			},
 			"clean_up_bytearray_end_slots_string_storage": {
 				"entryPoint": 317,
-				"id": null,
+				"id": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"parameterSlots": 3,
 				"returnSlots": 0
 			},
 			"copy_byte_array_to_storage_from_t_string_memory_ptr_to_t_string_storage": {
 				"entryPoint": 399,
-				"id": null,
+				"id": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"parameterSlots": 2,
 				"returnSlots": 0
 			},
 			"extract_byte_array_length": {
 				"entryPoint": 259,
-				"id": null,
+				"id": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"parameterSlots": 1,
 				"returnSlots": 1
 			},
 			"extract_used_part_and_set_length_of_short_byte_array": {
-				"entryPoint": null,
-				"id": null,
+				"entryPoint": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
+				"id": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"parameterSlots": 2,
 				"returnSlots": 1
 			},
 			"panic_error_0x41": {
 				"entryPoint": 239,
-				"id": null,
+				"id": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"parameterSlots": 0,
 				"returnSlots": 0
 			}
@@ -2750,7 +2761,8 @@
 	"Runtime Bytecode": {
 		"functionDebugData": {
 			"@_afterTokenTransfer_608": {
-				"entryPoint": null,
+				"entryPoint": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"id": 608,
 				"parameterSlots": 3,
 				"returnSlots": 0
@@ -2762,7 +2774,8 @@
 				"returnSlots": 0
 			},
 			"@_beforeTokenTransfer_597": {
-				"entryPoint": null,
+				"entryPoint": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"id": 597,
 				"parameterSlots": 3,
 				"returnSlots": 0
@@ -2780,7 +2793,8 @@
 				"returnSlots": 0
 			},
 			"@_msgSender_11": {
-				"entryPoint": null,
+				"entryPoint": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"id": 11,
 				"parameterSlots": 0,
 				"returnSlots": 1
@@ -2804,7 +2818,8 @@
 				"returnSlots": 0
 			},
 			"@allowance_163": {
-				"entryPoint": null,
+				"entryPoint": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"id": 163,
 				"parameterSlots": 2,
 				"returnSlots": 1
@@ -2816,7 +2831,8 @@
 				"returnSlots": 1
 			},
 			"@balanceOf_120": {
-				"entryPoint": null,
+				"entryPoint": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"id": 120,
 				"parameterSlots": 1,
 				"returnSlots": 1
@@ -2834,7 +2850,8 @@
 				"returnSlots": 0
 			},
 			"@decimals_697": {
-				"entryPoint": null,
+				"entryPoint": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"id": 697,
 				"parameterSlots": 0,
 				"returnSlots": 1
@@ -2864,7 +2881,8 @@
 				"returnSlots": 1
 			},
 			"@owner_834": {
-				"entryPoint": null,
+				"entryPoint": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"id": 834,
 				"parameterSlots": 0,
 				"returnSlots": 1
@@ -2882,7 +2900,8 @@
 				"returnSlots": 1
 			},
 			"@totalSupply_106": {
-				"entryPoint": null,
+				"entryPoint": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"id": 106,
 				"parameterSlots": 0,
 				"returnSlots": 1
@@ -2907,163 +2926,205 @@
 			},
 			"abi_decode_address": {
 				"entryPoint": 2995,
-				"id": null,
+				"id": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"parameterSlots": 1,
 				"returnSlots": 1
 			},
 			"abi_decode_tuple_t_address": {
 				"entryPoint": 3142,
-				"id": null,
+				"id": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"parameterSlots": 2,
 				"returnSlots": 1
 			},
 			"abi_decode_tuple_t_addresst_address": {
 				"entryPoint": 3174,
-				"id": null,
+				"id": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"parameterSlots": 2,
 				"returnSlots": 2
 			},
 			"abi_decode_tuple_t_addresst_addresst_uint256": {
 				"entryPoint": 3062,
-				"id": null,
+				"id": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"parameterSlots": 2,
 				"returnSlots": 3
 			},
 			"abi_decode_tuple_t_addresst_uint256": {
 				"entryPoint": 3022,
-				"id": null,
+				"id": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"parameterSlots": 2,
 				"returnSlots": 2
 			},
 			"abi_decode_tuple_t_uint256": {
 				"entryPoint": 3119,
-				"id": null,
+				"id": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"parameterSlots": 2,
 				"returnSlots": 1
 			},
 			"abi_encode_tuple_t_address__to_t_address__fromStack_reversed": {
-				"entryPoint": null,
-				"id": null,
+				"entryPoint": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
+				"id": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"parameterSlots": 2,
 				"returnSlots": 1
 			},
 			"abi_encode_tuple_t_bool__to_t_bool__fromStack_reversed": {
-				"entryPoint": null,
-				"id": null,
+				"entryPoint": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
+				"id": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"parameterSlots": 2,
 				"returnSlots": 1
 			},
 			"abi_encode_tuple_t_string_memory_ptr__to_t_string_memory_ptr__fromStack_reversed": {
 				"entryPoint": 2920,
-				"id": null,
+				"id": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"parameterSlots": 2,
 				"returnSlots": 1
 			},
 			"abi_encode_tuple_t_stringliteral_0557e210f7a69a685100a7e4e3d0a7024c546085cee28910fd17d0b081d9516f__to_t_string_memory_ptr__fromStack_reversed": {
-				"entryPoint": null,
-				"id": null,
+				"entryPoint": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
+				"id": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"parameterSlots": 1,
 				"returnSlots": 1
 			},
 			"abi_encode_tuple_t_stringliteral_149b126e7125232b4200af45303d04fba8b74653b1a295a6a561a528c33fefdd__to_t_string_memory_ptr__fromStack_reversed": {
-				"entryPoint": null,
-				"id": null,
+				"entryPoint": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
+				"id": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"parameterSlots": 1,
 				"returnSlots": 1
 			},
 			"abi_encode_tuple_t_stringliteral_245f15ff17f551913a7a18385165551503906a406f905ac1c2437281a7cd0cfe__to_t_string_memory_ptr__fromStack_reversed": {
-				"entryPoint": null,
-				"id": null,
+				"entryPoint": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
+				"id": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"parameterSlots": 1,
 				"returnSlots": 1
 			},
 			"abi_encode_tuple_t_stringliteral_24883cc5fe64ace9d0df1893501ecb93c77180f0ff69cca79affb3c316dc8029__to_t_string_memory_ptr__fromStack_reversed": {
-				"entryPoint": null,
-				"id": null,
+				"entryPoint": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
+				"id": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"parameterSlots": 1,
 				"returnSlots": 1
 			},
 			"abi_encode_tuple_t_stringliteral_3b6607e091cba9325f958656d2b5e0622ab7dc0eac71a26ac788cb25bc19f4fe__to_t_string_memory_ptr__fromStack_reversed": {
-				"entryPoint": null,
-				"id": null,
+				"entryPoint": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
+				"id": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"parameterSlots": 1,
 				"returnSlots": 1
 			},
 			"abi_encode_tuple_t_stringliteral_4107e8a8b9e94bf8ff83080ddec1c0bffe897ebc2241b89d44f66b3d274088b6__to_t_string_memory_ptr__fromStack_reversed": {
-				"entryPoint": null,
-				"id": null,
+				"entryPoint": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
+				"id": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"parameterSlots": 1,
 				"returnSlots": 1
 			},
 			"abi_encode_tuple_t_stringliteral_9924ebdf1add33d25d4ef888e16131f0a5687b0580a36c21b5c301a6c462effe__to_t_string_memory_ptr__fromStack_reversed": {
 				"entryPoint": 3318,
-				"id": null,
+				"id": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"parameterSlots": 1,
 				"returnSlots": 1
 			},
 			"abi_encode_tuple_t_stringliteral_b16788493b576042bb52c50ed56189e0b250db113c7bfb1c3897d25cf9632d7f__to_t_string_memory_ptr__fromStack_reversed": {
-				"entryPoint": null,
-				"id": null,
+				"entryPoint": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
+				"id": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"parameterSlots": 1,
 				"returnSlots": 1
 			},
 			"abi_encode_tuple_t_stringliteral_baecc556b46f4ed0f2b4cb599d60785ac8563dd2dc0a5bf12edea1c39e5e1fea__to_t_string_memory_ptr__fromStack_reversed": {
-				"entryPoint": null,
-				"id": null,
+				"entryPoint": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
+				"id": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"parameterSlots": 1,
 				"returnSlots": 1
 			},
 			"abi_encode_tuple_t_stringliteral_c953f4879035ed60e766b34720f656aab5c697b141d924c283124ecedb91c208__to_t_string_memory_ptr__fromStack_reversed": {
-				"entryPoint": null,
-				"id": null,
+				"entryPoint": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
+				"id": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"parameterSlots": 1,
 				"returnSlots": 1
 			},
 			"abi_encode_tuple_t_stringliteral_f8b476f7d28209d77d4a4ac1fe36b9f8259aa1bb6bddfa6e89de7e51615cf8a8__to_t_string_memory_ptr__fromStack_reversed": {
-				"entryPoint": null,
-				"id": null,
+				"entryPoint": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
+				"id": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"parameterSlots": 1,
 				"returnSlots": 1
 			},
 			"abi_encode_tuple_t_stringliteral_fc0b381caf0a47702017f3c4b358ebe3d3aff6c60ce819a8bf3ef5a95d4f202e__to_t_string_memory_ptr__fromStack_reversed": {
-				"entryPoint": null,
-				"id": null,
+				"entryPoint": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
+				"id": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"parameterSlots": 1,
 				"returnSlots": 1
 			},
 			"abi_encode_tuple_t_uint256__to_t_uint256__fromStack_reversed": {
-				"entryPoint": null,
-				"id": null,
+				"entryPoint": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
+				"id": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"parameterSlots": 2,
 				"returnSlots": 1
 			},
 			"abi_encode_tuple_t_uint8__to_t_uint8__fromStack_reversed": {
-				"entryPoint": null,
-				"id": null,
+				"entryPoint": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
+				"id": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"parameterSlots": 2,
 				"returnSlots": 1
 			},
 			"checked_add_t_uint256": {
 				"entryPoint": 3299,
-				"id": null,
+				"id": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"parameterSlots": 2,
 				"returnSlots": 1
 			},
 			"checked_sub_t_uint256": {
 				"entryPoint": 3371,
-				"id": null,
+				"id": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"parameterSlots": 2,
 				"returnSlots": 1
 			},
 			"extract_byte_array_length": {
 				"entryPoint": 3223,
-				"id": null,
+				"id": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"parameterSlots": 1,
 				"returnSlots": 1
 			},
 			"panic_error_0x11": {
 				"entryPoint": 3279,
-				"id": null,
+				"id": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+,
 				"parameterSlots": 0,
 				"returnSlots": 0
 			}

@@ -38,7 +38,8 @@ const DeployedContracts = () => {
           <Dropdown.Trigger>
             <div className="w-100 flex flex-row justify-content-space-between align-items-center p-2 br-1 devnet-trigger-wrapper">
               <label className="text-light text-sm m-0">
-                {selectedContract != null
+                {selectedContract != export const shouldRevalidate: ShouldRevalidateFunction = () => {
+
                   ? `${getContractNameFromFullName(
                       selectedContract.contractName
                     )}, ${getShortenedHash(selectedContract.address, 6, 4)}`
@@ -87,7 +88,8 @@ const DeployedContracts = () => {
         </Dropdown.Portal>
       </Dropdown.Root>
 
-      {selectedContract?.abi != null ? (
+      {selectedContract?.abi != export const shouldRevalidate: ShouldRevalidateFunction = () => {
+ ? (
         <div>
           {selectedContract.abi
             .filter((element) => element.type === 'function')

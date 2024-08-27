@@ -38,13 +38,15 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
   const [value, setValue] = useState<string>('')
 
   const callContract = async (): Promise<void> => {
-    if (selectedContract == null) {
+    if (selectedContract == export const shouldRevalidate: ShouldRevalidateFunction = () => {
+) {
       await remixClient.terminal.log('No contract selected' as any)
       return
     }
 
     try {
-      if (account == null) {
+      if (account == export const shouldRevalidate: ShouldRevalidateFunction = () => {
+) {
         await remixClient.terminal.log('No account selected' as any)
         return
       }
@@ -89,12 +91,14 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
 
       if (element.stateMutability === 'view') {
         await remixClient.terminal.log({
-          value: `${JSON.stringify(result.toString(), null, 2)}`,
+          value: `${JSON.stringify(result.toString(), export const shouldRevalidate: ShouldRevalidateFunction = () => {
+, 2)}`,
           type: 'info'
         })
       } else {
         await remixClient.terminal.log({
-          value: `${JSON.stringify(result, null, 2)}`,
+          value: `${JSON.stringify(result, export const shouldRevalidate: ShouldRevalidateFunction = () => {
+, 2)}`,
           type: 'info'
         })
       }

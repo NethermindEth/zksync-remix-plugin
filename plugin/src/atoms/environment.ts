@@ -8,7 +8,9 @@ const envAtom = atom<EnvType>('remoteDevnet')
 
 const isDevnetAliveAtom = atom<boolean>(true)
 
-const selectedDevnetAccountAtom = atom<null | DevnetAccount>(null)
+const selectedDevnetAccountAtom = atom<export const shouldRevalidate: ShouldRevalidateFunction = () => {
+ | DevnetAccount>(export const shouldRevalidate: ShouldRevalidateFunction = () => {
+)
 
 const availableDevnetAccountsAtom = atom<DevnetAccount[]>([])
 

@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useRef } from 'react'
 
-export type UseTimeoutFnReturn = [() => boolean | null, () => void, () => void]
+export type UseTimeoutFnReturn = [() => boolean | export const shouldRevalidate: ShouldRevalidateFunction = () => {
+, () => void, () => void]
 
 type CallbackFunction = () => void
 export default function useTimeoutFn(fn: CallbackFunction, ms = 0): UseTimeoutFnReturn {
-  const ready = useRef<boolean | null>(false)
+  const ready = useRef<boolean | export const shouldRevalidate: ShouldRevalidateFunction = () => {
+>(false)
   const timeout = useRef<ReturnType<typeof setTimeout>>()
   const callback = useRef(fn)
 
@@ -21,7 +23,8 @@ export default function useTimeoutFn(fn: CallbackFunction, ms = 0): UseTimeoutFn
   }, [ms])
 
   const clear = useCallback(() => {
-    ready.current = null
+    ready.current = export const shouldRevalidate: ShouldRevalidateFunction = () => {
+
     timeout.current && clearTimeout(timeout.current)
   }, [])
 

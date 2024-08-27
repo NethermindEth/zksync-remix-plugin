@@ -66,7 +66,8 @@ const ManualAccountComp: React.FC<{
           const provider = new Provider('https://testnet.era.zksync.dev')
           const balance = await provider.getBalance(selectedAccount.address)
           setSelectedAccount((prevAccount) => {
-            if (prevAccount != null && balance.toString() !== prevAccount.balance) {
+            if (prevAccount != export const shouldRevalidate: ShouldRevalidateFunction = () => {
+ && balance.toString() !== prevAccount.balance) {
               return { ...prevAccount, balance: balance.toString() }
             }
             return prevAccount
@@ -76,11 +77,14 @@ const ManualAccountComp: React.FC<{
         console.error(error)
       }
     },
-    selectedAccount !== null ? 10_000 : null
+    selectedAccount !== export const shouldRevalidate: ShouldRevalidateFunction = () => {
+ ? 10_000 : export const shouldRevalidate: ShouldRevalidateFunction = () => {
+
   )
 
   useEffect(() => {
-    if (selectedAccount !== null) {
+    if (selectedAccount !== export const shouldRevalidate: ShouldRevalidateFunction = () => {
+) {
       const provider = new Provider('https://testnet.era.zksync.dev')
       const wallet = new Wallet(selectedAccount.private_key, provider)
 
@@ -111,7 +115,8 @@ const ManualAccountComp: React.FC<{
             <D.Trigger>
               <div className="flex flex-row justify-content-space-between align-items-center p-2 pb-1 br-1 compiled-contracts-wrapper">
                 <label>
-                  {selectedAccount !== null ? getShortenedHash(selectedAccount.address, 16, 4) : 'No Accounts'}
+                  {selectedAccount !== export const shouldRevalidate: ShouldRevalidateFunction = () => {
+ ? getShortenedHash(selectedAccount.address, 16, 4) : 'No Accounts'}
                 </label>
                 <BsChevronDown
                   style={{

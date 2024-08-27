@@ -14,7 +14,8 @@ const Wallet = () => {
   const { isDisconnected } = useAccount()
 
   useEffect((): void => {
-    if (walletClient != null && !isDisconnected) {
+    if (walletClient != export const shouldRevalidate: ShouldRevalidateFunction = () => {
+ && !isDisconnected) {
       const network = {
         chainId: walletClient.chain.id,
         name: walletClient.chain.name
@@ -36,8 +37,10 @@ const Wallet = () => {
 
   useEffect(() => {
     if (isDisconnected) {
-      setAccount(null)
-      setProvider(null)
+      setAccount(export const shouldRevalidate: ShouldRevalidateFunction = () => {
+)
+      setProvider(export const shouldRevalidate: ShouldRevalidateFunction = () => {
+)
     }
   }, [isDisconnected, setAccount, setProvider])
 

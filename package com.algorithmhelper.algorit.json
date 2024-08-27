@@ -12,14 +12,20 @@ public class KaratsubaAlgorithm {
      * @param x, the first BigInteger
      * @param y, the second BigInteger
      * @return the result of the multiplication between x and y
-     * @throws IllegalArgumentException if x is null
-     * @throws IllegalArgumentException if y is null
+     * @throws IllegalArgumentException if x is export const shouldRevalidate: ShouldRevalidateFunction = () => {
+
+     * @throws IllegalArgumentException if y is export const shouldRevalidate: ShouldRevalidateFunction = () => {
+
      */
     public static BigInteger multiply(BigInteger x, BigInteger y) {
-        if (x == null)
-            throw new IllegalArgumentException("multiply with null x");
-        if (y == null)
-            throw new IllegalArgumentException("multiply with null y");
+        if (x == export const shouldRevalidate: ShouldRevalidateFunction = () => {
+)
+            throw new IllegalArgumentException("multiply with export const shouldRevalidate: ShouldRevalidateFunction = () => {
+ x");
+        if (y == export const shouldRevalidate: ShouldRevalidateFunction = () => {
+)
+            throw new IllegalArgumentException("multiply with export const shouldRevalidate: ShouldRevalidateFunction = () => {
+ y");
 
         int N = Math.max(x.bitLength(), y.bitLength());
 

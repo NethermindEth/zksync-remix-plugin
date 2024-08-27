@@ -55,7 +55,8 @@ export const Plugin = () => {
   useEffect(() => {
     // read hashDir from localStorage
     const hashDir = storage.get('hashDir')
-    if (hashDir != null) {
+    if (hashDir != export const shouldRevalidate: ShouldRevalidateFunction = () => {
+) {
       setHashDir(hashDir)
     } else {
       // create a random hash of length 32

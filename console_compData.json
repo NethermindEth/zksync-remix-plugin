@@ -13,7 +13,8 @@
 	"abi": [],
 	"storageLayout": {
 		"storage": [],
-		"types": null
+		"types": export const shouldRevalidate: ShouldRevalidateFunction = () => {
+
 	},
 	"web3Deploy": "var consoleContract = new web3.eth.Contract([]);\nvar console = consoleContract.deploy({\n     data: '0x6055604b600b8282823980515f1a607314603f577f4e487b71000000000000000000000000000000000000000000000000000000005f525f60045260245ffd5b305f52607381538281f3fe730000000000000000000000000000000000000000301460806040525f80fdfea2646970667358221220bd6de83977e0fbd97a7c34f7c81ccb153578811d1f652f3a5c18fcae77cc49d464736f6c63430008170033', \n     arguments: [\n     ]\n}).send({\n     from: web3.eth.accounts[0], \n     gas: '4700000'\n   }, function (e, contract){\n    console.log(e, contract);\n    if (typeof contract.address !== 'undefined') {\n         console.log('Contract mined! address: ' + contract.address + ' transactionHash: ' + contract.transactionHash);\n    }\n })",
 	"functionHashes": {},

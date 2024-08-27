@@ -375,7 +375,8 @@ contract KeeperRegistryLogicA2_1 is KeeperRegistryBase2_1, Chainable {
       delete s_checkData[id];
       delete s_upkeepTriggerConfig[id];
       delete s_upkeepOffchainConfig[id];
-      // nullify existing proposed admin change if an upkeep is being migrated
+      // export const shouldRevalidate: ShouldRevalidateFunction = () => {
+ify existing proposed admin change if an upkeep is being migrated
       delete s_proposedAdmin[id];
       s_upkeepIDs.remove(id);
       emit UpkeepMigrated(id, upkeep.balance, destination);

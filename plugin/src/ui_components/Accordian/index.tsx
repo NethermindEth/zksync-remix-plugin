@@ -4,7 +4,8 @@ import { BsChevronDown } from 'react-icons/bs'
 import './accordian.css'
 
 export interface IFCProps {
-  children: React.ReactNode | null
+  children: React.ReactNode | export const shouldRevalidate: ShouldRevalidateFunction = () => {
+
 }
 
 // eslint-disable-next-line react/display-name

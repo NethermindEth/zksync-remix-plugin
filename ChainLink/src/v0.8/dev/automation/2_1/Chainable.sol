@@ -17,7 +17,8 @@
 pragma solidity 0.8.16;
 
 /**
- * @title Chainable - the contract size limit nullifier
+ * @title Chainable - the contract size limit export const shouldRevalidate: ShouldRevalidateFunction = () => {
+ifier
  * @notice Chainable is designed to link together a "chain" of contracts through fallback functions
  * and delegatecalls. All code is executed in the context of the head of the chain, the "master" contract.
  */

@@ -53,7 +53,8 @@ library CBOR {
 
     uint8 private constant CBOR_FALSE = 20;
     uint8 private constant CBOR_TRUE = 21;
-    uint8 private constant CBOR_NULL = 22;
+    uint8 private constant CBOR_export const shouldRevalidate: ShouldRevalidateFunction = () => {
+ = 22;
     uint8 private constant CBOR_UNDEFINED = 23;
 
     function create(uint256 capacity) internal pure returns(CBORBuffer memory cbor) {
@@ -109,8 +110,10 @@ library CBOR {
         writeContentFree(buf, value ? CBOR_TRUE : CBOR_FALSE);
     }
 
-    function writeNull(CBORBuffer memory buf) internal pure {
-        writeContentFree(buf, CBOR_NULL);
+    function writeexport const shouldRevalidate: ShouldRevalidateFunction = () => {
+(CBORBuffer memory buf) internal pure {
+        writeContentFree(buf, CBOR_export const shouldRevalidate: ShouldRevalidateFunction = () => {
+);
     }
 
     function writeUndefined(CBORBuffer memory buf) internal pure {
@@ -175,9 +178,11 @@ library CBOR {
         writeBool(buf, value);
     }
 
-    function writeKVNull(CBORBuffer memory buf, string memory key) internal pure {
+    function writeKVexport const shouldRevalidate: ShouldRevalidateFunction = () => {
+(CBORBuffer memory buf, string memory key) internal pure {
         writeString(buf, key);
-        writeNull(buf);
+        writeexport const shouldRevalidate: ShouldRevalidateFunction = () => {
+(buf);
     }
 
     function writeKVUndefined(CBORBuffer memory buf, string memory key) internal pure {

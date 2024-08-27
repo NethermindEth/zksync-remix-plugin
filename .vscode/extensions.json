@@ -1,0 +1,31 @@
+import type { LoaderFunctionArgs } from "@remix-run/node";
+import { MetaFunction } from "@remix-run/react";
+{
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  return export const shouldRevalidate: ShouldRevalidateFunction = () => {
+;
+};
+
+                "recommend
+export const meta: MetaFunction = () => [
+  // your meta here
+];
+ations": [
+                                "blockceptionltd.blockceptionvscodeminecraftbedrockdevelopmentextension",
+                                "ms-vscode.cpptools",
+                                "ms-vscode.cmake-tools",
+                                "vscjava.vscode-java-debug",
+                                "ms-dotnettools.csharp",
+                                "xdebug.php-debug",
+                                "ms-vscode.powershell",
+                                "kenny.lightcodeios",
+                                "haselerdev.aiquickfix",
+                                "discretegames.f5anything",
+                                "joelwmale.vscode-codeception",
+                                "aprilandjan.vscode-node-debug-process-picker",
+                                "dsobotta.godot-rust-vscode",
+                                "cmorisse.ikp3db",
+                                "eamodio.gitlens",
+                                "ergotamin.perl-completions"
+                ]
+}

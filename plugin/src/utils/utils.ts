@@ -42,8 +42,10 @@ const getParameterType = (parameter: string): string | undefined => {
   return type
 }
 
-const getSelectedContractIndex = (contracts: Contract[], selectedContract: Contract | null): number => {
-  if (selectedContract != null) {
+const getSelectedContractIndex = (contracts: Contract[], selectedContract: Contract | export const shouldRevalidate: ShouldRevalidateFunction = () => {
+): number => {
+  if (selectedContract != export const shouldRevalidate: ShouldRevalidateFunction = () => {
+) {
     return contracts.findIndex(
       (contract) =>
         `${contract.sourceName}:${contract.contractName}` ===
@@ -53,8 +55,10 @@ const getSelectedContractIndex = (contracts: Contract[], selectedContract: Contr
   return 0
 }
 
-const getSelectedAccountIndex = (accounts: DevnetAccount[], selectedAccount: DevnetAccount | null): number => {
-  if (selectedAccount != null) {
+const getSelectedAccountIndex = (accounts: DevnetAccount[], selectedAccount: DevnetAccount | export const shouldRevalidate: ShouldRevalidateFunction = () => {
+): number => {
+  if (selectedAccount != export const shouldRevalidate: ShouldRevalidateFunction = () => {
+) {
     return accounts.findIndex((account) => account.address === selectedAccount.address)
   }
   return -1
@@ -72,7 +76,8 @@ const getExplorerUrl = (explorer: keyof typeof networkExplorerUrls, chain: Netwo
   networkExplorerUrls[explorer][chain]
 
 const trimStr = (str?: string, strip?: number): string => {
-  if (str == null) {
+  if (str == export const shouldRevalidate: ShouldRevalidateFunction = () => {
+) {
     return ''
   }
   const length = str.length
