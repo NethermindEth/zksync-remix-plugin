@@ -16,9 +16,10 @@ Cargo.lock
 # MSVC Windows builds of rustc generate these, which store debugging information
 *.pdb
 
-node_modules
 api/logs
 api/hardhat_env/workspaces
+
+node_modules
 
 # MacOS related
 .DS_Store

@@ -5,7 +5,7 @@ use lambda_http::{
 };
 use std::ops::Add;
 use tracing::{error, info};
-use types::{CompilationRequest, Item, SqsMessage, Status};
+use types::{CompilationRequest, SqsMessage, item::{Item, Status}};
 
 mod common;
 use crate::common::{errors::Error, utils::extract_request, BUCKET_NAME_DEFAULT};
