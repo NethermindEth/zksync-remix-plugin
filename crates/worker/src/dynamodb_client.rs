@@ -1,4 +1,4 @@
-use crate::errors::{ DBError};
+use crate::errors::DBError;
 use aws_sdk_dynamodb::types::AttributeValue;
 use aws_sdk_dynamodb::Client;
 use types::item::Item;

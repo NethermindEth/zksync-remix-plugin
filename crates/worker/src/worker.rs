@@ -1,5 +1,6 @@
 use crate::commands::compile::compile;
 use crate::dynamodb_client::DynamoDBClient;
+use crate::s3_client::S3Client;
 use std::num::NonZeroUsize;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -27,7 +28,7 @@ impl RunningWorker {
     pub fn new(
         sqs_listener: SqsListener,
         db_client: DynamoDBClient,
-        s3_client: aws_sdk_s3::Client,
+        s3_client: S3Client,
         num_workers: usize,
         expiration_timestamps: Arc<Mutex<Vec<(Uuid, Timestamp)>>>,
     ) -> Self {
@@ -61,7 +62,7 @@ impl RunningWorker {
     async fn worker(
         sqs_receiver: SqsReceiver,
         db_client: DynamoDBClient,
-        s3_client: aws_sdk_s3::Client,
+        s3_client: S3Client,
         expiration_timestamps: Arc<Mutex<Vec<(Uuid, Timestamp)>>>,
     ) {
         // TODO: process error
@@ -98,12 +99,16 @@ impl RunningWorker {
             let _ = sqs_receiver.delete_message(receipt_handle).await;
         }
     }
+
+    pub async fn wait(self) {
+        futures::future::join_all(self.worker_threads).await;
+    }
 }
 
 pub struct WorkerEngine {
     sqs_client: SqsClient,
     db_client: DynamoDBClient,
-    s3_client: aws_sdk_s3::Client,
+    s3_client: S3Client,
     expiration_timestamps: Arc<Mutex<Vec<(Uuid, Timestamp)>>>,
     is_supervisor_enabled: Arc<AtomicBool>,
     running_workers: Vec<RunningWorker>,
@@ -114,7 +119,7 @@ impl WorkerEngine {
     pub fn new(
         sqs_client: SqsClient,
         db_client: DynamoDBClient,
-        s3_client: aws_sdk_s3::Client,
+        s3_client: S3Client,
         supervisor_enabled: bool,
     ) -> Self {
         let is_supervisor_enabled = Arc::new(AtomicBool::new(supervisor_enabled));
@@ -150,6 +155,21 @@ impl WorkerEngine {
             self.supervisor_thread = Arc::new(Some(tokio::spawn(async move {
                 WorkerEngine::supervisor(db_client, expiration_timestamps).await;
             })));
+        }
+    }
+
+    pub async fn wait(self) {
+        let mut worker_futures = Vec::new();
+        for worker in self.running_workers {
+            worker_futures.push(worker.wait());
+        }
+
+        // Wait for all workers to finish
+        futures::future::join_all(worker_futures).await;
+
+        // Wait for the supervisor thread if it exists
+        if let Some(supervisor_thread) = Arc::try_unwrap(self.supervisor_thread).ok().flatten() {
+            supervisor_thread.await.expect("Supervisor thread panicked");
         }
     }
 
