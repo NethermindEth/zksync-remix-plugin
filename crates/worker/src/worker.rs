@@ -1,7 +1,5 @@
 use crate::commands::compile::compile;
 use crate::dynamodb_client::DynamoDBClient;
-use crossbeam_queue::ArrayQueue;
-use std::fmt::{Display, Formatter};
 use std::num::NonZeroUsize;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;

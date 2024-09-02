@@ -1,7 +1,7 @@
-use crate::errors::{DBDeleteError, DBError, DBGetError};
+use crate::errors::{ DBError};
 use aws_sdk_dynamodb::types::AttributeValue;
 use aws_sdk_dynamodb::Client;
-use types::Item;
+use types::item::Item;
 
 #[derive(Clone)]
 pub struct DynamoDBClient {
