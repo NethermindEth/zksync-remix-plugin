@@ -1,6 +1,8 @@
+use crate::commands::compile::CompilationFile;
 use std::path::{Path, PathBuf};
 use tracing::debug;
 use uuid::Uuid;
+use walkdir::WalkDir;
 
 pub const SOL_ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/", "hardhat_env/workspaces/");
 pub const ZK_CACHE_ROOT: &str = concat!(
@@ -138,22 +140,17 @@ pub fn generate_folder_name() -> String {
     uuid.to_string()
 }
 
-// pub fn list_files_in_directory<P: AsRef<Path>>(path: P) -> Vec<String> {
-//     let mut file_paths = Vec::new();
-//
-//     for entry in WalkDir::new(path) {
-//         match entry {
-//             Ok(entry) => {
-//                 if entry.file_type().is_file() {
-//                     file_paths.push(entry.path().display().to_string());
-//                 }
-//             }
-//             Err(e) => println!("Error reading directory: {}", e),
-//         }
-//     }
-//
-//     file_paths
-// }
+pub fn list_files_in_directory<P: AsRef<Path>>(path: P) -> Result<Vec<String>, walkdir::Error> {
+    let mut file_paths = Vec::new();
+    for entry in WalkDir::new(path) {
+        let entry = entry?;
+        if entry.file_type().is_file() {
+            file_paths.push(entry.path().display().to_string());
+        }
+    }
+
+    Ok(file_paths)
+}
 
 // pub fn generate_mock_compile_request() -> CompilationRequest {
 //     CompilationRequest {
@@ -189,21 +186,20 @@ pub fn generate_mock_solidity_file_content() -> String {
     .to_string()
 }
 
-// pub async fn initialize_files(files: Vec<CompiledFile>, file_path: &Path) -> Result<()> {
-//     for file in files {
-//         let file_path_str = format!("{}/{}", file_path.to_str().unwrap(), file.file_name);
-//         let file_path = Path::new(&file_path_str);
-//
-//         // create parent directories
-//         tokio::fs::create_dir_all(file_path.parent().unwrap())
-//             .await
-//             .map_err(ApiError::FailedToWriteFile)?;
-//
-//         // write file
-//         tokio::fs::write(file_path, file.file_content.clone())
-//             .await
-//             .map_err(ApiError::FailedToWriteFile)?;
-//     }
-//
-//     Ok(())
-// }
+pub async fn initialize_files(
+    dst_dir: &Path,
+    files: Vec<CompilationFile>,
+) -> Result<(), std::io::Error> {
+    for file in files {
+        let file_path_str = format!("{}/{}", dst_dir.to_str().unwrap(), file.file_name);
+        let file_path = Path::new(&file_path_str);
+
+        // create parent directories
+        tokio::fs::create_dir_all(file_path.parent().unwrap()).await?;
+
+        // write file
+        tokio::fs::write(file_path, file.file_content.clone()).await?;
+    }
+
+    Ok(())
+}

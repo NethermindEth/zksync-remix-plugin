@@ -20,7 +20,8 @@ aws-runtime = "1.4.0"
 aws-smithy-types = "1.2.2"
 async-channel = "2.3.1"
 chrono = "0.4.38"
-crossbeam-queue = "0.3.11"
+lazy_static = "1.5.0"
+walkdir = "2.3.2"
 
 # Inner crates
 types = {workspace = true}

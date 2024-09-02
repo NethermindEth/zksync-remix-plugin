@@ -8,7 +8,6 @@ mod worker;
 
 use aws_config::BehaviorVersion;
 use aws_runtime::env_config::file::{EnvConfigFileKind, EnvConfigFiles};
-use std::ops::Deref;
 use std::time::Duration;
 
 use crate::{sqs_client::SqsClient, sqs_listener::SqsListener};

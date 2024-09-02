@@ -1,29 +1,123 @@
+use crate::commands::SPAWN_SEMAPHORE;
+use aws_sdk_dynamodb::error::SdkError;
+use aws_sdk_dynamodb::operation::update_item::UpdateItemError;
 use aws_sdk_dynamodb::types::AttributeValue;
+use aws_sdk_s3::presigning::PresigningConfig;
 use aws_sdk_s3::types::Object;
 use std::ops::Add;
 use std::path::Path;
 use std::process::Stdio;
-use aws_sdk_dynamodb::error::SdkError;
-use aws_sdk_dynamodb::operation::update_item::UpdateItemError;
-use tracing::log::Level::Error;
+use std::time::Duration;
 use tracing::warn;
 use tracing::{error, info};
-use types::{CompilationConfig, CompilationRequest, Item, Status};
-use uuid::Uuid;
+use types::item::{Item, Status};
+use types::{CompilationConfig, CompilationRequest, ARTIFACTS_FOLDER};
 
 use crate::dynamodb_client::DynamoDBClient;
-use crate::errors::CompilationError::NoDBItemError;
 use crate::errors::{CompilationError, DBError, S3Error};
 use crate::utils::cleaner::AutoCleanUp;
 use crate::utils::hardhat_config::HardhatConfigBuilder;
 use crate::utils::lib::{
-    generate_folder_name, status_code_to_message, DEFAULT_SOLIDITY_VERSION, SOL_ROOT,
-    ZKSOLC_VERSIONS,
+    initialize_files, list_files_in_directory,
+    DEFAULT_SOLIDITY_VERSION, SOL_ROOT, ZKSOLC_VERSIONS,
 };
 
-struct CompilationInput {
+pub struct CompilationFile {
+    // legacy name. file_path really
+    pub file_name: String,
+    pub file_content: Vec<u8>,
+}
+
+pub struct CompilationInput {
     pub config: CompilationConfig,
-    pub contracts: Vec<Vec<u8>>,
+    // legacy. files really
+    pub contracts: Vec<CompilationFile>,
+}
+
+pub struct CompilationArtifact {
+    pub file_name: String,
+    pub file_content: Vec<u8>,
+    pub is_contract: bool,
+}
+
+pub async fn compile(
+    request: CompilationRequest,
+    db_client: &DynamoDBClient,
+    s3_client: &aws_sdk_s3::Client,
+) -> Result<(), CompilationError> {
+    let item = db_client.get_item(request.id.clone()).await?;
+    let item: Item = match item {
+        Some(item) => item,
+        None => {
+            error!("No item id: {}", request.id);
+            return Err(CompilationError::NoDBItemError(request.id));
+        }
+    };
+
+    match item.status {
+        Status::Pending => {}
+        status => {
+            warn!("Item already processing: {}", status);
+            return Err(CompilationError::UnexpectedStatusError(status.to_string()));
+        }
+    }
+
+    let files = extract_files(request.id.clone(), s3_client).await?;
+    {
+        let db_update_result = db_client
+            .client
+            .update_item()
+            .table_name(db_client.table_name.clone())
+            .key("ID", AttributeValue::S(request.id.clone()))
+            .update_expression("SET Status = :newStatus")
+            .condition_expression("Status = :currentStatus") // TODO: check
+            .expression_attribute_values(
+                ":newStatus",
+                AttributeValue::N(u32::from(Status::Compiling).to_string()),
+            )
+            .expression_attribute_values(
+                ":currentStatus",
+                AttributeValue::N(u32::from(Status::Pending).to_string()),
+            )
+            .send()
+            .await;
+        match db_update_result {
+            Ok(_) => {}
+            Err(SdkError::ServiceError(err)) => match err.err() {
+                UpdateItemError::ConditionalCheckFailedException(_) => {
+                    return Err(CompilationError::UnexpectedStatusError(
+                        "Concurrent status change from another instance".into(),
+                    ))
+                }
+                _ => return Err(DBError::from(SdkError::ServiceError(err)).into()),
+            },
+            Err(err) => return Err(DBError::from(err).into()),
+        }
+    }
+
+    match do_compile(
+        request.id.clone(),
+        CompilationInput {
+            config: request.config,
+            contracts: files,
+        },
+    )
+        .await
+    {
+        Ok(val) => Ok(on_compilation_success(&request.id, db_client, s3_client, val).await?),
+        Err(err) => match err {
+            CompilationError::CompilationFailureError(value) => {
+                Ok(on_compilation_failed(&request.id, db_client, value).await?)
+            }
+            CompilationError::VersionNotSupported(value) => Ok(on_compilation_failed(
+                &request.id,
+                &db_client,
+                format!("Unsupported compiler version: {}", value),
+            )
+                .await?),
+            _ => Err(err),
+        },
+    }
 }
 
 async fn list_all_keys(
@@ -74,7 +168,7 @@ async fn list_all_keys(
 async fn extract_files(
     id: String,
     s3_client: &aws_sdk_s3::Client,
-) -> Result<Vec<Vec<u8>>, S3Error> {
+) -> Result<Vec<CompilationFile>, S3Error> {
     let objects = list_all_keys(&s3_client, id.to_string(), "TODO").await?;
 
     let mut files = vec![];
@@ -102,72 +196,91 @@ async fn extract_files(
             return Err(S3Error::InvalidObjectError);
         }
 
-        files.push(contents);
+        files.push(CompilationFile {
+            file_content: contents,
+            file_name: key.to_string(),
+        });
     }
 
     Ok(files)
 }
 
-pub async fn compile(
-    request: CompilationRequest,
+pub async fn on_compilation_success(
+    id: &str,
     db_client: &DynamoDBClient,
     s3_client: &aws_sdk_s3::Client,
+    compilation_artifacts: Vec<CompilationArtifact>,
 ) -> Result<(), CompilationError> {
-    let item = db_client.get_item(request.id.clone()).await?;
-    let item: Item = match item {
-        Some(item) => item,
-        None => {
-            error!("No item id: {}", request.id);
-            return Err(NoDBItemError(request.id));
-        }
-    };
-
-    match item.status {
-        Status::Pending => {}
-        status => {
-            warn!("Item already processing: {}", status);
-            return Err(CompilationError::UnexpectedStatusError(status.to_string()));
-        }
-    }
-
-    let files = extract_files(request.id.clone(), s3_client).await?;
-
-    {
-        let new_item = Item {
-            id: item.id.clone(),
-            status: Status::Compiling,
-        };
-        let db_update_result = db_client
-            .client
-            .update_item()
-            .table_name(db_client.table_name.clone())
-            .update_expression("SET Status=1")
-            .key("ID", AttributeValue::S(request.id.clone()))
-            .condition_expression("Status=0") // TODO: check
+    let mut presigned_urls = Vec::with_capacity(compilation_artifacts.len());
+    for el in compilation_artifacts {
+        let file_key = format!("{}/{}/{}", ARTIFACTS_FOLDER, id, el.file_name);
+        s3_client
+            .put_object()
+            .bucket("TODO")
+            .key(file_key.clone())
+            .body(el.file_content.into())
             .send()
-            .await;
-        match db_update_result {
-            Ok(_) => {},
-            Err(SdkError::ServiceError(err)) => match err.err() {
-                UpdateItemError::ConditionalCheckFailedException(err) => {
-                    return Err(CompilationError::UnexpectedStatusError("Concurrent status change from another instance".into()))
-                },
-                _ => return Err(SdkError::ServiceError(err).into())
-            }
-            Err(err) => Err(err).into(),
-        }
+            .await
+            .map_err(S3Error::from)?;
+
+        let expires_in = PresigningConfig::expires_in(Duration::from_secs(5 * 60 * 60)).unwrap();
+        let presigned_request = s3_client
+            .get_object()
+            .bucket("TODO")
+            .key(file_key)
+            .presigned(expires_in)
+            .await
+            .map_err(S3Error::from)?;
+
+        presigned_urls.push(presigned_request.uri().to_string());
     }
 
-    let asd = do_compile(request.id,CompilationInput {
-        config: request.config,
-        contracts: files,
-    })
-    .await;
+    db_client
+        .client
+        .update_item()
+        .table_name(db_client.table_name.clone())
+        .key("ID", AttributeValue::S(id.to_string()))
+        .update_expression("SET Status = :newStatus")
+        .update_expression("SET Data = :data")
+        .expression_attribute_values(
+            ":newStatus",
+            AttributeValue::N(2.to_string()), // Ready
+        )
+        .expression_attribute_values(":data", AttributeValue::Ss(presigned_urls))
+        .send()
+        .await
+        .map_err(DBError::from)?;
 
-    // TODO:
     Ok(())
 }
-pub async fn do_compile(namespace: String, compilation_request: CompilationInput) -> Result<(), CompilationError> {
+
+pub async fn on_compilation_failed(
+    id: &str,
+    db_client: &DynamoDBClient,
+    message: String,
+) -> Result<(), DBError> {
+    db_client
+        .client
+        .update_item()
+        .table_name(db_client.table_name.clone())
+        .key("ID", AttributeValue::S(id.to_string()))
+        .update_expression("SET Status = :newStatus")
+        .update_expression("SET Data = :data")
+        .expression_attribute_values(
+            ":newStatus",
+            AttributeValue::N(3.to_string()), // Failed
+        )
+        .expression_attribute_values(":data", AttributeValue::S(message))
+        .send()
+        .await?;
+
+    Ok(())
+}
+
+pub async fn do_compile(
+    namespace: String,
+    compilation_request: CompilationInput,
+) -> Result<Vec<CompilationArtifact>, CompilationError> {
     let zksolc_version = compilation_request.config.version;
 
     // check if the version is supported
@@ -188,12 +301,8 @@ pub async fn do_compile(namespace: String, compilation_request: CompilationInput
     let hardhat_config_path = Path::new(&user_files_path_str).join("hardhat.config.ts");
 
     // instantly create the directories
-    tokio::fs::create_dir_all(workspace_path)
-        .await
-        .map_err(ApiError::FailedToWriteFile)?;
-    tokio::fs::create_dir_all(artifacts_path)
-        .await
-        .map_err(ApiError::FailedToWriteFile)?;
+    tokio::fs::create_dir_all(workspace_path).await?;
+    tokio::fs::create_dir_all(artifacts_path).await?;
 
     // when the compilation is done, clean up the directories
     // it will be called when the AutoCleanUp struct is dropped
@@ -206,20 +315,15 @@ pub async fn do_compile(namespace: String, compilation_request: CompilationInput
     hardhat_config_builder
         .zksolc_version(&zksolc_version)
         .solidity_version(DEFAULT_SOLIDITY_VERSION);
-    if let Some(target_path) = compilation_request.target_path {
+    if let Some(target_path) = compilation_request.config.target_path {
         hardhat_config_builder.paths_sources(&target_path);
     }
 
     let hardhat_config_content = hardhat_config_builder.build().to_string_config();
 
     // create parent directories
-    tokio::fs::create_dir_all(hardhat_config_path.parent().unwrap())
-        .await
-        .map_err(ApiError::FailedToWriteFile)?;
-
-    tokio::fs::write(hardhat_config_path, hardhat_config_content)
-        .await
-        .map_err(ApiError::FailedToWriteFile)?;
+    tokio::fs::create_dir_all(hardhat_config_path.parent().unwrap()).await?;
+    tokio::fs::write(hardhat_config_path, hardhat_config_content).await?;
 
     // filter test files from compilation candidates
     let contracts = compilation_request
@@ -229,60 +333,50 @@ pub async fn do_compile(namespace: String, compilation_request: CompilationInput
         .collect();
 
     // initialize the files
-    initialize_files(contracts, workspace_path).await?;
+    initialize_files(workspace_path, contracts).await?;
 
     // Limit number of spawned processes. RAII released
     let _permit = SPAWN_SEMAPHORE.acquire().await.expect("Expired semaphore");
 
-    let command = tokio::process::Command::new("npx")
+    let process = tokio::process::Command::new("npx")
         .arg("hardhat")
         .arg("compile")
         .current_dir(workspace_path)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
-        .spawn();
-    let process = command.map_err(ApiError::FailedToExecuteCommand)?;
-    let output = process
-        .wait_with_output()
-        .await
-        .map_err(ApiError::FailedToReadOutput)?;
+        .spawn()?;
+
+    let output = process.wait_with_output().await?;
 
     let status = output.status;
     let message = String::from_utf8_lossy(&output.stdout).to_string();
+    info!("Output: \n{:?}", message);
 
-    info!("Output: \n{:?}", String::from_utf8_lossy(&output.stdout));
     if !status.success() {
-        error!(
-            "Compilation error: {}",
-            String::from_utf8_lossy(&output.stderr)
-        );
-        return Ok(Json(CompileResponse {
-            file_content: vec![],
-            message: format!(
-                "Failed to compile:\n{}",
-                String::from_utf8_lossy(&output.stderr)
-            ),
-            status: "Error".to_string(),
-        }));
+        let err_msg = String::from_utf8_lossy(&output.stderr);
+        error!("Compilation error: {}", err_msg);
+        // TODO: handle
+        return Err(CompilationError::CompilationFailureError(err_msg.to_string()));
     }
 
     // fetch the files in the artifacts directory
-    let mut file_contents: Vec<CompiledFile> = vec![];
-    let file_paths = list_files_in_directory(artifacts_path);
-
+    let mut file_contents: Vec<CompilationArtifact> = vec![];
+    let file_paths =
+        list_files_in_directory(artifacts_path).expect("Unexpected error listing artifact");
     for file_path in file_paths.iter() {
-        let file_content = tokio::fs::read_to_string(file_path)
-            .await
-            .map_err(ApiError::FailedToReadFile)?;
+        // TODO: change this - don't store files in RAM. copy 1-1 to S3
+        let file_content = tokio::fs::read(file_path).await?;
         let full_path = Path::new(file_path);
-        let relative_path = full_path.strip_prefix(artifacts_path).unwrap_or(full_path);
+
+        let relative_path = full_path
+            .strip_prefix(artifacts_path)
+            .expect("Unexpected prefix");
         let relative_path_str = relative_path.to_str().unwrap();
 
-        // todo(varex83): is it the best way to check?
         let is_contract =
             !relative_path_str.ends_with(".dbg.json") && relative_path_str.ends_with(".json");
 
-        file_contents.push(CompiledFile {
+        file_contents.push(CompilationArtifact {
             file_name: relative_path_str.to_string(),
             file_content,
             is_contract,
@@ -291,10 +385,5 @@ pub async fn do_compile(namespace: String, compilation_request: CompilationInput
 
     // calling here explicitly to avoid dropping the AutoCleanUp struct
     auto_clean_up.clean_up().await;
-
-    Ok(Json(CompileResponse {
-        file_content: file_contents,
-        status: status_code_to_message(status.code()),
-        message,
-    }))
+    Ok(file_contents)
 }

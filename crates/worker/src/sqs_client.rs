@@ -36,7 +36,6 @@ macro_rules! match_result {
                 }
                 other => Err(other),
             },
-            Err(err) => Err(err.into()),
         }
     };
 }

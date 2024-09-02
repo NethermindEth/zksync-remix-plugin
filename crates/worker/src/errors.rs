@@ -4,10 +4,11 @@ use aws_sdk_dynamodb::operation::get_item::GetItemError;
 use aws_sdk_dynamodb::operation::update_item::UpdateItemError;
 use aws_sdk_s3::operation::get_object::GetObjectError;
 use aws_sdk_s3::operation::list_objects_v2::ListObjectsV2Error;
+use aws_sdk_s3::operation::put_object::PutObjectError;
 use aws_sdk_sqs::error::SdkError;
 use aws_sdk_sqs::operation::delete_message::DeleteMessageError;
 use aws_sdk_sqs::operation::receive_message::ReceiveMessageError;
-use types::{ItemError, Status};
+use types::item::{ItemError};
 
 // SQS related errors
 pub(crate) type SqsReceiveError = SdkError<ReceiveMessageError, HttpResponse>;
@@ -22,6 +23,7 @@ pub(crate) type DBUpdateError = SdkError<UpdateItemError, HttpResponse>;
 // S3 related errors
 pub(crate) type S3ListObjectsError = SdkError<ListObjectsV2Error, HttpResponse>;
 pub(crate) type S3GetObjectError = SdkError<GetObjectError, HttpResponse>;
+pub(crate) type S3PutObjectError = SdkError<PutObjectError, HttpResponse>;
 
 #[derive(thiserror::Error, Debug)]
 pub enum DBError {
@@ -32,7 +34,7 @@ pub enum DBError {
     #[error(transparent)]
     ItemFormatError(#[from] ItemError),
     #[error(transparent)]
-    UpdateItemError(#[from] UpdateItemError)
+    UpdateItemError(#[from] DBUpdateError),
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -43,6 +45,8 @@ pub enum S3Error {
     GetObjectError(#[from] S3GetObjectError),
     #[error(transparent)]
     ListObjectsError(#[from] S3ListObjectsError),
+    #[error(transparent)]
+    PutObjectError(#[from] S3PutObjectError),
     #[error(transparent)]
     IoError(#[from] std::io::Error),
     #[error(transparent)]
@@ -61,6 +65,10 @@ pub enum CompilationError {
     UnexpectedStatusError(String), // ignorable
     #[error("Unsupported version: {0}")]
     VersionNotSupported(String),
+    #[error(transparent)]
+    IoError(#[from] std::io::Error),
+    #[error("Failed to compile: {0}")]
+    CompilationFailureError(String),
 }
 
 #[derive(thiserror::Error, Debug)]
