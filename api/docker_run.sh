@@ -3,6 +3,8 @@
 # Note: This script needs to run from inside /api dir
 export PROMTAIL_BASE_DIR=$(pwd)
 export METRICS_PORT=8001
+export ENVIRONMENT=${ENVIRONMENT:-dev}
+
 grafana-agent-flow run ./configs/grafana-logs.config.river &
 
 cargo run --release
