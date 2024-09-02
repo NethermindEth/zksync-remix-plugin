@@ -1,6 +1,7 @@
 mod commands;
 mod dynamodb_client;
 mod errors;
+mod s3_client;
 mod sqs_client;
 mod sqs_listener;
 mod utils;
@@ -8,14 +9,19 @@ mod worker;
 
 use aws_config::BehaviorVersion;
 use aws_runtime::env_config::file::{EnvConfigFileKind, EnvConfigFiles};
-use std::time::Duration;
+use std::num::NonZeroUsize;
 
-use crate::{sqs_client::SqsClient, sqs_listener::SqsListener};
+use crate::dynamodb_client::DynamoDBClient;
+use crate::s3_client::S3Client;
+use crate::sqs_client::SqsClient;
+use crate::worker::WorkerEngine;
 
 const AWS_PROFILE_DEFAULT: &str = "dev";
 // TODO: remove
 pub(crate) const QUEUE_URL_DEFAULT: &str =
     "https://sqs.ap-southeast-2.amazonaws.com/266735844848/zksync-sqs";
+const TABLE_NAME_DEFAULT: &str = "zksync-table";
+const BUCKET_NAME_DEFAULT: &str = "zksync-compilation-s3";
 
 // TODO: state synchronization
 
@@ -36,17 +42,16 @@ async fn main() {
     let sqs_client = aws_sdk_sqs::Client::new(&config);
     let sqs_client = SqsClient::new(sqs_client, QUEUE_URL_DEFAULT);
 
-    let sqs_listener = SqsListener::new(sqs_client, Duration::from_secs(1));
-    let sqs_receiver = sqs_listener.receiver();
+    // Initialize DynamoDb client
+    let db_client = aws_sdk_dynamodb::Client::new(&config);
+    let db_client = DynamoDBClient::new(db_client, TABLE_NAME_DEFAULT);
 
-    while let Ok(message) = sqs_receiver.recv().await {
-        println!("{:?}", message);
-        if let Some(receipt_handle) = message.receipt_handle {
-            sqs_receiver
-                .delete_message(receipt_handle)
-                .await
-                .map_err(|err| println!("delete error: {}", err.to_string()))
-                .unwrap();
-        }
-    }
+    // Initialize S3 client
+    let s3_client = aws_sdk_s3::Client::new(&config);
+    let s3_client = S3Client::new(s3_client, BUCKET_NAME_DEFAULT);
+
+    let mut engine = WorkerEngine::new(sqs_client, db_client, s3_client, true);
+    engine.start(NonZeroUsize::new(10).unwrap());
+
+    engine.wait().await;
 }

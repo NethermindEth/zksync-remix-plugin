@@ -3,8 +3,6 @@ use aws_sdk_dynamodb::error::SdkError;
 use aws_sdk_dynamodb::operation::update_item::UpdateItemError;
 use aws_sdk_dynamodb::types::AttributeValue;
 use aws_sdk_s3::presigning::PresigningConfig;
-use aws_sdk_s3::types::Object;
-use std::ops::Add;
 use std::path::Path;
 use std::process::Stdio;
 use std::time::Duration;
@@ -14,12 +12,12 @@ use types::item::{Item, Status};
 use types::{CompilationConfig, CompilationRequest, ARTIFACTS_FOLDER};
 
 use crate::dynamodb_client::DynamoDBClient;
-use crate::errors::{CompilationError, DBError, S3Error};
+use crate::errors::{CompilationError, DBError};
+use crate::s3_client::S3Client;
 use crate::utils::cleaner::AutoCleanUp;
 use crate::utils::hardhat_config::HardhatConfigBuilder;
 use crate::utils::lib::{
-    initialize_files, list_files_in_directory,
-    DEFAULT_SOLIDITY_VERSION, SOL_ROOT, ZKSOLC_VERSIONS,
+    initialize_files, list_files_in_directory, DEFAULT_SOLIDITY_VERSION, SOL_ROOT, ZKSOLC_VERSIONS,
 };
 
 pub struct CompilationFile {
@@ -43,7 +41,7 @@ pub struct CompilationArtifact {
 pub async fn compile(
     request: CompilationRequest,
     db_client: &DynamoDBClient,
-    s3_client: &aws_sdk_s3::Client,
+    s3_client: &S3Client,
 ) -> Result<(), CompilationError> {
     let item = db_client.get_item(request.id.clone()).await?;
     let item: Item = match item {
@@ -62,7 +60,8 @@ pub async fn compile(
         }
     }
 
-    let files = extract_files(request.id.clone(), s3_client).await?;
+    let dir = format!("{}/", request.id);
+    let files = s3_client.extract_files(&dir).await?;
     {
         let db_update_result = db_client
             .client
@@ -102,7 +101,7 @@ pub async fn compile(
             contracts: files,
         },
     )
-        .await
+    .await
     {
         Ok(val) => Ok(on_compilation_success(&request.id, db_client, s3_client, val).await?),
         Err(err) => match err {
@@ -114,123 +113,27 @@ pub async fn compile(
                 &db_client,
                 format!("Unsupported compiler version: {}", value),
             )
-                .await?),
+            .await?),
             _ => Err(err),
         },
     }
 }
 
-async fn list_all_keys(
-    client: &aws_sdk_s3::Client,
-    id: String,
-    bucket: &str,
-) -> Result<Vec<Object>, S3Error> {
-    let mut objects = Vec::new();
-    let mut continuation_token: Option<String> = None;
-
-    let id = id.clone().add("/");
-    loop {
-        let mut request = client
-            .list_objects_v2()
-            .bucket(bucket)
-            .delimiter('/')
-            .prefix(id.clone());
-        if let Some(token) = continuation_token {
-            request = request.continuation_token(token);
-        }
-
-        let response = request.send().await?;
-        if let Some(contents) = response.contents {
-            objects.extend(contents);
-        }
-
-        let is_truncated = if let Some(is_truncated) = response.is_truncated {
-            is_truncated
-        } else {
-            warn!("is_truncated empty");
-            break;
-        };
-
-        if !is_truncated {
-            break;
-        }
-
-        continuation_token = response.next_continuation_token;
-        if continuation_token.is_none() {
-            error!("continuation_token wasn't set!");
-            break;
-        }
-    }
-
-    Ok(objects)
-}
-
-async fn extract_files(
-    id: String,
-    s3_client: &aws_sdk_s3::Client,
-) -> Result<Vec<CompilationFile>, S3Error> {
-    let objects = list_all_keys(&s3_client, id.to_string(), "TODO").await?;
-
-    let mut files = vec![];
-    for object in objects {
-        let key = object.key().ok_or(S3Error::InvalidObjectError)?;
-        let expected_size = object.size.ok_or(S3Error::InvalidObjectError)?;
-
-        let mut object = s3_client
-            .get_object()
-            .bucket("TODO:")
-            .key(key)
-            .send()
-            .await?;
-
-        let mut byte_count = 0;
-        let mut contents = Vec::new();
-        while let Some(bytes) = object.body.try_next().await? {
-            let bytes_len = bytes.len();
-            std::io::Write::write_all(&mut contents, &bytes)?;
-            byte_count += bytes_len;
-        }
-
-        if byte_count as i64 != expected_size {
-            error!("Fetched num bytes != expected size of file.");
-            return Err(S3Error::InvalidObjectError);
-        }
-
-        files.push(CompilationFile {
-            file_content: contents,
-            file_name: key.to_string(),
-        });
-    }
-
-    Ok(files)
-}
-
 pub async fn on_compilation_success(
     id: &str,
     db_client: &DynamoDBClient,
-    s3_client: &aws_sdk_s3::Client,
+    s3_client: &S3Client,
     compilation_artifacts: Vec<CompilationArtifact>,
 ) -> Result<(), CompilationError> {
     let mut presigned_urls = Vec::with_capacity(compilation_artifacts.len());
     for el in compilation_artifacts {
         let file_key = format!("{}/{}/{}", ARTIFACTS_FOLDER, id, el.file_name);
-        s3_client
-            .put_object()
-            .bucket("TODO")
-            .key(file_key.clone())
-            .body(el.file_content.into())
-            .send()
-            .await
-            .map_err(S3Error::from)?;
+        s3_client.put_object(&file_key, el.file_content).await?;
 
         let expires_in = PresigningConfig::expires_in(Duration::from_secs(5 * 60 * 60)).unwrap();
         let presigned_request = s3_client
-            .get_object()
-            .bucket("TODO")
-            .key(file_key)
-            .presigned(expires_in)
-            .await
-            .map_err(S3Error::from)?;
+            .get_object_presigned(&file_key, expires_in)
+            .await?;
 
         presigned_urls.push(presigned_request.uri().to_string());
     }
@@ -356,7 +259,9 @@ pub async fn do_compile(
         let err_msg = String::from_utf8_lossy(&output.stderr);
         error!("Compilation error: {}", err_msg);
         // TODO: handle
-        return Err(CompilationError::CompilationFailureError(err_msg.to_string()));
+        return Err(CompilationError::CompilationFailureError(
+            err_msg.to_string(),
+        ));
     }
 
     // fetch the files in the artifacts directory

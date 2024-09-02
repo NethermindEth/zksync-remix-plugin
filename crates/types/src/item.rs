@@ -21,7 +21,7 @@ impl fmt::Display for Status {
         match self {
             Status::Pending => write!(f, "Pending"),
             Status::Compiling => write!(f, "Compiling"),
-            Status::Ready {presigned_urls: _} => write!(f, "Ready"),
+            Status::Ready { presigned_urls: _ } => write!(f, "Ready"),
             Status::Failed(msg) => write!(f, "Failed: {}", msg),
         }
     }
@@ -32,7 +32,7 @@ impl From<&Status> for u32 {
         match value {
             Status::Pending => 0,
             Status::Compiling => 1,
-            Status::Ready {presigned_urls: _} => 2,
+            Status::Ready { presigned_urls: _ } => 2,
             Status::Failed(_) => 3,
         }
     }
