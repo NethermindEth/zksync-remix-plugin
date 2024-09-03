@@ -68,8 +68,9 @@ pub async fn compile(
             .update_item()
             .table_name(db_client.table_name.clone())
             .key("ID", AttributeValue::S(request.id.clone()))
-            .update_expression("SET Status = :newStatus")
-            .condition_expression("Status = :currentStatus") // TODO: check
+            .update_expression("SET #status = :newStatus")
+            .condition_expression("#status = :currentStatus") // TODO: check
+            .expression_attribute_names("#status", "Status")
             .expression_attribute_values(
                 ":newStatus",
                 AttributeValue::N(u32::from(Status::Compiling).to_string()),
@@ -84,9 +85,10 @@ pub async fn compile(
             Ok(_) => {}
             Err(SdkError::ServiceError(err)) => match err.err() {
                 UpdateItemError::ConditionalCheckFailedException(_) => {
+                    error!("Conditional check not met");
                     return Err(CompilationError::UnexpectedStatusError(
                         "Concurrent status change from another instance".into(),
-                    ))
+                    ));
                 }
                 _ => return Err(DBError::from(SdkError::ServiceError(err)).into()),
             },
@@ -138,13 +140,19 @@ pub async fn on_compilation_success(
         presigned_urls.push(presigned_request.uri().to_string());
     }
 
+    if presigned_urls.is_empty() {
+        // TODO: AttributeValue::Ss doesn't allow empty arrays. Decide what to do. for now
+        presigned_urls.push("".to_string());
+    }
+
     db_client
         .client
         .update_item()
         .table_name(db_client.table_name.clone())
         .key("ID", AttributeValue::S(id.to_string()))
-        .update_expression("SET Status = :newStatus")
-        .update_expression("SET Data = :data")
+        .update_expression("SET #status = :newStatus, #data = :data")
+        .expression_attribute_names("#status", "Status")
+        .expression_attribute_names("#data", "Data")
         .expression_attribute_values(
             ":newStatus",
             AttributeValue::N(2.to_string()), // Ready
@@ -167,8 +175,9 @@ pub async fn on_compilation_failed(
         .update_item()
         .table_name(db_client.table_name.clone())
         .key("ID", AttributeValue::S(id.to_string()))
-        .update_expression("SET Status = :newStatus")
-        .update_expression("SET Data = :data")
+        .update_expression("SET #status = :newStatus, #data = :data")
+        .expression_attribute_names("#status", "Status")
+        .expression_attribute_names("#data", "Data")
         .expression_attribute_values(
             ":newStatus",
             AttributeValue::N(3.to_string()), // Failed
@@ -192,20 +201,15 @@ pub async fn do_compile(
     }
 
     // root directory for the contracts
-    let workspace_path_str = format!("{}/{}", SOL_ROOT, namespace);
-    let workspace_path = Path::new(&workspace_path_str);
-
+    let workspace_path = Path::new(SOL_ROOT).join(namespace);
     // root directory for the artifacts
-    let artifacts_path_str = format!("{}/{}", workspace_path_str, "artifacts-zk");
-    let artifacts_path = Path::new(&artifacts_path_str);
-
+    let artifacts_path = workspace_path.join("artifacts-zk");
     // root directory for user files (hardhat config, etc)
-    let user_files_path_str = workspace_path_str.clone();
-    let hardhat_config_path = Path::new(&user_files_path_str).join("hardhat.config.ts");
+    let hardhat_config_path = workspace_path.join("hardhat.config.ts");
 
     // instantly create the directories
-    tokio::fs::create_dir_all(workspace_path).await?;
-    tokio::fs::create_dir_all(artifacts_path).await?;
+    tokio::fs::create_dir_all(&workspace_path).await?;
+    tokio::fs::create_dir_all(&artifacts_path).await?;
 
     // when the compilation is done, clean up the directories
     // it will be called when the AutoCleanUp struct is dropped
@@ -236,7 +240,7 @@ pub async fn do_compile(
         .collect();
 
     // initialize the files
-    initialize_files(workspace_path, contracts).await?;
+    initialize_files(&workspace_path, contracts).await?;
 
     // Limit number of spawned processes. RAII released
     let _permit = SPAWN_SEMAPHORE.acquire().await.expect("Expired semaphore");
@@ -244,7 +248,7 @@ pub async fn do_compile(
     let process = tokio::process::Command::new("npx")
         .arg("hardhat")
         .arg("compile")
-        .current_dir(workspace_path)
+        .current_dir(&workspace_path)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()?;
@@ -267,14 +271,14 @@ pub async fn do_compile(
     // fetch the files in the artifacts directory
     let mut file_contents: Vec<CompilationArtifact> = vec![];
     let file_paths =
-        list_files_in_directory(artifacts_path).expect("Unexpected error listing artifact");
+        list_files_in_directory(&artifacts_path).expect("Unexpected error listing artifact");
     for file_path in file_paths.iter() {
         // TODO: change this - don't store files in RAM. copy 1-1 to S3
         let file_content = tokio::fs::read(file_path).await?;
         let full_path = Path::new(file_path);
 
         let relative_path = full_path
-            .strip_prefix(artifacts_path)
+            .strip_prefix(&artifacts_path)
             .expect("Unexpected prefix");
         let relative_path_str = relative_path.to_str().unwrap();
 

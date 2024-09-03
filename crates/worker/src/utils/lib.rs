@@ -187,12 +187,11 @@ pub fn generate_mock_solidity_file_content() -> String {
 }
 
 pub async fn initialize_files(
-    dst_dir: &Path,
+    dst_dir: impl AsRef<Path>,
     files: Vec<CompilationFile>,
 ) -> Result<(), std::io::Error> {
     for file in files {
-        let file_path_str = format!("{}/{}", dst_dir.to_str().unwrap(), file.file_name);
-        let file_path = Path::new(&file_path_str);
+        let file_path = dst_dir.as_ref().join(file.file_name);
 
         // create parent directories
         tokio::fs::create_dir_all(file_path.parent().unwrap()).await?;

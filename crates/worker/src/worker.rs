@@ -91,7 +91,16 @@ impl RunningWorker {
 
             match sqs_message {
                 SqsMessage::Compile { request } => {
-                    let _ = compile(request, &db_client, &s3_client).await; // TODO:
+                    let result = compile(request, &db_client, &s3_client).await; // TODO:
+                    match result {
+                        Ok(()) => {
+                            println!("Success"); // TODO: remove
+                        }
+                        Err(err) => {
+                            println!("err: {:?}", err);
+                            info!("err: {}", err.to_string());
+                        }
+                    }
                 }
                 SqsMessage::Verify { request } => {} // TODO;
             }
