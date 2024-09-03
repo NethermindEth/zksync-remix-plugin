@@ -5,6 +5,7 @@ use aws_sdk_s3::types::Object;
 use aws_sdk_s3::Client;
 use aws_smithy_types::byte_stream::ByteStream;
 use std::io::Write;
+use std::path::Path;
 use tracing::{error, warn};
 
 #[derive(Clone)]
@@ -36,9 +37,15 @@ impl S3Client {
                 return Err(S3Error::InvalidObjectError);
             }
 
+            let file_path = Path::new(key)
+                .strip_prefix(dir)
+                .expect("Unreachable. list_all_keys bug.");
             files.push(CompilationFile {
                 file_content: contents,
-                file_name: key.to_string(),
+                file_name: file_path
+                    .to_str()
+                    .expect("Unexpected encoding issue.")
+                    .to_string(),
             });
         }
 
