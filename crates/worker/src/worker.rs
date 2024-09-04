@@ -1,6 +1,3 @@
-use crate::commands::compile::compile;
-use crate::dynamodb_client::DynamoDBClient;
-use crate::s3_client::S3Client;
 use std::num::NonZeroUsize;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -12,6 +9,10 @@ use tracing::{error, info, warn};
 use types::SqsMessage;
 use uuid::Uuid;
 
+use crate::commands::compile::compile;
+use crate::dynamodb_client::DynamoDBClient;
+use crate::errors::CompilationError;
+use crate::s3_client::S3Client;
 use crate::sqs_client::SqsClient;
 use crate::sqs_listener::{SqsListener, SqsReceiver};
 use crate::utils::lib::{timestamp, DURATION_TO_PURGE};
@@ -93,13 +94,27 @@ impl RunningWorker {
                 SqsMessage::Compile { request } => {
                     let result = compile(request, &db_client, &s3_client).await; // TODO:
                     match result {
-                        Ok(()) => {
-                            println!("Success"); // TODO: remove
-                        }
-                        Err(err) => {
-                            println!("err: {:?}", err);
-                            info!("err: {}", err.to_string());
-                        }
+                        Ok(()) => {}
+                        Err(err) => match err {
+                            CompilationError::DBError(err) => {
+                                warn!("compilation DBError: {}", err.to_string());
+                                continue;
+                            }
+                            CompilationError::S3Error(err) => {
+                                warn!("compilation S3Error: {}", err.to_string());
+                                continue;
+                            }
+                            CompilationError::NoDBItemError(err) => {
+                                warn!("{}", err.to_string());
+                            }
+                            CompilationError::UnexpectedStatusError(err) => {
+                                warn!("{}", err.to_string());
+                            }
+                            CompilationError::IoError(err) => {
+                                warn!("IOError: {}", err.to_string());
+                            }
+                            _ => error!("Unexpected branch."),
+                        },
                     }
                 }
                 SqsMessage::Verify { request } => {} // TODO;
