@@ -69,7 +69,7 @@ pub async fn compile(
             .table_name(db_client.table_name.clone())
             .key("ID", AttributeValue::S(request.id.clone()))
             .update_expression("SET #status = :newStatus")
-            .condition_expression("#status = :currentStatus") // TODO: check
+            .condition_expression("#status = :currentStatus")
             .expression_attribute_names("#status", "Status")
             .expression_attribute_values(
                 ":newStatus",
@@ -262,7 +262,6 @@ pub async fn do_compile(
     if !status.success() {
         let err_msg = String::from_utf8_lossy(&output.stderr);
         error!("Compilation error: {}", err_msg);
-        // TODO: handle
         return Err(CompilationError::CompilationFailureError(
             err_msg.to_string(),
         ));

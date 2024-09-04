@@ -62,7 +62,7 @@ pub enum CompilationError {
     #[error("Item isn't id DB: {0}")]
     NoDBItemError(String),
     #[error("Unexpected status: {0}")]
-    UnexpectedStatusError(String), // ignorable
+    UnexpectedStatusError(String),
     #[error("Unsupported version: {0}")]
     VersionNotSupported(String),
     #[error(transparent)]
