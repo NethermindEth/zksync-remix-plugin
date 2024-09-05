@@ -6,8 +6,9 @@ use aws_sdk_sqs::Client;
 use std::sync::atomic::{AtomicU8, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
+use tokio::select;
 use tokio::sync::{mpsc, oneshot, Mutex};
-use tokio::time::sleep;
+use tokio::time::{sleep, Instant};
 
 enum Action {
     Default,
@@ -53,14 +54,35 @@ impl SqsClientWrapper {
 
     // TODO: start
     async fn worker(client: SqsClient, state: Arc<AtomicU8>, mut receiver: mpsc::Receiver<Action>) {
+        const SLEEP_DURATION: Duration = Duration::from_secs(3);
         let mut pending_actions = vec![];
 
-        while let Some(action) = receiver.recv().await {
-            pending_actions.push(action);
+        loop {
+            if pending_actions.is_empty() {
+                if let Some(action) = receiver.recv().await {
+                    pending_actions.push(action);
+                } else {
+                    return;
+                }
+            }
 
-            while !pending_actions.is_empty() {
-                Self::resend_pending_actions(&mut pending_actions, &client, &state).await;
-                sleep(Duration::from_secs(3)).await;
+            Self::resend_pending_actions(&mut pending_actions, &client, &state).await;
+
+            let start_time = Instant::now();
+            let value = select! {
+                value = receiver.recv() => value,
+                _ = sleep(SLEEP_DURATION) => continue,
+            };
+
+            if let Some(action) = value {
+                pending_actions.push(action);
+            } else {
+                return;
+            }
+
+            let elapsed = start_time.elapsed();
+            if let Some(remaining_sleep) = SLEEP_DURATION.checked_sub(elapsed) {
+                sleep(remaining_sleep).await;
             }
         }
     }
@@ -80,7 +102,7 @@ impl SqsClientWrapper {
                         let _ = sender.send(Ok(val));
                     }
                     Err(err) => {
-                        let _  = sender.send(Err(err));
+                        let _ = sender.send(Err(err));
                     }
                     Ok(None) => {
                         // Keeping in the array to resend.
@@ -97,7 +119,7 @@ impl SqsClientWrapper {
                         let _ = sender.send(Ok(val));
                     }
                     Err(err) => {
-                        let _ =  sender.send(Err(err));
+                        let _ = sender.send(Err(err));
                     }
                     Ok(None) => {
                         pending_actions[pivot] = Action::Delete {
@@ -136,14 +158,14 @@ impl SqsClientWrapper {
     pub async fn delete_message(
         &self,
         receipt_handle: impl Into<String>,
-    ) -> Result<(), SqsDeleteError> {
+    ) -> Result<DeleteMessageOutput, SqsDeleteError> {
         let receipt_handle = receipt_handle.into();
         match self.state.load(Ordering::Acquire) {
             0 => match self.client.delete_attempt(receipt_handle.clone()).await {
                 Ok(None) => self
                     .state
                     .store(State::Reconnecting as u8, Ordering::Release),
-                Ok(Some(_)) => return Ok(()),
+                Ok(Some(value)) => return Ok(value),
                 Err(err) => return Err(err),
             },
             1 => {}
@@ -159,6 +181,6 @@ impl SqsClientWrapper {
             })
             .await;
 
-        receiver.await.unwrap().map(|_| ()) // TODO: for now
+        receiver.await.unwrap() // TODO: for now
     }
 }

@@ -1,5 +1,5 @@
 use crate::errors::{SqsDeleteError, SqsReceiveError};
-use async_channel::{Receiver, Recv, Sender};
+use async_channel::{Receiver, Recv, Sender, TrySendError};
 use aws_sdk_sqs::config::http::HttpResponse;
 use aws_sdk_sqs::error::SdkError;
 use aws_sdk_sqs::operation::receive_message::ReceiveMessageError;
@@ -34,7 +34,7 @@ impl SqsListener {
         client: SqsClientWrapper,
         sender: Sender<Message>,
         poll_interval: Duration,
-    ) -> Result<(), SdkError<ReceiveMessageError, HttpResponse>> {
+    ) -> Result<(), SqsReceiveError> {
         loop {
             let response = client.receive_message().await?;
             let messages = if let Some(messages) = response.messages {
@@ -44,8 +44,16 @@ impl SqsListener {
             };
 
             for message in messages {
-                if sender.send(message).await.is_err() {
-                    return Ok(());
+                match sender.try_send(message) {
+                    Ok(()) => {},
+                    Err(err) => match err {
+                        TrySendError::Full(_) => {
+                            // If the channel is full ignoring the message.
+                            // The reason is possibility of "visibility timeout" expiration
+                            // leading to other instance fetching the message not only us.
+                        },
+                        TrySendError::Closed(_) => return Ok(())
+                    }
                 }
             }
 
@@ -79,6 +87,7 @@ impl SqsReceiver {
         &self,
         receipt_handle: impl Into<String>,
     ) -> Result<(), SqsDeleteError> {
-        self.client.delete_message(receipt_handle).await
+        let _ = self.client.delete_message(receipt_handle).await?;
+        Ok(())
     }
 }
