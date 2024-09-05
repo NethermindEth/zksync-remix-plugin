@@ -1,15 +1,11 @@
 use crate::errors::{SqsDeleteError, SqsReceiveError};
 use async_channel::{Receiver, Recv, Sender, TrySendError};
-use aws_sdk_sqs::config::http::HttpResponse;
-use aws_sdk_sqs::error::SdkError;
-use aws_sdk_sqs::operation::receive_message::ReceiveMessageError;
 use aws_sdk_sqs::types::Message;
 use std::time::Duration;
 use tokio::task::JoinHandle;
 use tokio::time::sleep;
 
 use crate::sqs_client::wrapper::SqsClientWrapper;
-use crate::sqs_client::SqsClient;
 
 pub struct SqsListener {
     handle: JoinHandle<Result<(), SqsReceiveError>>,
@@ -19,8 +15,8 @@ pub struct SqsListener {
 
 impl SqsListener {
     pub fn new(client: SqsClientWrapper, poll_interval: Duration) -> Self {
-        // TODO: unbounded?
-        let (sender, receiver) = async_channel::bounded(1000);
+        // Low channel capacity in order not to hit SQS "visibility timeout".
+        let (sender, receiver) = async_channel::bounded(20);
         let handle = tokio::spawn(Self::listen(client.clone(), sender, poll_interval));
 
         Self {
@@ -49,8 +45,8 @@ impl SqsListener {
                     Err(err) => match err {
                         TrySendError::Full(_) => {
                             // If the channel is full ignoring the message.
-                            // The reason is possibility of "visibility timeout" expiration
-                            // leading to other instance fetching the message not only us.
+                            // The reason is possibility of SQS "visibility timeout" expiration
+                            // leading to other instance fetching the same message, not only us.
                         },
                         TrySendError::Closed(_) => return Ok(())
                     }
