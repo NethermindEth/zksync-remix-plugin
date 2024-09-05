@@ -41,15 +41,15 @@ impl SqsListener {
 
             for message in messages {
                 match sender.try_send(message) {
-                    Ok(()) => {},
+                    Ok(()) => {}
                     Err(err) => match err {
                         TrySendError::Full(_) => {
                             // If the channel is full ignoring the message.
                             // The reason is possibility of SQS "visibility timeout" expiration
                             // leading to other instance fetching the same message, not only us.
-                        },
-                        TrySendError::Closed(_) => return Ok(())
-                    }
+                        }
+                        TrySendError::Closed(_) => return Ok(()),
+                    },
                 }
             }
 

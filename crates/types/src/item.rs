@@ -81,6 +81,7 @@ pub struct Item {
     // TODO: uuid?
     pub id: String,
     pub status: Status,
+    // TODO: type: Compiling/Verifying
 }
 
 impl From<Item> for HashMap<String, AttributeValue> {

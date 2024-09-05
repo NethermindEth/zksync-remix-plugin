@@ -38,7 +38,7 @@ impl DynamoDBClient {
             .await?;
 
         if let Some(item) = result.item {
-            // TODO: maybe change status when error?
+            // TODO: maybe change status or delete when error?
             Ok(Some(item.try_into()?))
         } else {
             Ok(None)
