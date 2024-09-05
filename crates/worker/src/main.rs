@@ -15,7 +15,7 @@ use crate::dynamodb_client::DynamoDBClient;
 use crate::s3_client::S3Client;
 use crate::sqs_client::wrapper::SqsClientWrapper;
 use crate::sqs_client::SqsClient;
-use crate::worker::WorkerEngine;
+use crate::worker::EngineBuilder;
 
 const AWS_PROFILE_DEFAULT: &str = "dev";
 // TODO: remove
@@ -24,7 +24,7 @@ pub(crate) const QUEUE_URL_DEFAULT: &str =
 const TABLE_NAME_DEFAULT: &str = "zksync-table";
 const BUCKET_NAME_DEFAULT: &str = "zksync-compilation-s3";
 
-// TODO: state synchronization
+// TODO: state synchronization for purging
 
 #[tokio::main]
 async fn main() {
@@ -51,8 +51,8 @@ async fn main() {
     let s3_client = aws_sdk_s3::Client::new(&config);
     let s3_client = S3Client::new(s3_client, BUCKET_NAME_DEFAULT);
 
-    let mut engine = WorkerEngine::new(sqs_client, db_client, s3_client, true);
-    engine.start(NonZeroUsize::new(10).unwrap());
+    let mut engine = EngineBuilder::new(sqs_client, db_client, s3_client, true);
+    let running_engine = engine.start(NonZeroUsize::new(10).unwrap());
 
-    engine.wait().await;
+    running_engine.wait().await;
 }

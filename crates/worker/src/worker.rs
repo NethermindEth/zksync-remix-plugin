@@ -18,21 +18,63 @@ use crate::sqs_listener::{SqsListener, SqsReceiver};
 use crate::utils::lib::{timestamp, DURATION_TO_PURGE};
 
 pub type Timestamp = u64;
-pub struct RunningWorker {
+
+pub struct EngineBuilder {
+    sqs_client: SqsClientWrapper,
+    db_client: DynamoDBClient,
+    s3_client: S3Client,
+    is_supervisor_enabled: bool,
+    running_workers: Vec<RunningEngine>,
+}
+
+impl EngineBuilder {
+    pub fn new(
+        sqs_client: SqsClientWrapper,
+        db_client: DynamoDBClient,
+        s3_client: S3Client,
+        supervisor_enabled: bool,
+    ) -> Self {
+        EngineBuilder {
+            sqs_client,
+            db_client,
+            s3_client,
+            running_workers: vec![],
+            is_supervisor_enabled: supervisor_enabled,
+        }
+    }
+
+    pub fn start(self, num_workers: NonZeroUsize) -> RunningEngine {
+        let sqs_listener = SqsListener::new(self.sqs_client, Duration::from_millis(500));
+        let s3_client = self.s3_client.clone();
+        let db_client = self.db_client.clone();
+
+        RunningEngine::new(
+            sqs_listener,
+            db_client,
+            s3_client,
+            num_workers.get(),
+            self.is_supervisor_enabled,
+        )
+    }
+}
+
+pub struct RunningEngine {
     sqs_listener: SqsListener,
     expiration_timestamps: Arc<Mutex<Vec<(Uuid, Timestamp)>>>,
     num_workers: usize,
     worker_threads: Vec<JoinHandle<()>>,
+    supervisor_thread: Option<JoinHandle<()>>,
 }
 
-impl RunningWorker {
+impl RunningEngine {
     pub fn new(
         sqs_listener: SqsListener,
         db_client: DynamoDBClient,
         s3_client: S3Client,
         num_workers: usize,
-        expiration_timestamps: Arc<Mutex<Vec<(Uuid, Timestamp)>>>,
+        enable_supervisor: bool,
     ) -> Self {
+        let  expiration_timestamps=  Arc::new(Mutex::new(vec![]));
         let mut worker_threads = Vec::with_capacity(num_workers);
         for _ in 0..num_workers {
             // Start worker
@@ -42,7 +84,7 @@ impl RunningWorker {
             let expiration_timestamps = expiration_timestamps.clone();
 
             worker_threads.push(tokio::spawn(async move {
-                RunningWorker::worker(
+                RunningEngine::worker(
                     sqs_receiver,
                     db_client_copy,
                     s3_client_copy,
@@ -52,10 +94,21 @@ impl RunningWorker {
             }));
         }
 
+        let supervisor_thread = if enable_supervisor {
+            let db_client = db_client.clone();
+            let expiration_timestamps = expiration_timestamps.clone();
+            Some(tokio::spawn(async move {
+                RunningEngine::supervisor(db_client, expiration_timestamps).await;
+            }))
+        } else {
+            None
+        };
+
         Self {
             sqs_listener,
             expiration_timestamps,
             num_workers,
+            supervisor_thread,
             worker_threads,
         }
     }
@@ -125,92 +178,6 @@ impl RunningWorker {
         }
     }
 
-    pub async fn wait(self) {
-        futures::future::join_all(self.worker_threads).await;
-    }
-}
-
-pub struct WorkerEngine {
-    sqs_client: SqsClientWrapper,
-    db_client: DynamoDBClient,
-    s3_client: S3Client,
-    expiration_timestamps: Arc<Mutex<Vec<(Uuid, Timestamp)>>>,
-    is_supervisor_enabled: Arc<AtomicBool>,
-    running_workers: Vec<RunningWorker>,
-    supervisor_thread: Arc<Option<JoinHandle<()>>>,
-}
-
-impl WorkerEngine {
-    pub fn new(
-        sqs_client: SqsClientWrapper,
-        db_client: DynamoDBClient,
-        s3_client: S3Client,
-        supervisor_enabled: bool,
-    ) -> Self {
-        let is_supervisor_enabled = Arc::new(AtomicBool::new(supervisor_enabled));
-        let expiration_timestamps = Arc::new(Mutex::new(vec![]));
-
-        WorkerEngine {
-            sqs_client,
-            db_client,
-            s3_client,
-            supervisor_thread: Arc::new(None),
-            expiration_timestamps,
-            running_workers: vec![],
-            is_supervisor_enabled,
-        }
-    }
-
-    pub fn start(&mut self, num_workers: NonZeroUsize) {
-        let sqs_listener = SqsListener::new(self.sqs_client.clone(), Duration::from_millis(500));
-        let s3_client = self.s3_client.clone();
-        let db_client = self.db_client.clone();
-        self.running_workers.push(RunningWorker::new(
-            sqs_listener,
-            db_client,
-            s3_client,
-            num_workers.get(),
-            self.expiration_timestamps.clone(),
-        ));
-
-        // TODO: not protection really
-        if self.is_supervisor_enabled.load(Ordering::Acquire) && self.supervisor_thread.is_none() {
-            let db_client = self.db_client.clone();
-            let expiration_timestamps = self.expiration_timestamps.clone();
-            self.supervisor_thread = Arc::new(Some(tokio::spawn(async move {
-                WorkerEngine::supervisor(db_client, expiration_timestamps).await;
-            })));
-        }
-    }
-
-    pub async fn wait(self) {
-        let mut worker_futures = Vec::new();
-        for worker in self.running_workers {
-            worker_futures.push(worker.wait());
-        }
-
-        // Wait for all workers to finish
-        futures::future::join_all(worker_futures).await;
-
-        // Wait for the supervisor thread if it exists
-        if let Some(supervisor_thread) = Arc::try_unwrap(self.supervisor_thread).ok().flatten() {
-            supervisor_thread.await.expect("Supervisor thread panicked");
-        }
-    }
-
-    // pub async fn enable_supervisor_thread(&mut self) {
-    //     if self.supervisor_thread.is_some() {
-    //         return;
-    //     }
-    //
-    //     self.is_supervisor_enabled.store(true, Ordering::Release);
-    //     let expiration_timestamps = self.expiration_timestamps.clone();
-    //
-    //     self.supervisor_thread = Arc::new(Some(tokio::spawn(async move {
-    //         WorkerEngine::supervisor(self.db_client.clone(), expiration_timestamps).await;
-    //     })));
-    // }
-
     pub async fn supervisor(
         db_client: DynamoDBClient,
         expiration_timestamps: Arc<Mutex<Vec<(Uuid, Timestamp)>>>,
@@ -241,14 +208,7 @@ impl WorkerEngine {
         }
     }
 
-    // pub async fn disable_supervisor_thread(&mut self) {
-    //     let mut is_enabled = self.is_supervisor_enabled.lock().await;
-    //     *is_enabled = false;
-    //
-    //     if let Ok(Some(join_handle)) = Arc::try_unwrap(self.supervisor_thread.clone()) {
-    //         let _ = join_handle.await;
-    //     }
-    //
-    //     self.supervisor_thread = Arc::new(None);
-    // }
+    pub async fn wait(self) {
+        futures::future::join_all(self.worker_threads).await;
+    }
 }

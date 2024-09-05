@@ -10,7 +10,7 @@ use tokio::select;
 use tokio::sync::{mpsc, oneshot, Mutex};
 use tokio::time::{sleep, Instant};
 
-enum Action {
+pub enum Action {
     Default,
     Receive(oneshot::Sender<Result<ReceiveMessageOutput, SqsReceiveError>>),
     Delete {
