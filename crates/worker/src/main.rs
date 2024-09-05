@@ -13,6 +13,7 @@ use std::num::NonZeroUsize;
 
 use crate::dynamodb_client::DynamoDBClient;
 use crate::s3_client::S3Client;
+use crate::sqs_client::wrapper::SqsClientWrapper;
 use crate::sqs_client::SqsClient;
 use crate::worker::WorkerEngine;
 
@@ -40,7 +41,7 @@ async fn main() {
 
     // Initialize SQS client
     let sqs_client = aws_sdk_sqs::Client::new(&config);
-    let sqs_client = SqsClient::new(sqs_client, QUEUE_URL_DEFAULT);
+    let sqs_client = SqsClientWrapper::new(sqs_client, QUEUE_URL_DEFAULT);
 
     // Initialize DynamoDb client
     let db_client = aws_sdk_dynamodb::Client::new(&config);
