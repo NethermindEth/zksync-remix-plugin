@@ -68,16 +68,17 @@ impl RunningWorker {
     ) {
         // TODO: process error
         while let Ok(message) = sqs_receiver.recv().await {
-            let body = if let Some(body) = message.body {
-                body
+            let receipt_handle = if let Some(receipt_handle) = message.receipt_handle {
+                receipt_handle
             } else {
                 continue;
             };
 
-            let receipt_handle = if let Some(receipt_handle) = message.receipt_handle {
-                receipt_handle
+            let body = if let Some(body) = message.body {
+                body
             } else {
-                warn!("Has body but not handle");
+                warn!("Has handle but not body");
+                let _ = sqs_receiver.delete_message(receipt_handle).await;
                 continue;
             };
 

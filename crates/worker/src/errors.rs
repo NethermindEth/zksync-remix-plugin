@@ -26,6 +26,14 @@ pub(crate) type S3GetObjectError = SdkError<GetObjectError, HttpResponse>;
 pub(crate) type S3PutObjectError = SdkError<PutObjectError, HttpResponse>;
 
 #[derive(thiserror::Error, Debug)]
+pub enum SqsError {
+    #[error(transparent)]
+    ReceiveError(#[from] SqsReceiveError),
+    #[error(transparent)]
+    DeleteError(#[from] SqsDeleteError),
+}
+
+#[derive(thiserror::Error, Debug)]
 pub enum DBError {
     #[error(transparent)]
     DeleteItemError(#[from] DBDeleteError),
