@@ -8,6 +8,7 @@ use aws_sdk_s3::operation::put_object::PutObjectError;
 use aws_sdk_sqs::error::SdkError;
 use aws_sdk_sqs::operation::delete_message::DeleteMessageError;
 use aws_sdk_sqs::operation::receive_message::ReceiveMessageError;
+use tracing::{error};
 use types::item::ItemError;
 
 // SQS related errors
@@ -63,9 +64,9 @@ pub enum S3Error {
 
 #[derive(thiserror::Error, Debug)]
 pub enum CompilationError {
-    #[error(transparent)]
+    #[error("DBError: {0}")]
     DBError(#[from] DBError),
-    #[error(transparent)]
+    #[error("S3Error: {0}")]
     S3Error(#[from] S3Error),
     #[error("Item isn't id DB: {0}")]
     NoDBItemError(String),
@@ -73,10 +74,23 @@ pub enum CompilationError {
     UnexpectedStatusError(String),
     #[error("Unsupported version: {0}")]
     VersionNotSupported(String),
-    #[error(transparent)]
+    #[error("IoError: {0}")]
     IoError(#[from] std::io::Error),
     #[error("Failed to compile: {0}")]
     CompilationFailureError(String),
+}
+
+impl CompilationError {
+    pub fn recoverable(&self) -> bool {
+        match self {
+            CompilationError::DBError(_) => true,
+            CompilationError::S3Error(_) => true,
+            CompilationError::NoDBItemError(_) => false,
+            CompilationError::UnexpectedStatusError(_) => false,
+            CompilationError::IoError(_) => false,
+            _ => false,
+        }
+    }
 }
 
 #[derive(thiserror::Error, Debug)]

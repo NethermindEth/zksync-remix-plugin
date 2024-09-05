@@ -1,6 +1,7 @@
 mod commands;
 mod dynamodb_client;
 mod errors;
+mod purgatory;
 mod s3_client;
 mod sqs_client;
 mod sqs_listener;
@@ -12,19 +13,18 @@ use aws_runtime::env_config::file::{EnvConfigFileKind, EnvConfigFiles};
 use std::num::NonZeroUsize;
 
 use crate::dynamodb_client::DynamoDBClient;
+use crate::purgatory::State;
 use crate::s3_client::S3Client;
 use crate::sqs_client::wrapper::SqsClientWrapper;
-use crate::sqs_client::SqsClient;
 use crate::worker::EngineBuilder;
 
 const AWS_PROFILE_DEFAULT: &str = "dev";
-// TODO: remove
+
+// TODO: remove all of the below. Impl cli.
 pub(crate) const QUEUE_URL_DEFAULT: &str =
     "https://sqs.ap-southeast-2.amazonaws.com/266735844848/zksync-sqs";
 const TABLE_NAME_DEFAULT: &str = "zksync-table";
 const BUCKET_NAME_DEFAULT: &str = "zksync-compilation-s3";
-
-// TODO: state synchronization for purging
 
 #[tokio::main]
 async fn main() {
@@ -51,8 +51,12 @@ async fn main() {
     let s3_client = aws_sdk_s3::Client::new(&config);
     let s3_client = S3Client::new(s3_client, BUCKET_NAME_DEFAULT);
 
-    let mut engine = EngineBuilder::new(sqs_client, db_client, s3_client, true);
+    let state = State::load().await;
+
+    let engine = EngineBuilder::new(sqs_client, db_client, s3_client, state);
     let running_engine = engine.start(NonZeroUsize::new(10).unwrap());
 
     running_engine.wait().await;
+
+    // TODO: transfer metrics.
 }
