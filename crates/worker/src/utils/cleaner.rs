@@ -11,7 +11,7 @@ impl Drop for AutoCleanUp<'_> {
 }
 
 impl AutoCleanUp<'_> {
-    pub async fn clean_up(&self) {
+    pub async fn clean_up(self) {
         for path in self.dirs.iter() {
             println!("Removing path: {:?}", path);
 
@@ -26,7 +26,7 @@ impl AutoCleanUp<'_> {
         }
     }
 
-    pub fn clean_up_sync(&self) {
+    fn clean_up_sync(&mut self) {
         for path in self.dirs.iter() {
             println!("Removing path: {:?}", path);
 

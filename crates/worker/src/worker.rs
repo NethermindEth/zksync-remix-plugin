@@ -13,7 +13,7 @@ use crate::commands::compile::compile;
 use crate::dynamodb_client::DynamoDBClient;
 use crate::errors::CompilationError;
 use crate::s3_client::S3Client;
-use crate::sqs_client::SqsClient;
+use crate::sqs_client::wrapper::SqsClientWrapper;
 use crate::sqs_listener::{SqsListener, SqsReceiver};
 use crate::utils::lib::{timestamp, DURATION_TO_PURGE};
 
@@ -130,7 +130,7 @@ impl RunningWorker {
 }
 
 pub struct WorkerEngine {
-    sqs_client: SqsClient,
+    sqs_client: SqsClientWrapper,
     db_client: DynamoDBClient,
     s3_client: S3Client,
     expiration_timestamps: Arc<Mutex<Vec<(Uuid, Timestamp)>>>,
@@ -141,7 +141,7 @@ pub struct WorkerEngine {
 
 impl WorkerEngine {
     pub fn new(
-        sqs_client: SqsClient,
+        sqs_client: SqsClientWrapper,
         db_client: DynamoDBClient,
         s3_client: S3Client,
         supervisor_enabled: bool,
