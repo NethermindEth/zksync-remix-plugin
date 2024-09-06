@@ -8,7 +8,7 @@ use aws_sdk_s3::operation::put_object::PutObjectError;
 use aws_sdk_sqs::error::SdkError;
 use aws_sdk_sqs::operation::delete_message::DeleteMessageError;
 use aws_sdk_sqs::operation::receive_message::ReceiveMessageError;
-use tracing::{error};
+use tracing::error;
 use types::item::ItemError;
 
 // SQS related errors
@@ -28,9 +28,9 @@ pub(crate) type S3PutObjectError = SdkError<PutObjectError, HttpResponse>;
 
 #[derive(thiserror::Error, Debug)]
 pub enum SqsError {
-    #[error(transparent)]
+    #[error("SqsReceiveError: {0}")]
     ReceiveError(#[from] SqsReceiveError),
-    #[error(transparent)]
+    #[error("SqsDeleteError: {0}")]
     DeleteError(#[from] SqsDeleteError),
 }
 
@@ -83,12 +83,12 @@ pub enum CompilationError {
 impl CompilationError {
     pub fn recoverable(&self) -> bool {
         match self {
-            CompilationError::DBError(_) => true,
-            CompilationError::S3Error(_) => true,
-            CompilationError::NoDBItemError(_) => false,
-            CompilationError::UnexpectedStatusError(_) => false,
-            CompilationError::IoError(_) => false,
-            _ => false,
+            CompilationError::DBError(_) | CompilationError::S3Error(_) => true,
+            CompilationError::NoDBItemError(_)
+            | CompilationError::UnexpectedStatusError(_)
+            | CompilationError::IoError(_)
+            | CompilationError::VersionNotSupported(_)
+            | CompilationError::CompilationFailureError(_) => false,
         }
     }
 }

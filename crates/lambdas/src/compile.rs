@@ -49,7 +49,7 @@ async fn compile(
         .await;
 
     match result {
-        Ok(val) => val,
+        Ok(value) => value,
         Err(SdkError::ServiceError(val)) => match val.err() {
             PutItemError::ConditionalCheckFailedException(_) => {
                 error!("Recompilation attempt, id: {}", request.id);

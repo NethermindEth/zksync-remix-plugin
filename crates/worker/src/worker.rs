@@ -75,13 +75,8 @@ impl RunningEngine {
             let purgatory_copy = purgatory.clone();
 
             worker_threads.push(tokio::spawn(async move {
-                RunningEngine::worker(
-                    sqs_receiver,
-                    db_client_copy,
-                    s3_client_copy,
-                    purgatory_copy,
-                )
-                .await;
+                RunningEngine::worker(sqs_receiver, db_client_copy, s3_client_copy, purgatory_copy)
+                    .await;
             }));
         }
 
@@ -97,7 +92,7 @@ impl RunningEngine {
         sqs_receiver: SqsReceiver,
         db_client: DynamoDBClient,
         s3_client: S3Client,
-        mut purgatory: Purgatory
+        mut purgatory: Purgatory,
     ) {
         // TODO: process error
         while let Ok(message) = sqs_receiver.recv().await {
@@ -111,7 +106,10 @@ impl RunningEngine {
                 body
             } else {
                 warn!("Has handle but not body");
-                let _ = sqs_receiver.delete_message(receipt_handle).await;
+                if let Err(err) = sqs_receiver.delete_message(receipt_handle).await {
+                    warn!("{}", err);
+                }
+
                 continue;
             };
 
@@ -119,7 +117,10 @@ impl RunningEngine {
                 Ok(sqs_message) => sqs_message,
                 Err(err) => {
                     error!("Could not deserialize message: {}", err.to_string());
-                    let _ = sqs_receiver.delete_message(receipt_handle).await;
+                    if let Err(err) = sqs_receiver.delete_message(receipt_handle).await {
+                        warn!("{}", err);
+                    }
+
                     continue;
                 }
             };
@@ -145,7 +146,9 @@ impl RunningEngine {
                 SqsMessage::Verify { request } => {} // TODO;
             }
 
-            let _ = sqs_receiver.delete_message(receipt_handle).await;
+            if let Err(err) = sqs_receiver.delete_message(receipt_handle).await {
+                warn!("{}", err);
+            }
         }
     }
 

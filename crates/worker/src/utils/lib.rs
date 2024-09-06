@@ -191,7 +191,7 @@ pub async fn initialize_files(
     files: Vec<CompilationFile>,
 ) -> Result<(), std::io::Error> {
     for file in files {
-        let file_path = dst_dir.as_ref().join(file.file_name);
+        let file_path = dst_dir.as_ref().join(file.file_path);
 
         // create parent directories
         tokio::fs::create_dir_all(file_path.parent().unwrap()).await?;

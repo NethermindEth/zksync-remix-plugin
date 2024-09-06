@@ -42,7 +42,7 @@ impl S3Client {
                 .expect("Unreachable. list_all_keys bug.");
             files.push(CompilationFile {
                 file_content: contents,
-                file_name: file_path
+                file_path: file_path
                     .to_str()
                     .expect("Unexpected encoding issue.")
                     .to_string(),
