@@ -4,8 +4,8 @@ use std::ptr::NonNull;
 use std::sync::Arc;
 use tokio::{sync::Mutex, task::JoinHandle};
 use types::item::Status;
-use uuid::Uuid;
 use types::SqsMessage;
+use uuid::Uuid;
 
 pub type Timestamp = u64;
 
@@ -38,9 +38,7 @@ impl Purgatory {
     }
 
     // TODO: args: status, id
-    pub async fn update_task(&mut self) {
-
-    }
+    pub async fn update_task(&mut self) {}
 
     async fn deamon(self) {
         todo!()
@@ -67,7 +65,11 @@ impl Drop for Inner {
 
 impl Inner {
     fn new(handle: NonNull<JoinHandle<()>>, state: State) -> Self {
-        Self { handle, state, _marker: PhantomData }
+        Self {
+            handle,
+            state,
+            _marker: PhantomData,
+        }
     }
 
     pub fn purge(&mut self) {

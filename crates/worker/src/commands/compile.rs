@@ -21,8 +21,7 @@ use crate::utils::lib::{
 };
 
 pub struct CompilationFile {
-    // legacy name. file_path really
-    pub file_name: String,
+    pub file_path: String,
     pub file_content: Vec<u8>,
 }
 
@@ -83,21 +82,23 @@ pub async fn compile(
             .await;
         match db_update_result {
             Ok(_) => {}
-            Err(SdkError::ServiceError(err)) => match err.err() {
-                UpdateItemError::ConditionalCheckFailedException(_) => {
-                    error!("Conditional check not met");
-                    return Err(CompilationError::UnexpectedStatusError(
-                        "Concurrent status change from another instance".into(),
-                    ));
+            Err(SdkError::ServiceError(err)) => {
+                return match err.err() {
+                    UpdateItemError::ConditionalCheckFailedException(_) => {
+                        error!("Conditional check not met");
+                        Err(CompilationError::UnexpectedStatusError(
+                            "Concurrent status change from another instance".into(),
+                        ))
+                    }
+                    _ => Err(DBError::from(SdkError::ServiceError(err)).into()),
                 }
-                _ => return Err(DBError::from(SdkError::ServiceError(err)).into()),
-            },
+            }
             Err(err) => return Err(DBError::from(err).into()),
         }
     }
 
     match do_compile(
-        request.id.clone(),
+        &request.id,
         CompilationInput {
             config: request.config,
             contracts: files,
@@ -105,7 +106,7 @@ pub async fn compile(
     )
     .await
     {
-        Ok(val) => Ok(on_compilation_success(&request.id, db_client, s3_client, val).await?),
+        Ok(value) => Ok(on_compilation_success(&request.id, db_client, s3_client, value).await?),
         Err(err) => match err {
             CompilationError::CompilationFailureError(value) => {
                 Ok(on_compilation_failed(&request.id, db_client, value).await?)
@@ -127,12 +128,14 @@ pub async fn on_compilation_success(
     s3_client: &S3Client,
     compilation_artifacts: Vec<CompilationArtifact>,
 ) -> Result<(), CompilationError> {
+    const DOWNLOAD_URL_EXPIRATION: Duration = Duration::from_secs(5 * 60 * 60);
+
     let mut presigned_urls = Vec::with_capacity(compilation_artifacts.len());
     for el in compilation_artifacts {
         let file_key = format!("{}/{}/{}", ARTIFACTS_FOLDER, id, el.file_name);
         s3_client.put_object(&file_key, el.file_content).await?;
 
-        let expires_in = PresigningConfig::expires_in(Duration::from_secs(5 * 60 * 60)).unwrap();
+        let expires_in = PresigningConfig::expires_in(DOWNLOAD_URL_EXPIRATION).unwrap();
         let presigned_request = s3_client
             .get_object_presigned(&file_key, expires_in)
             .await?;
@@ -190,7 +193,7 @@ pub async fn on_compilation_failed(
 }
 
 pub async fn do_compile(
-    namespace: String,
+    namespace: &str,
     compilation_request: CompilationInput,
 ) -> Result<Vec<CompilationArtifact>, CompilationError> {
     let zksolc_version = compilation_request.config.version;
@@ -236,7 +239,7 @@ pub async fn do_compile(
     let contracts = compilation_request
         .contracts
         .into_iter()
-        .filter(|contract| !contract.file_name.ends_with("_test.sol"))
+        .filter(|contract| !contract.file_path.ends_with("_test.sol"))
         .collect();
 
     // initialize the files
