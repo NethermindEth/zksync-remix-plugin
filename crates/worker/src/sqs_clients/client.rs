@@ -1,11 +1,8 @@
-use aws_config::retry::ErrorKind;
 use aws_sdk_sqs::operation::delete_message::DeleteMessageOutput;
 use aws_sdk_sqs::operation::receive_message::ReceiveMessageOutput;
 use aws_sdk_sqs::Client;
 
 use crate::errors::{SqsDeleteError, SqsReceiveError};
-
-pub mod wrapper;
 
 macro_rules! match_result {
     ($err_type:ident, $result:expr) => {
@@ -26,7 +23,7 @@ macro_rules! match_result {
                     }
                     if let Some(other) = dispatch_err.as_other() {
                         return match other {
-                            ErrorKind::ClientError => Err($err_type::DispatchFailure(dispatch_err)),
+                            aws_config::retry::ErrorKind::ClientError => Err($err_type::DispatchFailure(dispatch_err)),
                             _ => Ok(None),
                         };
                     }
@@ -52,7 +49,7 @@ impl SqsClient {
         }
     }
 
-    async fn receive_attempt(&self) -> Result<Option<ReceiveMessageOutput>, SqsReceiveError> {
+    pub async fn receive_attempt(&self) -> Result<Option<ReceiveMessageOutput>, SqsReceiveError> {
         let result = self
             .client
             .receive_message()
@@ -64,7 +61,7 @@ impl SqsClient {
         match_result!(SqsReceiveError, result)
     }
 
-    async fn delete_attempt(
+    pub async fn delete_attempt(
         &self,
         receipt_handle: impl Into<String>,
     ) -> Result<Option<DeleteMessageOutput>, SqsDeleteError> {

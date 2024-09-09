@@ -1,5 +1,5 @@
 use crate::errors::{SqsDeleteError, SqsReceiveError};
-use crate::sqs_client::SqsClient;
+use crate::sqs_clients::client::SqsClient;
 use aws_sdk_sqs::operation::delete_message::DeleteMessageOutput;
 use aws_sdk_sqs::operation::receive_message::ReceiveMessageOutput;
 use aws_sdk_sqs::Client;

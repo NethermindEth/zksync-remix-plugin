@@ -3,7 +3,7 @@ mod dynamodb_client;
 mod errors;
 mod purgatory;
 mod s3_client;
-mod sqs_client;
+mod sqs_clients;
 mod sqs_listener;
 mod utils;
 mod worker;
@@ -15,7 +15,7 @@ use std::num::NonZeroUsize;
 use crate::dynamodb_client::DynamoDBClient;
 use crate::purgatory::State;
 use crate::s3_client::S3Client;
-use crate::sqs_client::wrapper::SqsClientWrapper;
+use crate::sqs_clients::wrapper::SqsClientWrapper;
 use crate::worker::EngineBuilder;
 
 const AWS_PROFILE_DEFAULT: &str = "dev";
