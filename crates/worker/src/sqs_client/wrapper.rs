@@ -52,7 +52,6 @@ impl SqsClientWrapper {
         }
     }
 
-    // TODO: start
     async fn worker(client: SqsClient, state: Arc<AtomicU8>, mut receiver: mpsc::Receiver<Action>) {
         const SLEEP_DURATION: Duration = Duration::from_secs(3);
         let mut pending_actions = vec![];
