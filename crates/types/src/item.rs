@@ -4,13 +4,14 @@ use std::collections::HashMap;
 use std::fmt;
 use std::fmt::Formatter;
 
+pub type AttributeMap = HashMap<String, AttributeValue>;
+
 #[derive(Debug, Clone, Serialize)]
 pub enum Status {
     // TODO: add FilesUploaded(?)
     Pending,
     Compiling,
     Ready {
-        // TODO: Legacy support via enum here.
         presigned_urls: Vec<String>,
     },
     Failed(String),
@@ -108,7 +109,7 @@ impl Item {
     }
 }
 
-impl From<Item> for HashMap<String, AttributeValue> {
+impl From<Item> for AttributeMap {
     fn from(value: Item) -> Self {
         let mut item_map = HashMap::from([(Item::id_attribute_name().into(), AttributeValue::S(value.id))]);
         item_map.extend(HashMap::from(value.status));
@@ -117,9 +118,9 @@ impl From<Item> for HashMap<String, AttributeValue> {
     }
 }
 
-impl TryFrom<&HashMap<String, AttributeValue>> for Status {
+impl TryFrom<&AttributeMap> for Status {
     type Error = ItemError;
-    fn try_from(value: &HashMap<String, AttributeValue>) -> Result<Self, Self::Error> {
+    fn try_from(value: &AttributeMap) -> Result<Self, Self::Error> {
         let status = value.get(Status::attribute_name()).ok_or(ItemError::FormatError)?;
         let status: u32 = status
             .as_n()
@@ -149,9 +150,9 @@ impl TryFrom<&HashMap<String, AttributeValue>> for Status {
     }
 }
 
-impl TryFrom<HashMap<String, AttributeValue>> for Item {
+impl TryFrom<AttributeMap> for Item {
     type Error = ItemError;
-    fn try_from(value: HashMap<String, AttributeValue>) -> Result<Item, Self::Error> {
+    fn try_from(value: AttributeMap) -> Result<Item, Self::Error> {
         let id = value.get(Item::id_attribute_name()).ok_or(ItemError::FormatError)?;
         let id = id.as_s().map_err(|_| ItemError::FormatError)?;
         let status = (&value).try_into()?;

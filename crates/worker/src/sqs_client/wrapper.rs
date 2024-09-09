@@ -10,19 +10,15 @@ use tokio::select;
 use tokio::sync::{mpsc, oneshot};
 use tokio::time::{sleep, Instant};
 
+#[derive(Default)]
 pub enum Action {
-    Default,
+    #[default]
+    Default, // TODO: get rid of this. crutches
     Receive(oneshot::Sender<Result<ReceiveMessageOutput, SqsReceiveError>>),
     Delete {
         receipt_handle: String,
         sender: oneshot::Sender<Result<DeleteMessageOutput, SqsDeleteError>>,
     },
-}
-
-impl Default for Action {
-    fn default() -> Self {
-        Action::Default
-    }
 }
 
 enum State {

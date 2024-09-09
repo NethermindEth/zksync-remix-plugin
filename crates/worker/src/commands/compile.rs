@@ -61,44 +61,9 @@ pub async fn compile(
 
     let dir = format!("{}/", request.id);
     let files = s3_client.extract_files(&dir).await?;
-    {
-        let db_update_result = db_client
-            .client
-            .update_item()
-            .table_name(db_client.table_name.clone())
-            .key(
-                Item::primary_key_name(),
-                AttributeValue::S(request.id.clone()),
-            )
-            .update_expression("SET #status = :newStatus")
-            .condition_expression("#status = :currentStatus")
-            .expression_attribute_names("#status", Status::attribute_name())
-            .expression_attribute_values(
-                ":newStatus",
-                AttributeValue::N(u32::from(Status::Compiling).to_string()),
-            )
-            .expression_attribute_values(
-                ":currentStatus",
-                AttributeValue::N(u32::from(Status::Pending).to_string()),
-            )
-            .send()
-            .await;
-        match db_update_result {
-            Ok(_) => {}
-            Err(SdkError::ServiceError(err)) => {
-                return match err.err() {
-                    UpdateItemError::ConditionalCheckFailedException(_) => {
-                        error!("Conditional check not met");
-                        Err(CompilationError::UnexpectedStatusError(
-                            "Concurrent status change from another instance".into(),
-                        ))
-                    }
-                    _ => Err(DBError::from(SdkError::ServiceError(err)).into()),
-                }
-            }
-            Err(err) => return Err(DBError::from(err).into()),
-        }
-    }
+
+    // Update status to Compiling
+    try_set_compiling_status(db_client, &request.id).await?;
 
     match do_compile(
         &request.id,
@@ -110,18 +75,54 @@ pub async fn compile(
     .await
     {
         Ok(value) => Ok(on_compilation_success(&request.id, db_client, s3_client, value).await?),
-        Err(err) => match err {
-            CompilationError::CompilationFailureError(value) => {
-                Ok(on_compilation_failed(&request.id, db_client, value).await?)
+        Err(CompilationError::CompilationFailureError(value)) => {
+            Ok(on_compilation_failed(&request.id, db_client, value).await?)
+        }
+        Err(CompilationError::VersionNotSupported(value)) => Ok(on_compilation_failed(
+            &request.id,
+            &db_client,
+            format!("Unsupported compiler version: {}", value),
+        )
+        .await?),
+        Err(err) => Err(err),
+    }
+}
+
+async fn try_set_compiling_status(
+    db_client: &DynamoDBClient,
+    key: &str,
+) -> Result<(), CompilationError> {
+    let db_update_result = db_client
+        .client
+        .update_item()
+        .table_name(db_client.table_name.clone())
+        .key(Item::primary_key_name(), AttributeValue::S(key.to_string()))
+        .update_expression("SET #status = :newStatus")
+        .condition_expression("#status = :currentStatus")
+        .expression_attribute_names("#status", Status::attribute_name())
+        .expression_attribute_values(
+            ":newStatus",
+            AttributeValue::N(u32::from(Status::Compiling).to_string()),
+        )
+        .expression_attribute_values(
+            ":currentStatus",
+            AttributeValue::N(u32::from(Status::Pending).to_string()),
+        )
+        .send()
+        .await;
+
+    match db_update_result {
+        Ok(_) => Ok(()),
+        Err(SdkError::ServiceError(err)) => match err.err() {
+            UpdateItemError::ConditionalCheckFailedException(_) => {
+                error!("Conditional check not met");
+                Err(CompilationError::UnexpectedStatusError(
+                    "Concurrent status change from another instance".into(),
+                ))
             }
-            CompilationError::VersionNotSupported(value) => Ok(on_compilation_failed(
-                &request.id,
-                &db_client,
-                format!("Unsupported compiler version: {}", value),
-            )
-            .await?),
-            _ => Err(err),
+            _ => Err(DBError::from(SdkError::ServiceError(err)).into()),
         },
+        Err(err) => Err(DBError::from(err).into()),
     }
 }
 
@@ -197,9 +198,9 @@ pub async fn on_compilation_failed(
 
 pub async fn do_compile(
     namespace: &str,
-    compilation_request: CompilationInput,
+    compilation_input: CompilationInput,
 ) -> Result<Vec<CompilationArtifact>, CompilationError> {
-    let zksolc_version = compilation_request.config.version;
+    let zksolc_version = compilation_input.config.version;
 
     // check if the version is supported
     if !ZKSOLC_VERSIONS.contains(&zksolc_version.as_str()) {
@@ -228,7 +229,7 @@ pub async fn do_compile(
     hardhat_config_builder
         .zksolc_version(&zksolc_version)
         .solidity_version(DEFAULT_SOLIDITY_VERSION);
-    if let Some(target_path) = compilation_request.config.target_path {
+    if let Some(target_path) = compilation_input.config.target_path {
         hardhat_config_builder.paths_sources(&target_path);
     }
 
@@ -239,7 +240,7 @@ pub async fn do_compile(
     tokio::fs::write(hardhat_config_path, hardhat_config_content).await?;
 
     // filter test files from compilation candidates
-    let contracts = compilation_request
+    let contracts = compilation_input
         .contracts
         .into_iter()
         .filter(|contract| !contract.file_path.ends_with("_test.sol"))
