@@ -8,7 +8,7 @@ use crate::commands::compile::compile;
 use crate::dynamodb_client::DynamoDBClient;
 use crate::purgatory::{Purgatory, State};
 use crate::s3_client::S3Client;
-use crate::sqs_client::wrapper::SqsClientWrapper;
+use crate::sqs_clients::wrapper::SqsClientWrapper;
 use crate::sqs_listener::{SqsListener, SqsReceiver};
 
 pub struct EngineBuilder {

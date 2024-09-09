@@ -5,7 +5,7 @@ use std::time::Duration;
 use tokio::task::JoinHandle;
 use tokio::time::sleep;
 
-use crate::sqs_client::wrapper::SqsClientWrapper;
+use crate::sqs_clients::wrapper::SqsClientWrapper;
 
 pub struct SqsListener {
     handle: JoinHandle<Result<(), SqsReceiveError>>,
