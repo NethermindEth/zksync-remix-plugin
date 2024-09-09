@@ -23,7 +23,9 @@ macro_rules! match_result {
                     }
                     if let Some(other) = dispatch_err.as_other() {
                         return match other {
-                            aws_config::retry::ErrorKind::ClientError => Err($err_type::DispatchFailure(dispatch_err)),
+                            aws_config::retry::ErrorKind::ClientError => {
+                                Err($err_type::DispatchFailure(dispatch_err))
+                            }
                             _ => Ok(None),
                         };
                     }

@@ -103,6 +103,30 @@ impl S3Client {
         Ok(())
     }
 
+    pub async fn delete_dir(&self, dir: &str) -> Result<(), S3Error> {
+        let objects = self.list_all_keys(dir).await?;
+        for object in objects {
+            let key = object.key().ok_or(S3Error::InvalidObjectError)?;
+            self.delete_object(key).await?;
+        }
+
+        // TODO: check that works
+        let result = self.delete_object(dir).await;
+        result?;
+        Ok(())
+    }
+
+    pub async fn delete_object(&self, key: &str) -> Result<(), S3Error> {
+        let _ = self
+            .client
+            .delete_object()
+            .bucket(self.bucket_name.clone())
+            .key(key)
+            .send()
+            .await?;
+        Ok(())
+    }
+
     pub async fn list_all_keys(&self, dir: &str) -> Result<Vec<Object>, S3Error> {
         let mut objects = Vec::new();
         let mut continuation_token: Option<String> = None;

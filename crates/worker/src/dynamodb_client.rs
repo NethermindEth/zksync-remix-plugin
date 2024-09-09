@@ -17,23 +17,23 @@ impl DynamoDBClient {
         }
     }
 
-    pub async fn delete_item(&self, id: String) -> Result<(), DBError> {
+    pub async fn delete_item(&self, id: &str) -> Result<(), DBError> {
         self.client
             .delete_item()
             .table_name(self.table_name.clone())
-            .key(Item::primary_key_name(), AttributeValue::S(id))
+            .key(Item::primary_key_name(), AttributeValue::S(id.to_string()))
             .send()
             .await?;
 
         Ok(())
     }
 
-    pub async fn get_item(&self, id: String) -> Result<Option<Item>, DBError> {
+    pub async fn get_item(&self, id: &str) -> Result<Option<Item>, DBError> {
         let result = self
             .client
             .get_item()
             .table_name(self.table_name.clone())
-            .key(Item::primary_key_name(), AttributeValue::S(id))
+            .key(Item::primary_key_name(), AttributeValue::S(id.to_string()))
             .send()
             .await?;
 

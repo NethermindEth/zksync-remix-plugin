@@ -42,7 +42,7 @@ pub async fn compile(
     db_client: &DynamoDBClient,
     s3_client: &S3Client,
 ) -> Result<(), CompilationError> {
-    let item = db_client.get_item(request.id.clone()).await?;
+    let item = db_client.get_item(&request.id).await?;
     let item: Item = match item {
         Some(item) => item,
         None => {
@@ -65,7 +65,7 @@ pub async fn compile(
     // Update status to Compiling
     try_set_compiling_status(db_client, &request.id).await?;
 
-    match do_compile(
+    let result = match do_compile(
         &request.id,
         CompilationInput {
             config: request.config,
@@ -85,7 +85,16 @@ pub async fn compile(
         )
         .await?),
         Err(err) => Err(err),
+    };
+
+    // Clean S3 objects
+    // TODO: when making generic - consider if compiler shall manage clean-up here.
+    match &result {
+        Ok(_) => s3_client.delete_dir(&dir).await?,
+        Err(err) if !err.recoverable() => s3_client.delete_dir(&dir).await?,
+        _ => {}
     }
+    result
 }
 
 async fn try_set_compiling_status(

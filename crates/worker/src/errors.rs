@@ -2,6 +2,7 @@ use aws_sdk_dynamodb::config::http::HttpResponse;
 use aws_sdk_dynamodb::operation::delete_item::DeleteItemError;
 use aws_sdk_dynamodb::operation::get_item::GetItemError;
 use aws_sdk_dynamodb::operation::update_item::UpdateItemError;
+use aws_sdk_s3::operation::delete_object::DeleteObjectError;
 use aws_sdk_s3::operation::get_object::GetObjectError;
 use aws_sdk_s3::operation::list_objects_v2::ListObjectsV2Error;
 use aws_sdk_s3::operation::put_object::PutObjectError;
@@ -25,6 +26,7 @@ pub(crate) type DBUpdateError = SdkError<UpdateItemError, HttpResponse>;
 pub(crate) type S3ListObjectsError = SdkError<ListObjectsV2Error, HttpResponse>;
 pub(crate) type S3GetObjectError = SdkError<GetObjectError, HttpResponse>;
 pub(crate) type S3PutObjectError = SdkError<PutObjectError, HttpResponse>;
+pub(crate) type S3DeleteObjectError = SdkError<DeleteObjectError, HttpResponse>;
 
 #[derive(thiserror::Error, Debug)]
 pub enum SqsError {
@@ -56,6 +58,8 @@ pub enum S3Error {
     ListObjectsError(#[from] S3ListObjectsError),
     #[error(transparent)]
     PutObjectError(#[from] S3PutObjectError),
+    #[error(transparent)]
+    DeleteObjectError(#[from] S3DeleteObjectError),
     #[error(transparent)]
     IoError(#[from] std::io::Error),
     #[error(transparent)]

@@ -63,7 +63,7 @@ impl RunningEngine {
         state: State,
         num_workers: usize,
     ) -> Self {
-        let purgatory = Purgatory::new(state);
+        let purgatory = Purgatory::new(state, db_client.clone(), s3_client.clone());
 
         let mut worker_threads = Vec::with_capacity(num_workers);
         for _ in 0..num_workers {
@@ -127,7 +127,7 @@ impl RunningEngine {
             purgatory.add_task(&sqs_message).await;
             match sqs_message {
                 SqsMessage::Compile { request } => {
-                    let result = compile(request, &db_client, &s3_client).await; // TODO:
+                    let result = compile(request, &db_client, &s3_client).await;
                     match result {
                         Ok(()) => purgatory.update_task().await,
                         Err(err) => {
