@@ -10,7 +10,7 @@ pub type AttributeMap = HashMap<String, AttributeValue>;
 pub enum Status {
     // TODO: add FilesUploaded(?)
     Pending,
-    Compiling,
+    InProgress,
     Ready {
         presigned_urls: Vec<String>,
     },
@@ -27,7 +27,7 @@ impl fmt::Display for Status {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Status::Pending => write!(f, "Pending"),
-            Status::Compiling => write!(f, "Compiling"),
+            Status::InProgress => write!(f, "Compiling"),
             Status::Ready { .. } => write!(f, "Ready"),
             Status::Failed(msg) => write!(f, "Failed: {}", msg),
         }
@@ -38,7 +38,7 @@ impl From<&Status> for u32 {
     fn from(value: &Status) -> Self {
         match value {
             Status::Pending => 0,
-            Status::Compiling => 1,
+            Status::InProgress => 1,
             Status::Ready { .. } => 2,
             Status::Failed(_) => 3,
         }
@@ -54,7 +54,7 @@ impl From<Status> for u32 {
 impl From<Status> for HashMap<String, AttributeValue> {
     fn from(value: Status) -> Self {
         match value.clone() {
-            Status::Pending | Status::Compiling => HashMap::from([(
+            Status::Pending | Status::InProgress => HashMap::from([(
                 Status::attribute_name().into(),
                 AttributeValue::N(u32::from(&value).to_string()),
             )]),
@@ -128,7 +128,7 @@ impl TryFrom<&AttributeMap> for Status {
             .parse::<u32>()?;
         let status = match status {
             0 => Status::Pending,
-            1 => Status::Compiling,
+            1 => Status::InProgress,
             2 => {
                 let data = value.get(Item::data_attribute_name()).ok_or(ItemError::FormatError)?;
                 let data = data.as_ss().map_err(|_| ItemError::FormatError)?;

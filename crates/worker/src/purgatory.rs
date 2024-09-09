@@ -111,7 +111,7 @@ impl Inner {
 
             match status {
                 Status::Pending => warn!("Item pending for too long!"),
-                Status::Compiling => warn!("Item compiling for too long!"),
+                Status::InProgress => warn!("Item compiling for too long!"),
                 Status::Ready { .. } => {
                     let dir = format!("{}/{}/", ARTIFACTS_FOLDER, id);
                     self.s3_client.delete_dir(&dir).await.unwrap(); // TODO: fix

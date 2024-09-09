@@ -111,7 +111,7 @@ async fn try_set_compiling_status(
         .expression_attribute_names("#status", Status::attribute_name())
         .expression_attribute_values(
             ":newStatus",
-            AttributeValue::N(u32::from(Status::Compiling).to_string()),
+            AttributeValue::N(u32::from(Status::InProgress).to_string()),
         )
         .expression_attribute_values(
             ":currentStatus",
