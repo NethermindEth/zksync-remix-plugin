@@ -21,7 +21,7 @@ impl DynamoDBClient {
         self.client
             .delete_item()
             .table_name(self.table_name.clone())
-            .key("ID", AttributeValue::S(id))
+            .key(Item::primary_key_name(), AttributeValue::S(id))
             .send()
             .await?;
 
@@ -33,7 +33,7 @@ impl DynamoDBClient {
             .client
             .get_item()
             .table_name(self.table_name.clone())
-            .key("ID", AttributeValue::S(id))
+            .key(Item::primary_key_name(), AttributeValue::S(id))
             .send()
             .await?;
 

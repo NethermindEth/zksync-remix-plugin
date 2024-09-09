@@ -17,7 +17,7 @@ pub enum Status {
 }
 
 impl Status {
-    pub const fn db_key_name() -> &'static str {
+    pub const fn attribute_name() -> &'static str {
         "Status"
     }
 }
@@ -54,22 +54,22 @@ impl From<Status> for HashMap<String, AttributeValue> {
     fn from(value: Status) -> Self {
         match value.clone() {
             Status::Pending | Status::Compiling => HashMap::from([(
-                Status::db_key_name().into(),
+                Status::attribute_name().into(),
                 AttributeValue::N(u32::from(&value).to_string()),
             )]),
             Status::Ready { presigned_urls } => HashMap::from([
                 (
-                    Status::db_key_name().into(),
+                    Status::attribute_name().into(),
                     AttributeValue::N(u32::from(&value).to_string()),
                 ),
-                ("Data".into(), AttributeValue::Ss(presigned_urls)),
+                (Item::data_attribute_name().into(), AttributeValue::Ss(presigned_urls)),
             ]),
             Status::Failed(val) => HashMap::from([
                 (
-                    Status::db_key_name().into(),
+                    Status::attribute_name().into(),
                     AttributeValue::N(u32::from(&value).to_string()),
                 ),
-                ("Data".into(), AttributeValue::S(val)),
+                (Item::data_attribute_name().into(), AttributeValue::S(val)),
             ]),
         }
     }
@@ -90,9 +90,27 @@ pub struct Item {
     // TODO: type: Compiling/Verifying
 }
 
+impl Item {
+    pub const fn status_attribute_name() -> &'static str {
+        Status::attribute_name()
+    }
+
+    pub const fn data_attribute_name() -> &'static str {
+        "Data"
+    }
+
+    pub const fn id_attribute_name() -> &'static str {
+        "ID"
+    }
+
+    pub const fn primary_key_name() -> &'static str {
+        Self::id_attribute_name()
+    }
+}
+
 impl From<Item> for HashMap<String, AttributeValue> {
     fn from(value: Item) -> Self {
-        let mut item_map = HashMap::from([("ID".into(), AttributeValue::S(value.id))]);
+        let mut item_map = HashMap::from([(Item::id_attribute_name().into(), AttributeValue::S(value.id))]);
         item_map.extend(HashMap::from(value.status));
 
         item_map
@@ -102,7 +120,7 @@ impl From<Item> for HashMap<String, AttributeValue> {
 impl TryFrom<&HashMap<String, AttributeValue>> for Status {
     type Error = ItemError;
     fn try_from(value: &HashMap<String, AttributeValue>) -> Result<Self, Self::Error> {
-        let status = value.get(Status::db_key_name()).ok_or(ItemError::FormatError)?;
+        let status = value.get(Status::attribute_name()).ok_or(ItemError::FormatError)?;
         let status: u32 = status
             .as_n()
             .map_err(|_| ItemError::FormatError)?
@@ -111,7 +129,7 @@ impl TryFrom<&HashMap<String, AttributeValue>> for Status {
             0 => Status::Pending,
             1 => Status::Compiling,
             2 => {
-                let data = value.get("Data").ok_or(ItemError::FormatError)?;
+                let data = value.get(Item::data_attribute_name()).ok_or(ItemError::FormatError)?;
                 let data = data.as_ss().map_err(|_| ItemError::FormatError)?;
 
                 Status::Ready {
@@ -119,7 +137,7 @@ impl TryFrom<&HashMap<String, AttributeValue>> for Status {
                 }
             }
             3 => {
-                let data = value.get("Data").ok_or(ItemError::FormatError)?;
+                let data = value.get(Item::data_attribute_name()).ok_or(ItemError::FormatError)?;
                 let data = data.as_s().map_err(|_| ItemError::FormatError)?;
 
                 Status::Failed(data.clone())
@@ -134,7 +152,7 @@ impl TryFrom<&HashMap<String, AttributeValue>> for Status {
 impl TryFrom<HashMap<String, AttributeValue>> for Item {
     type Error = ItemError;
     fn try_from(value: HashMap<String, AttributeValue>) -> Result<Item, Self::Error> {
-        let id = value.get("ID").ok_or(ItemError::FormatError)?;
+        let id = value.get(Item::id_attribute_name()).ok_or(ItemError::FormatError)?;
         let id = id.as_s().map_err(|_| ItemError::FormatError)?;
         let status = (&value).try_into()?;
 

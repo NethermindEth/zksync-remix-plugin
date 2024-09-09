@@ -66,10 +66,13 @@ pub async fn compile(
             .client
             .update_item()
             .table_name(db_client.table_name.clone())
-            .key("ID", AttributeValue::S(request.id.clone()))
+            .key(
+                Item::primary_key_name(),
+                AttributeValue::S(request.id.clone()),
+            )
             .update_expression("SET #status = :newStatus")
             .condition_expression("#status = :currentStatus")
-            .expression_attribute_names("#status", Status::db_key_name())
+            .expression_attribute_names("#status", Status::attribute_name())
             .expression_attribute_values(
                 ":newStatus",
                 AttributeValue::N(u32::from(Status::Compiling).to_string()),
@@ -152,10 +155,10 @@ pub async fn on_compilation_success(
         .client
         .update_item()
         .table_name(db_client.table_name.clone())
-        .key("ID", AttributeValue::S(id.to_string()))
+        .key(Item::primary_key_name(), AttributeValue::S(id.to_string()))
         .update_expression("SET #status = :newStatus, #data = :data")
-        .expression_attribute_names("#status", Status::db_key_name())
-        .expression_attribute_names("#data", "Data")
+        .expression_attribute_names("#status", Status::attribute_name())
+        .expression_attribute_names("#data", Item::data_attribute_name())
         .expression_attribute_values(
             ":newStatus",
             AttributeValue::N(2.to_string()), // Ready
@@ -177,10 +180,10 @@ pub async fn on_compilation_failed(
         .client
         .update_item()
         .table_name(db_client.table_name.clone())
-        .key("ID", AttributeValue::S(id.to_string()))
+        .key(Item::primary_key_name(), AttributeValue::S(id.to_string()))
         .update_expression("SET #status = :newStatus, #data = :data")
-        .expression_attribute_names("#status", Status::db_key_name())
-        .expression_attribute_names("#data", "Data")
+        .expression_attribute_names("#status", Status::attribute_name())
+        .expression_attribute_names("#data", Item::data_attribute_name())
         .expression_attribute_values(
             ":newStatus",
             AttributeValue::N(3.to_string()), // Failed
