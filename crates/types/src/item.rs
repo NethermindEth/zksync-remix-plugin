@@ -16,12 +16,18 @@ pub enum Status {
     Failed(String),
 }
 
+impl Status {
+    pub const fn db_key_name() -> &'static str {
+        "Status"
+    }
+}
+
 impl fmt::Display for Status {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Status::Pending => write!(f, "Pending"),
             Status::Compiling => write!(f, "Compiling"),
-            Status::Ready { presigned_urls: _ } => write!(f, "Ready"),
+            Status::Ready { .. } => write!(f, "Ready"),
             Status::Failed(msg) => write!(f, "Failed: {}", msg),
         }
     }
@@ -32,7 +38,7 @@ impl From<&Status> for u32 {
         match value {
             Status::Pending => 0,
             Status::Compiling => 1,
-            Status::Ready { presigned_urls: _ } => 2,
+            Status::Ready { .. } => 2,
             Status::Failed(_) => 3,
         }
     }
@@ -48,19 +54,19 @@ impl From<Status> for HashMap<String, AttributeValue> {
     fn from(value: Status) -> Self {
         match value.clone() {
             Status::Pending | Status::Compiling => HashMap::from([(
-                "Status".into(),
+                Status::db_key_name().into(),
                 AttributeValue::N(u32::from(&value).to_string()),
             )]),
             Status::Ready { presigned_urls } => HashMap::from([
                 (
-                    "Status".into(),
+                    Status::db_key_name().into(),
                     AttributeValue::N(u32::from(&value).to_string()),
                 ),
                 ("Data".into(), AttributeValue::Ss(presigned_urls)),
             ]),
             Status::Failed(val) => HashMap::from([
                 (
-                    "Status".into(),
+                    Status::db_key_name().into(),
                     AttributeValue::N(u32::from(&value).to_string()),
                 ),
                 ("Data".into(), AttributeValue::S(val)),
@@ -96,7 +102,7 @@ impl From<Item> for HashMap<String, AttributeValue> {
 impl TryFrom<&HashMap<String, AttributeValue>> for Status {
     type Error = ItemError;
     fn try_from(value: &HashMap<String, AttributeValue>) -> Result<Self, Self::Error> {
-        let status = value.get("Status").ok_or(ItemError::FormatError)?;
+        let status = value.get(Status::db_key_name()).ok_or(ItemError::FormatError)?;
         let status: u32 = status
             .as_n()
             .map_err(|_| ItemError::FormatError)?

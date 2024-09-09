@@ -69,7 +69,7 @@ pub async fn compile(
             .key("ID", AttributeValue::S(request.id.clone()))
             .update_expression("SET #status = :newStatus")
             .condition_expression("#status = :currentStatus")
-            .expression_attribute_names("#status", "Status")
+            .expression_attribute_names("#status", Status::db_key_name())
             .expression_attribute_values(
                 ":newStatus",
                 AttributeValue::N(u32::from(Status::Compiling).to_string()),
@@ -154,7 +154,7 @@ pub async fn on_compilation_success(
         .table_name(db_client.table_name.clone())
         .key("ID", AttributeValue::S(id.to_string()))
         .update_expression("SET #status = :newStatus, #data = :data")
-        .expression_attribute_names("#status", "Status")
+        .expression_attribute_names("#status", Status::db_key_name())
         .expression_attribute_names("#data", "Data")
         .expression_attribute_values(
             ":newStatus",
@@ -179,7 +179,7 @@ pub async fn on_compilation_failed(
         .table_name(db_client.table_name.clone())
         .key("ID", AttributeValue::S(id.to_string()))
         .update_expression("SET #status = :newStatus, #data = :data")
-        .expression_attribute_names("#status", "Status")
+        .expression_attribute_names("#status", Status::db_key_name())
         .expression_attribute_names("#data", "Data")
         .expression_attribute_values(
             ":newStatus",
