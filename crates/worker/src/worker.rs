@@ -1,6 +1,5 @@
 use std::num::NonZeroUsize;
 use std::time::Duration;
-use tokio::sync::Mutex;
 use tokio::task::JoinHandle;
 use tracing::{error, warn};
 use types::SqsMessage;
@@ -156,5 +155,3 @@ impl RunningEngine {
         futures::future::join_all(self.worker_threads).await;
     }
 }
-
-// what are we purging?
