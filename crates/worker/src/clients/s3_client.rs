@@ -1,5 +1,3 @@
-use crate::commands::compile::CompilationFile;
-use crate::errors::S3Error;
 use aws_sdk_s3::presigning::{PresignedRequest, PresigningConfig};
 use aws_sdk_s3::types::Object;
 use aws_sdk_s3::Client;
@@ -7,6 +5,9 @@ use aws_smithy_types::byte_stream::ByteStream;
 use std::io::Write;
 use std::path::Path;
 use tracing::{error, warn};
+
+use crate::clients::errors::S3Error;
+use crate::commands::compile::CompilationFile;
 
 #[derive(Clone)]
 pub struct S3Client {

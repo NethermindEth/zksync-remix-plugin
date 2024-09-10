@@ -4,13 +4,15 @@ use tokio::task::JoinHandle;
 use tracing::{error, info, warn};
 use types::SqsMessage;
 
-use crate::commands::compile::{ do_compile};
+use crate::clients::dynamodb_client::DynamoDBClient;
+use crate::clients::s3_client::S3Client;
+use crate::clients::sqs_clients::wrapper::SqsClientWrapper;
+use crate::commands::compile::do_compile;
 use crate::commands::errors::PreparationError;
-use crate::commands::utils::{on_compilation_failed, on_compilation_success, prepare_compile_input};
-use crate::dynamodb_client::DynamoDBClient;
+use crate::commands::utils::{
+    on_compilation_failed, on_compilation_success, prepare_compile_input,
+};
 use crate::purgatory::{Purgatory, State};
-use crate::s3_client::S3Client;
-use crate::sqs_clients::wrapper::SqsClientWrapper;
 use crate::sqs_listener::{SqsListener, SqsReceiver};
 
 pub struct EngineBuilder {
@@ -131,53 +133,67 @@ impl RunningEngine {
 
             match sqs_message {
                 SqsMessage::Compile { request } => {
-                    let compilation_input = match prepare_compile_input(&request, &db_client, &s3_client).await {
-                        Ok(value) => value,
-                        Err(PreparationError::NoDBItemError(err)) => {
-                            // Delete the message in this case. something weird.
-                            // No need to cleanup s3
-                            error!("{}", PreparationError::NoDBItemError(err));
-                            if let Err(err) = sqs_receiver.delete_message(receipt_handle).await {
-                                warn!("{}", err);
+                    let compilation_input =
+                        match prepare_compile_input(&request, &db_client, &s3_client).await {
+                            Ok(value) => value,
+                            Err(PreparationError::NoDBItemError(err)) => {
+                                // Delete the message in this case. something weird.
+                                // No need to cleanup s3
+                                error!("{}", PreparationError::NoDBItemError(err));
+                                if let Err(err) = sqs_receiver.delete_message(receipt_handle).await
+                                {
+                                    warn!("{}", err);
+                                }
+                                continue;
                             }
-                            continue;
-                        }
-                        Err(PreparationError::UnexpectedStatusError(err)) => {
-                            // Probably some other instance executing this at the same time.
-                            // For sake of safety still try delete it. Doesn't matter if succeed
-                            // No need to cleanup s3
-                            info!("{}", PreparationError::UnexpectedStatusError(err));
-                            if let Err(err) = sqs_receiver.delete_message(receipt_handle).await {
-                                warn!("{}", err);
+                            Err(PreparationError::UnexpectedStatusError(err)) => {
+                                // Probably some other instance executing this at the same time.
+                                // For sake of safety still try delete it. Doesn't matter if succeed
+                                // No need to cleanup s3
+                                info!("{}", PreparationError::UnexpectedStatusError(err));
+                                if let Err(err) = sqs_receiver.delete_message(receipt_handle).await
+                                {
+                                    warn!("{}", err);
+                                }
+
+                                continue;
                             }
+                            Err(PreparationError::VersionNotSupported(err)) => {
+                                let dir = format!("{}/", id);
+                                s3_client.delete_dir(&dir).await.unwrap(); // TODO: do those retriable
 
-                            continue;
-                        },
-                        Err(PreparationError::VersionNotSupported(err)) => {
-                            let dir = format!("{}/", id);
-                            s3_client.delete_dir(&dir).await.unwrap(); // TODO: do those retriable
+                                let task_result = on_compilation_failed(
+                                    id,
+                                    &db_client,
+                                    PreparationError::VersionNotSupported(err).to_string(),
+                                )
+                                .await
+                                .unwrap();
+                                purgatory.update_task(id, task_result).await; // TODO: actually don't need anything
 
-                            let task_result = on_compilation_failed(id, &db_client, PreparationError::VersionNotSupported(err).to_string()).await.unwrap();
-                            purgatory.update_task(id, task_result).await;                             // TODO: actually don't need anything
-
-                            if let Err(err) = sqs_receiver.delete_message(receipt_handle).await {
-                                warn!("{}", err);
+                                if let Err(err) = sqs_receiver.delete_message(receipt_handle).await
+                                {
+                                    warn!("{}", err);
+                                }
+                                continue;
                             }
-                            continue;
-                        }
-                        Err(PreparationError::S3Error(err) ) => {
-                            warn!("S3Error during preparation - ignoring. {}", err);
-                            continue
-                        },
-                        Err(PreparationError::DBError(err)) => {
-                            warn!("DBError during preparation - ignoring. {}", err);
-                            continue;
-                        }
-                    };
+                            Err(PreparationError::S3Error(err)) => {
+                                warn!("S3Error during preparation - ignoring. {}", err);
+                                continue;
+                            }
+                            Err(PreparationError::DBError(err)) => {
+                                warn!("DBError during preparation - ignoring. {}", err);
+                                continue;
+                            }
+                        };
 
                     let task_result = match do_compile(compilation_input).await {
-                        Ok(value) => on_compilation_success(id, &db_client, &s3_client, value).await.unwrap(), // TODO: unwraps
-                        Err(err) => on_compilation_failed(id, &db_client, err.to_string()).await.unwrap(),
+                        Ok(value) => on_compilation_success(id, &db_client, &s3_client, value)
+                            .await
+                            .unwrap(), // TODO: unwraps
+                        Err(err) => on_compilation_failed(id, &db_client, err.to_string())
+                            .await
+                            .unwrap(),
                     };
                     purgatory.update_task(id, task_result).await;
 

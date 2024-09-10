@@ -10,8 +10,8 @@ use types::item::{Status, TaskResult};
 use types::ARTIFACTS_FOLDER;
 use uuid::Uuid;
 
-use crate::dynamodb_client::DynamoDBClient;
-use crate::s3_client::S3Client;
+use crate::clients::dynamodb_client::DynamoDBClient;
+use crate::clients::s3_client::S3Client;
 use crate::utils::lib::timestamp;
 
 pub type Timestamp = u64;
@@ -28,9 +28,12 @@ impl Purgatory {
             inner: Arc::new(Mutex::new(Inner::new(handle, state, db_client, s3_client))),
         };
 
-        let initialized_handle = tokio::spawn(this.clone().deamon());
-        unsafe {
-            *handle.as_mut() = initialized_handle;
+        {
+            let mut inner = this.inner.try_lock().unwrap();
+            let mut initialized_handle = tokio::spawn(this.clone().deamon());
+            inner.handle = unsafe {
+                NonNull::new_unchecked(&mut initialized_handle as *mut _)
+            };
         }
 
         this

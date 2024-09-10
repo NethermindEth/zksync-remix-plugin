@@ -1,8 +1,7 @@
+use crate::clients::errors::{SqsDeleteError, SqsReceiveError};
 use aws_sdk_sqs::operation::delete_message::DeleteMessageOutput;
 use aws_sdk_sqs::operation::receive_message::ReceiveMessageOutput;
 use aws_sdk_sqs::Client;
-
-use crate::errors::{SqsDeleteError, SqsReceiveError};
 
 macro_rules! match_result {
     ($err_type:ident, $result:expr) => {

@@ -3,21 +3,19 @@
 use aws_sdk_dynamodb::error::SdkError;
 use aws_sdk_dynamodb::operation::update_item::UpdateItemError;
 use aws_sdk_dynamodb::types::AttributeValue;
+use aws_sdk_s3::presigning::PresigningConfig;
 use std::path::Path;
 use std::time::Duration;
-use aws_sdk_s3::presigning::PresigningConfig;
 use tracing::{error, warn};
 use types::item::{Item, Status, TaskResult};
-use types::{ARTIFACTS_FOLDER, CompilationRequest};
+use types::{CompilationRequest, ARTIFACTS_FOLDER};
 use uuid::Uuid;
 
-use crate::commands::compile::{
-    CompilationArtifact, CompilationInput,
-};
-use crate::commands::errors::{PreparationError};
-use crate::dynamodb_client::DynamoDBClient;
-use crate::errors::DBError;
-use crate::s3_client::S3Client;
+use crate::clients::dynamodb_client::DynamoDBClient;
+use crate::clients::errors::DBError;
+use crate::clients::s3_client::S3Client;
+use crate::commands::compile::{CompilationArtifact, CompilationInput};
+use crate::commands::errors::PreparationError;
 use crate::utils::lib::{SOL_ROOT, ZKSOLC_VERSIONS};
 
 async fn try_set_compiling_status(

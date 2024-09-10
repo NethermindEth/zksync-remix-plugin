@@ -1,4 +1,4 @@
-use crate::errors::{DBError, S3Error};
+use crate::clients::errors::{DBError, S3Error};
 
 #[derive(thiserror::Error, Debug)]
 pub enum CompilationError {

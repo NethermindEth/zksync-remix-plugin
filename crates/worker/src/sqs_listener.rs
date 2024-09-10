@@ -1,11 +1,11 @@
-use crate::errors::{SqsDeleteError, SqsReceiveError};
 use async_channel::{Receiver, Recv, Sender, TrySendError};
 use aws_sdk_sqs::types::Message;
 use std::time::Duration;
 use tokio::task::JoinHandle;
 use tokio::time::sleep;
 
-use crate::sqs_clients::wrapper::SqsClientWrapper;
+use crate::clients::errors::{SqsDeleteError, SqsReceiveError};
+use crate::clients::sqs_clients::wrapper::SqsClientWrapper;
 
 pub struct SqsListener {
     handle: JoinHandle<Result<(), SqsReceiveError>>,
