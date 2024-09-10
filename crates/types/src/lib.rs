@@ -1,6 +1,7 @@
 pub mod item;
 
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 pub const ARTIFACTS_FOLDER: &str = "artifacts";
 
@@ -15,7 +16,7 @@ pub struct CompilationConfig {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct CompilationRequest {
-    pub id: String,
+    pub id: Uuid,
     pub config: CompilationConfig,
 }
 
@@ -30,7 +31,7 @@ pub struct VerifyConfig {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct VerificationRequest {
-    pub id: String,
+    pub id: Uuid,
     pub config: VerifyConfig,
 }
 
@@ -45,4 +46,13 @@ pub enum SqsMessage {
         #[serde(flatten)]
         request: VerificationRequest,
     },
+}
+
+impl SqsMessage {
+    pub fn id(&self) -> Uuid {
+        match self {
+            SqsMessage::Compile {request} => request.id,
+            SqsMessage::Verify {request} => request.id,
+        }
+    }
 }

@@ -6,8 +6,8 @@ use std::time::Duration;
 use tokio::time::sleep;
 use tokio::{sync::Mutex, task::JoinHandle};
 use tracing::warn;
-use types::item::Status;
-use types::{SqsMessage, ARTIFACTS_FOLDER};
+use types::item::{Status, TaskResult};
+use types::ARTIFACTS_FOLDER;
 use uuid::Uuid;
 
 use crate::dynamodb_client::DynamoDBClient;
@@ -40,21 +40,35 @@ impl Purgatory {
         self.inner.lock().await.purge().await;
     }
 
-    pub async fn add_task(&mut self, _: &SqsMessage) {
-        todo!()
+    pub async fn add_task(&mut self, id: Uuid) {
+        self.inner.lock().await.add_task(id);
     }
 
-    // TODO: args: status, id
-    pub async fn update_task(&mut self) {}
+    pub async fn update_task(&mut self, id: Uuid, result: TaskResult) {
+        self.inner.lock().await.update_task(id, result);
+    }
 
-    async fn deamon(self) {
+    async fn deamon(mut self) {
         const PURGE_INTERVAL: Duration = Duration::from_secs(60);
 
         loop {
-            let mut inner = self.inner.lock().await;
-            inner.purge().await;
-
+            self.purge().await;
             sleep(PURGE_INTERVAL).await;
+        }
+    }
+}
+
+pub struct State {
+    expiration_timestamps: Vec<(Uuid, Timestamp)>,
+    task_status: HashMap<Uuid, Status>,
+}
+
+impl State {
+    pub async fn load() -> State {
+        // TODO: load state here from DB
+        Self {
+            expiration_timestamps: vec![],
+            task_status: HashMap::new(),
         }
     }
 }
@@ -95,6 +109,14 @@ impl Inner {
         }
     }
 
+    fn add_task(&mut self, id: Uuid) {
+        self.state.task_status.insert(id, Status::InProgress);
+    }
+
+    fn update_task(&mut self, id: Uuid, result: TaskResult) {
+        self.state.task_status.insert(id, Status::Done(result));
+    }
+
     pub async fn purge(&mut self) {
         let now = timestamp();
         for (id, timestamp) in self.state.expiration_timestamps.iter() {
@@ -110,19 +132,10 @@ impl Inner {
             };
 
             match status {
-                Status::Pending => warn!("Item pending for too long!"),
                 Status::InProgress => warn!("Item compiling for too long!"),
-                Status::Ready { .. } => {
+                Status::Done(_) | Status::Pending => {
                     let dir = format!("{}/{}/", ARTIFACTS_FOLDER, id);
                     self.s3_client.delete_dir(&dir).await.unwrap(); // TODO: fix
-                    self.db_client
-                        .delete_item(id.to_string().as_str())
-                        .await
-                        .unwrap();
-                }
-                Status::Failed { .. } => {
-                    let dir = format!("{}/{}/", ARTIFACTS_FOLDER, id);
-                    self.s3_client.delete_dir(&dir).await; // TODO: fix
                     self.db_client
                         .delete_item(id.to_string().as_str())
                         .await
@@ -134,51 +147,5 @@ impl Inner {
         self.state
             .expiration_timestamps
             .retain(|(_, timestamp)| *timestamp > now);
-    }
-
-    // TODO: replace with Self::purge
-    // pub async fn supervisor(
-    //     db_client: DynamoDBClient,
-    //     expiration_timestamps: Arc<Mutex<Vec<(Uuid, Timestamp)>>>,
-    // ) {
-    //     loop {
-    //         let now = timestamp();
-    //
-    //         let to_delete = {
-    //             let mut to_delete = vec![];
-    //             let mut expiration_timestamps = expiration_timestamps.lock().await;
-    //             expiration_timestamps.retain(|&(uuid, expiration)| {
-    //                 if expiration < now {
-    //                     to_delete.push(uuid);
-    //                     false
-    //                 } else {
-    //                     true
-    //                 }
-    //             });
-    //
-    //             to_delete
-    //         };
-    //
-    //         for uuid in to_delete {
-    //             db_client.delete_item(uuid.to_string()).await;
-    //         }
-    //
-    //         sleep(Duration::from_millis(2000)).await;
-    //     }
-    // }
-}
-
-pub struct State {
-    expiration_timestamps: Vec<(Uuid, Timestamp)>,
-    task_status: HashMap<Uuid, Status>,
-}
-
-impl State {
-    pub async fn load() -> State {
-        // TODO: load state here from DB
-        Self {
-            expiration_timestamps: vec![],
-            task_status: HashMap::new(),
-        }
     }
 }

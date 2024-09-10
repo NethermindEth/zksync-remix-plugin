@@ -28,12 +28,12 @@ impl DynamoDBClient {
         Ok(())
     }
 
-    pub async fn get_item(&self, id: &str) -> Result<Option<Item>, DBError> {
+    pub async fn get_item(&self, key: &str) -> Result<Option<Item>, DBError> {
         let result = self
             .client
             .get_item()
             .table_name(self.table_name.clone())
-            .key(Item::primary_key_name(), AttributeValue::S(id.to_string()))
+            .key(Item::primary_key_name(), AttributeValue::S(key.to_string()))
             .send()
             .await?;
 
