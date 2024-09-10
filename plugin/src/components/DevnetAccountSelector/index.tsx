@@ -155,7 +155,7 @@ export const AccountSelector = ({ accountsType }: { accountsType: 'devnet' | 'cu
 
   return (
     <div className="mt-2">
-      <label className="">{accountsType === 'devnet' && 'Devnet'}account selection</label>
+      <label className="">{accountsType === 'devnet' && 'Devnet'}Account selection</label>
       <div className="devnet-account-selector-wrapper">
         <Dropdown.Root
           open={dropdownControl}

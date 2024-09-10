@@ -26,6 +26,8 @@ export const EnvironmentSelector = () => {
         break
       }
       case 'wallet':
+        setEnv('wallet')
+        break
       case 'customNetwork':
         setEnv('customNetwork')
         break
@@ -55,7 +57,7 @@ export const EnvironmentSelector = () => {
         <Dropdown.Portal>
           <Dropdown.Content>
             <Dropdown.Item
-              key={'0wallet'}
+              key={'wallet'}
               onClick={() => {
                 handleEnvironmentChange('wallet')
               }}

@@ -47,7 +47,7 @@ export const Wallet = () => {
 
   return (
     <div
-      className="flex"
+      className="flex wallet-actions"
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -55,9 +55,7 @@ export const Wallet = () => {
         padding: '1rem 0rem'
       }}
     >
-      <div className="wallet-actions">
-        <w3m-button />
-      </div>
+      <w3m-button />
     </div>
   )
 }
