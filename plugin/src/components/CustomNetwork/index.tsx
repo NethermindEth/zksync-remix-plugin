@@ -121,7 +121,7 @@ export const CustomNetwork = () => {
                         type="text"
                         id="custom-network-input"
                         className="custom-input"
-                        placeholder="http://localhost:8545"
+                        placeholder="http://localhost:3050"
                         value={customNetworkInput}
                         onChange={(e) => setCustomNetworkInput(e.target.value)}
                         disabled={connectionStatus === 'connected'}
