@@ -25,6 +25,8 @@ export const envName = (env: EnvType): string => {
       return 'Manual'
     case 'localDevnet':
       return 'Local Devnet'
+    case 'customNetwork':
+      return 'Custom Network'
     default:
       return 'Unknown'
   }

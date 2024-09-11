@@ -2,12 +2,13 @@ import React from 'react'
 import { useAtom } from 'jotai'
 import * as Tabs from '@radix-ui/react-tabs'
 import {
-  DevnetAccountSelector,
+  AccountSelector,
   EnvironmentSelector,
   Wallet,
   ManualAccount,
   DevnetStatus,
-  CurrentEnv
+  CurrentEnv,
+  CustomNetwork
 } from '@/components'
 import Accordian, { AccordianItem, AccordionContent, AccordionTrigger } from '@/ui_components/Accordian'
 import { envAtom } from '@/atoms/environment'
@@ -60,7 +61,9 @@ export const Environment = () => {
                           </div>
                         </div>
                         <div className="flex flex-column">
-                          {['localDevnet', 'remoteDevnet'].includes(env) ? <DevnetAccountSelector /> : <Wallet />}
+                          {['localDevnet', 'remoteDevnet'].includes(env) && <AccountSelector accountsType="devnet" />}
+                          {env === 'wallet' && <Wallet />}
+                          {env === 'customNetwork' && <CustomNetwork />}
                         </div>
                       </div>
                     ) : (
