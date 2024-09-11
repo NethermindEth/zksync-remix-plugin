@@ -1,6 +1,7 @@
 use crate::commands::compile::CompilationFile;
 use std::path::{Path, PathBuf};
 use tracing::debug;
+use types::ARTIFACTS_FOLDER;
 use uuid::Uuid;
 use walkdir::WalkDir;
 
@@ -166,6 +167,14 @@ pub fn list_files_in_directory<P: AsRef<Path>>(path: P) -> Result<Vec<String>, w
 //         target_path: None,
 //     }
 // }
+
+pub fn s3_artifacts_dir(id: &str) -> String {
+    format!("{}/{}/", ARTIFACTS_FOLDER, id)
+}
+
+pub fn s3_compilation_files_dir(id: &str) -> String {
+    format!("{}/", id)
+}
 
 pub fn generate_mock_solidity_file_content() -> String {
     r#"

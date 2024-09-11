@@ -12,7 +12,7 @@ use uuid::Uuid;
 
 use crate::clients::dynamodb_client::DynamoDBClient;
 use crate::clients::s3_client::S3Client;
-use crate::utils::lib::timestamp;
+use crate::utils::lib::{s3_artifacts_dir, timestamp};
 
 pub type Timestamp = u64;
 
@@ -31,9 +31,7 @@ impl Purgatory {
         {
             let mut inner = this.inner.try_lock().unwrap();
             let mut initialized_handle = tokio::spawn(this.clone().deamon());
-            inner.handle = unsafe {
-                NonNull::new_unchecked(&mut initialized_handle as *mut _)
-            };
+            inner.handle = unsafe { NonNull::new_unchecked(&mut initialized_handle as *mut _) };
         }
 
         this
@@ -43,12 +41,8 @@ impl Purgatory {
         self.inner.lock().await.purge().await;
     }
 
-    pub async fn add_task(&mut self, id: Uuid) {
-        self.inner.lock().await.add_task(id);
-    }
-
-    pub async fn update_task(&mut self, id: Uuid, result: TaskResult) {
-        self.inner.lock().await.update_task(id, result);
+    pub async fn add_record(&mut self, id: Uuid, result: TaskResult) {
+        self.inner.lock().await.add_record(id, result);
     }
 
     async fn deamon(mut self) {
@@ -112,11 +106,7 @@ impl Inner {
         }
     }
 
-    fn add_task(&mut self, id: Uuid) {
-        self.state.task_status.insert(id, Status::InProgress);
-    }
-
-    fn update_task(&mut self, id: Uuid, result: TaskResult) {
+    fn add_record(&mut self, id: Uuid, result: TaskResult) {
         self.state.task_status.insert(id, Status::Done(result));
     }
 
@@ -134,9 +124,13 @@ impl Inner {
                 continue;
             };
 
+            let artifacts_dir = s3_artifacts_dir(&id);
             match status {
                 Status::InProgress => warn!("Item compiling for too long!"),
-                Status::Done(_) | Status::Pending => {
+                Status::Pending => {
+                    warn!("Item pending for too long");
+                }
+                Status::Done(_) => {
                     let dir = format!("{}/{}/", ARTIFACTS_FOLDER, id);
                     self.s3_client.delete_dir(&dir).await.unwrap(); // TODO: fix
                     self.db_client
