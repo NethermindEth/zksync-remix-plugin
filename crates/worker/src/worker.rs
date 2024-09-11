@@ -184,7 +184,7 @@ impl RunningEngine {
             }
             Err(PreparationError::VersionNotSupported(err)) => {
                 // Clean everything since the request failed
-                let dir = s3_compilation_files_dir(&id);
+                let dir = s3_compilation_files_dir(id.to_string().as_str());
                 s3_client.delete_dir(&dir).await.unwrap(); // TODO: do those retriable
 
                 // This error doesn't create any artifacts
@@ -222,7 +222,7 @@ impl RunningEngine {
         purgatory.add_record(id, task_result).await;
 
         // Clean compilation input files right away
-        let dir = s3_artifacts_dir(&id);
+        let dir = s3_compilation_files_dir(id.to_string().as_str());
         s3_client.delete_dir(&dir).await.unwrap();
 
         if let Err(err) = sqs_receiver.delete_message(receipt_handle).await {

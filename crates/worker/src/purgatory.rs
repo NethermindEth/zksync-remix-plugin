@@ -12,7 +12,7 @@ use uuid::Uuid;
 
 use crate::clients::dynamodb_client::DynamoDBClient;
 use crate::clients::s3_client::S3Client;
-use crate::utils::lib::{s3_artifacts_dir, timestamp};
+use crate::utils::lib::{s3_artifacts_dir, s3_compilation_files_dir, timestamp};
 
 pub type Timestamp = u64;
 
@@ -107,7 +107,13 @@ impl Inner {
     }
 
     fn add_record(&mut self, id: Uuid, result: TaskResult) {
+        pub const DURATION_TO_PURGE: u64 = 60 * 5; // 5 minutes
+        let to_purge_timestampe = timestamp() + DURATION_TO_PURGE;
+
         self.state.task_status.insert(id, Status::Done(result));
+        self.state
+            .expiration_timestamps
+            .push((id, to_purge_timestampe));
     }
 
     pub async fn purge(&mut self) {
@@ -124,14 +130,28 @@ impl Inner {
                 continue;
             };
 
-            let artifacts_dir = s3_artifacts_dir(&id);
             match status {
                 Status::InProgress => warn!("Item compiling for too long!"),
                 Status::Pending => {
                     warn!("Item pending for too long");
+
+                    // Remove compilation files
+                    let files_dir = s3_compilation_files_dir(id.to_string().as_str());
+                    self.s3_client.delete_dir(&files_dir).await.unwrap();
+
+                    // Remove artifacts
+                    let artifacts_dir = s3_compilation_files_dir(id.to_string().as_str());
+                    self.s3_client.delete_dir(&artifacts_dir).await.unwrap(); // TODO: fix
+
+                    // TODO: design choice. Delete or update status to purged?
+                    // Second would give neater replies
+                    self.db_client
+                        .delete_item(id.to_string().as_str())
+                        .await
+                        .unwrap();
                 }
                 Status::Done(_) => {
-                    let dir = format!("{}/{}/", ARTIFACTS_FOLDER, id);
+                    let dir = s3_artifacts_dir(id.to_string().as_str());
                     self.s3_client.delete_dir(&dir).await.unwrap(); // TODO: fix
                     self.db_client
                         .delete_item(id.to_string().as_str())
@@ -141,8 +161,13 @@ impl Inner {
             }
         }
 
-        self.state
-            .expiration_timestamps
-            .retain(|(_, timestamp)| *timestamp > now);
+        self.state.expiration_timestamps.retain(|(id, timestamp)| {
+            if *timestamp > now {
+                return true;
+            };
+
+            self.state.task_status.remove(id);
+            false
+        });
     }
 }
