@@ -12,7 +12,7 @@ use crate::utils::hardhat_config::HardhatConfigBuilder;
 use crate::utils::lib::{initialize_files, list_files_in_directory, DEFAULT_SOLIDITY_VERSION};
 
 pub struct CompilationFile {
-    pub file_path: String,
+    pub file_path: PathBuf,
     pub file_content: Vec<u8>,
 }
 
@@ -23,14 +23,19 @@ pub struct CompilationInput {
     pub contracts: Vec<CompilationFile>,
 }
 
-pub struct CompilationArtifact {
-    pub file_name: String,
-    pub file_content: Vec<u8>,
+pub struct ArtifactData {
+    pub file_path: PathBuf,
     pub is_contract: bool,
 }
+
+pub struct CompilationOutput {
+    pub artifacts_dir: PathBuf,
+    pub artifacts_data: Vec<ArtifactData>,
+}
+
 pub async fn do_compile(
     compilation_input: CompilationInput,
-) -> Result<Vec<CompilationArtifact>, CompilationError> {
+) -> Result<CompilationOutput, CompilationError> {
     // root directory for the contracts
     let workspace_path = compilation_input.workspace_path;
     // root directory for the artifacts
@@ -100,30 +105,30 @@ pub async fn do_compile(
     }
 
     // fetch the files in the artifacts directory
-    let mut file_contents: Vec<CompilationArtifact> = vec![];
     let file_paths =
         list_files_in_directory(&artifacts_path).expect("Unexpected error listing artifact");
-    for file_path in file_paths.iter() {
-        // TODO: change this - don't store files in RAM. copy 1-1 to S3
-        let file_content = tokio::fs::read(file_path).await?;
-        let full_path = Path::new(file_path);
+    let artifacts_data = file_paths
+        .into_iter()
+        .map(|file_path| {
+            let full_path = Path::new(&file_path);
+            let relative_path = full_path
+                .strip_prefix(&artifacts_path)
+                .expect("Unexpected prefix");
 
-        let relative_path = full_path
-            .strip_prefix(&artifacts_path)
-            .expect("Unexpected prefix");
-        let relative_path_str = relative_path.to_str().unwrap();
+            let is_contract =
+                !relative_path.ends_with(".dbg.json") && relative_path.ends_with(".json");
 
-        let is_contract =
-            !relative_path_str.ends_with(".dbg.json") && relative_path_str.ends_with(".json");
-
-        file_contents.push(CompilationArtifact {
-            file_name: relative_path_str.to_string(),
-            file_content,
-            is_contract,
-        });
-    }
+            ArtifactData {
+                file_path: relative_path.to_path_buf(),
+                is_contract,
+            }
+        })
+        .collect();
 
     // calling here explicitly to avoid dropping the AutoCleanUp struct
     auto_clean_up.clean_up().await;
-    Ok(file_contents)
+    Ok(CompilationOutput {
+        artifacts_dir: artifacts_path,
+        artifacts_data,
+    })
 }

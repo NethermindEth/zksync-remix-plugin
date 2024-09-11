@@ -14,8 +14,9 @@ use uuid::Uuid;
 use crate::clients::dynamodb_client::DynamoDBClient;
 use crate::clients::errors::DBError;
 use crate::clients::s3_client::S3Client;
-use crate::commands::compile::{CompilationArtifact, CompilationInput};
-use crate::commands::errors::PreparationError;
+use crate::commands::compile::{ArtifactData, CompilationInput, CompilationOutput};
+use crate::commands::errors::{CommandResultHandleError, PreparationError};
+use crate::utils::cleaner::AutoCleanUp;
 use crate::utils::lib::{SOL_ROOT, ZKSOLC_VERSIONS};
 
 async fn try_set_compiling_status(
@@ -101,14 +102,26 @@ pub async fn on_compilation_success(
     id: Uuid,
     db_client: &DynamoDBClient,
     s3_client: &S3Client,
-    compilation_artifacts: Vec<CompilationArtifact>,
-) -> Result<TaskResult, PreparationError> {
+    compilation_output: CompilationOutput,
+) -> Result<TaskResult, CommandResultHandleError> {
     const DOWNLOAD_URL_EXPIRATION: Duration = Duration::from_secs(5 * 60 * 60);
 
-    let mut presigned_urls = Vec::with_capacity(compilation_artifacts.len());
-    for el in compilation_artifacts {
-        let file_key = format!("{}/{}/{}", ARTIFACTS_FOLDER, id, el.file_name);
-        s3_client.put_object(&file_key, el.file_content).await?;
+    let auto_clean_up = AutoCleanUp {
+        dirs: vec![compilation_output.artifacts_dir.to_str().unwrap()],
+    };
+
+    let mut presigned_urls = Vec::with_capacity(compilation_output.artifacts_data.len());
+    for el in compilation_output.artifacts_data {
+        let absolute_path = compilation_output.artifacts_dir.join(&el.file_path);
+        let file_content = tokio::fs::read(absolute_path).await?;
+
+        let file_key = format!(
+            "{}/{}/{}",
+            ARTIFACTS_FOLDER,
+            id,
+            el.file_path.to_str().unwrap()
+        );
+        s3_client.put_object(&file_key, file_content).await?;
 
         let expires_in = PresigningConfig::expires_in(DOWNLOAD_URL_EXPIRATION).unwrap();
         let presigned_request = s3_client
@@ -140,6 +153,7 @@ pub async fn on_compilation_success(
         .await
         .map_err(DBError::from)?;
 
+    auto_clean_up.clean_up().await;
     Ok(TaskResult::Success { presigned_urls })
 }
 
@@ -147,7 +161,7 @@ pub async fn on_compilation_failed(
     id: Uuid,
     db_client: &DynamoDBClient,
     message: String,
-) -> Result<TaskResult, DBError> {
+) -> Result<TaskResult, CommandResultHandleError> {
     db_client
         .client
         .update_item()
@@ -162,7 +176,8 @@ pub async fn on_compilation_failed(
         )
         .expression_attribute_values(":data", AttributeValue::S(message.clone()))
         .send()
-        .await?;
+        .await
+        .map_err(DBError::from)?;
 
     Ok(TaskResult::Failure(message))
 }
