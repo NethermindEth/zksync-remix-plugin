@@ -3,12 +3,12 @@ use aws_sdk_dynamodb::{error::SdkError, operation::put_item::PutItemError};
 use lambda_http::{
     run, service_fn, Error as LambdaError, Request as LambdaRequest, Response as LambdaResponse,
 };
-use serde::Deserialize;
 use std::ops::Add;
 use tracing::{error, info};
+use types::{CompilationRequest, SqsMessage, item::{Item, Status}};
 
 mod common;
-use crate::common::{errors::Error, utils::extract_request, Item, Status, BUCKET_NAME_DEFAULT};
+use crate::common::{errors::Error, utils::extract_request, BUCKET_NAME_DEFAULT};
 
 // TODO: remove on release
 const QUEUE_URL_DEFAULT: &str = "https://sqs.ap-southeast-2.amazonaws.com/266735844848/zksync-sqs";
@@ -16,12 +16,6 @@ const TABLE_NAME_DEFAULT: &str = "zksync-table";
 
 const NO_OBJECTS_TO_COMPILE_ERROR: &str = "There are no objects to compile";
 const RECOMPILATION_ATTEMPT_ERROR: &str = "Recompilation attemp";
-
-#[derive(Debug, Deserialize)]
-struct Request {
-    pub id: String,
-}
-
 // impl Deserialize for Response {
 //     fn deserialize<'de, D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
 //         todo!()
@@ -35,14 +29,14 @@ struct Request {
 // }
 
 async fn compile(
-    id: String,
+    request: CompilationRequest,
     dynamo_client: &aws_sdk_dynamodb::Client,
     table_name: &str,
     sqs_client: &aws_sdk_sqs::Client,
     queue_url: &str,
 ) -> Result<(), Error> {
     let item = Item {
-        id: id.clone(),
+        id: request.id.clone(),
         status: Status::Pending,
     };
 
@@ -55,10 +49,10 @@ async fn compile(
         .await;
 
     match result {
-        Ok(val) => val,
+        Ok(value) => value,
         Err(SdkError::ServiceError(val)) => match val.err() {
             PutItemError::ConditionalCheckFailedException(_) => {
-                error!("Recompilation attempt, id: {}", id);
+                error!("Recompilation attempt, id: {}", request.id);
                 let response = lambda_http::Response::builder()
                     .status(400)
                     .header("content-type", "text/html")
@@ -72,10 +66,18 @@ async fn compile(
         Err(err) => return Err(Box::new(err).into()),
     };
 
+    let message = SqsMessage::Compile { request };
+    let message = match serde_json::to_string(&message) {
+        Ok(val) => val,
+        Err(err) => {
+            error!("Serialization failed, id: {:?}", message);
+            return Err(Box::new(err).into());
+        }
+    };
     let message_output = sqs_client
         .send_message()
         .queue_url(queue_url)
-        .message_body(id)
+        .message_body(message)
         .send()
         .await
         .map_err(Box::new)?;
@@ -105,7 +107,7 @@ async fn process_request(
     s3_client: &aws_sdk_s3::Client,
     bucket_name: &str,
 ) -> Result<LambdaResponse<String>, Error> {
-    let request = extract_request::<Request>(request)?;
+    let request = extract_request::<CompilationRequest>(request)?;
 
     let objects = s3_client
         .list_objects_v2()
@@ -128,7 +130,7 @@ async fn process_request(
     }
 
     info!("Compile");
-    compile(request.id, dynamo_client, table_name, sqs_client, queue_url).await?;
+    compile(request, dynamo_client, table_name, sqs_client, queue_url).await?;
 
     let response = LambdaResponse::builder()
         .status(200)

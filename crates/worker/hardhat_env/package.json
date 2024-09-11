@@ -1,0 +1,24 @@
+{
+  "name": "hardhat-env",
+  "version": "0.1.0",
+  "license": "MIT",
+  "scripts": {
+    "compile": "npx hardhat compile",
+    "verify": "npx hardhat verify"
+  },
+  "devDependencies": {
+    "@types/node": "^18.11.17",
+    "ts-node": "^10.6.0",
+    "typescript": "^5.1.6"
+  },
+  "dependencies": {
+    "hardhat": "^2.19.4",
+    "@matterlabs/hardhat-zksync-solc": "1.1.4",
+    "@matterlabs/hardhat-zksync-verify": "1.4.3",
+    "@matterlabs/zksync-contracts": "^0.6.1",
+    "@openzeppelin/contracts": "^4.6.0",
+    "@openzeppelin/contracts-upgradeable": "^4.6.0",
+    "@chainlink/contracts": "^1.0.0",
+    "@thirdweb-dev/contracts": "^3.11.2"
+  }
+}

@@ -1,0 +1,10 @@
+[package]
+name = "types"
+version = "0.0.1"
+edition = "2021"
+
+[dependencies]
+aws-sdk-dynamodb = {workspace = true}
+serde = {workspace = true}
+thiserror = {worksapce = true}
+uuid = {workspace = true}
