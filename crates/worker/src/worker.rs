@@ -12,9 +12,9 @@ use crate::commands::errors::PreparationError;
 use crate::commands::utils::{
     on_compilation_failed, on_compilation_success, prepare_compile_input,
 };
-use crate::purgatory::{Purgatory};
+use crate::purgatory::Purgatory;
 use crate::sqs_listener::{SqsListener, SqsReceiver};
-use crate::utils::lib::{s3_compilation_files_dir};
+use crate::utils::lib::s3_compilation_files_dir;
 
 pub struct EngineBuilder {
     sqs_client: SqsClientWrapper,
