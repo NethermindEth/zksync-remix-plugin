@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
 use std::fmt::Formatter;
+use uuid::Uuid;
 
 pub type AttributeMap = HashMap<String, AttributeValue>;
 
@@ -135,7 +136,7 @@ pub enum ItemError {
 }
 
 pub struct Item {
-    pub id: String,
+    pub id: Uuid,
     pub status: Status,
     pub created_at: DateTime<Utc>,
     // TODO: type: Compiling/Verifying
@@ -168,7 +169,7 @@ impl From<Item> for AttributeMap {
         let mut item_map = HashMap::from([
             (
                 Item::id_attribute_name().into(),
-                AttributeValue::S(value.id),
+                AttributeValue::S(value.id.into()),
             ),
             (
                 Item::created_at_attribute_name().into(),
@@ -186,8 +187,10 @@ impl TryFrom<AttributeMap> for Item {
     fn try_from(value: AttributeMap) -> Result<Item, Self::Error> {
         let id = value
             .get(Item::id_attribute_name())
-            .ok_or(ItemError::FormatError)?;
-        let id = id.as_s().map_err(|_| ItemError::FormatError)?;
+            .ok_or(ItemError::FormatError)?
+            .as_s()
+            .map_err(|_| ItemError::FormatError)?;
+        let id = Uuid::parse_str(id.as_str()).map_err(|_| ItemError::FormatError)?;
         let status = (&value).try_into()?;
 
         let created_at = value
@@ -197,7 +200,7 @@ impl TryFrom<AttributeMap> for Item {
         let created_at = DateTime::<FixedOffset>::parse_from_rfc3339(created_at.as_str())?;
 
         Ok(Item {
-            id: id.clone(),
+            id,
             status,
             created_at: created_at.into(),
         })

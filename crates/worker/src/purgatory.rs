@@ -126,7 +126,7 @@ impl Inner {
                 Inner::purge_item(
                     &db_client,
                     &s3_client,
-                    &Uuid::parse_str(&item.id).unwrap(),
+                    &item.id,
                     &item.status,
                 )
                 .await;
