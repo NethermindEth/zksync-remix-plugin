@@ -9,7 +9,7 @@ use tokio::time::{interval, sleep};
 use tokio::{sync::Mutex, task::JoinHandle};
 use tracing::warn;
 use types::item::{Item, ItemError, Status, TaskResult};
-use uuid::{Uuid};
+use uuid::Uuid;
 
 use crate::clients::dynamodb_client::DynamoDBClient;
 use crate::clients::s3_client::S3Client;
@@ -29,7 +29,12 @@ impl Purgatory {
     pub fn new(db_client: DynamoDBClient, s3_client: S3Client) -> Self {
         let handle = NonNull::dangling();
         let this = Self {
-            inner: Arc::new(Mutex::new(Inner::new(handle, State::new(), db_client, s3_client))),
+            inner: Arc::new(Mutex::new(Inner::new(
+                handle,
+                State::new(),
+                db_client,
+                s3_client,
+            ))),
         };
 
         {
@@ -110,8 +115,10 @@ impl Inner {
     }
 
     async fn global_state_purge(db_client: DynamoDBClient, s3_client: S3Client) {
+        const SYNC_FROM_OFFSET: Option<Duration> = PURGE_INTERVAL.checked_mul(6);
+
         let mut global_state = GlobalState::new(db_client.clone(), s3_client.clone());
-        let sync_from = Utc::now() - 6 * PURGE_INTERVAL;
+        let sync_from = Utc::now() - SYNC_FROM_OFFSET.unwrap();
 
         loop {
             if global_state.sync(&sync_from).await.is_err() {
@@ -123,13 +130,7 @@ impl Inner {
 
             let items: Vec<Item> = global_state.items.drain(..).collect();
             for item in items {
-                Inner::purge_item(
-                    &db_client,
-                    &s3_client,
-                    &item.id,
-                    &item.status,
-                )
-                .await;
+                Inner::purge_item(&db_client, &s3_client, &item.id, &item.status).await;
             }
         }
     }
@@ -245,8 +246,7 @@ impl GlobalState {
                 .into_iter()
                 .take(remaining_capacity)
                 .map(|raw_item| raw_item.try_into())
-                .collect::<Result<_, ItemError>>()
-                .unwrap();
+                .collect::<Result<_, ItemError>>()?;
 
             self.items.append(&mut to_append);
             if self.items.len() == MAX_CAPACITY {
