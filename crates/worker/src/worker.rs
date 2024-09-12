@@ -12,15 +12,14 @@ use crate::commands::errors::PreparationError;
 use crate::commands::utils::{
     on_compilation_failed, on_compilation_success, prepare_compile_input,
 };
-use crate::purgatory::{Purgatory, State};
+use crate::purgatory::{Purgatory};
 use crate::sqs_listener::{SqsListener, SqsReceiver};
-use crate::utils::lib::{s3_artifacts_dir, s3_compilation_files_dir};
+use crate::utils::lib::{s3_compilation_files_dir};
 
 pub struct EngineBuilder {
     sqs_client: SqsClientWrapper,
     db_client: DynamoDBClient,
     s3_client: S3Client,
-    state: State,
     running_workers: Vec<RunningEngine>,
 }
 
@@ -29,13 +28,11 @@ impl EngineBuilder {
         sqs_client: SqsClientWrapper,
         db_client: DynamoDBClient,
         s3_client: S3Client,
-        state: State,
     ) -> Self {
         EngineBuilder {
             sqs_client,
             db_client,
             s3_client,
-            state,
             running_workers: vec![],
         }
     }
@@ -47,7 +44,6 @@ impl EngineBuilder {
             sqs_listener,
             self.db_client,
             self.s3_client,
-            self.state,
             num_workers.get(),
         )
     }
@@ -65,10 +61,9 @@ impl RunningEngine {
         sqs_listener: SqsListener,
         db_client: DynamoDBClient,
         s3_client: S3Client,
-        state: State,
         num_workers: usize,
     ) -> Self {
-        let purgatory = Purgatory::new(state, db_client.clone(), s3_client.clone());
+        let purgatory = Purgatory::new(db_client.clone(), s3_client.clone());
 
         let mut worker_threads = Vec::with_capacity(num_workers);
         for _ in 0..num_workers {
@@ -163,8 +158,8 @@ impl RunningEngine {
         let compilation_input = match prepare_compile_input(&request, db_client, s3_client).await {
             Ok(value) => value,
             Err(PreparationError::NoDBItemError(err)) => {
-                // Delete the message in this case. something weird.
-                // No need to clean up s3
+                // Possible in case GlobalState purges old message
+                // that somehow stuck in queue for too long
                 error!("{}", PreparationError::NoDBItemError(err));
                 if let Err(err) = sqs_receiver.delete_message(receipt_handle).await {
                     warn!("{}", err);

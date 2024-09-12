@@ -1,4 +1,5 @@
 use aws_sdk_dynamodb::types::AttributeValue;
+use chrono::{DateTime, FixedOffset, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
@@ -30,7 +31,7 @@ impl fmt::Display for Status {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Status::Pending => write!(f, "Pending"),
-            Status::InProgress => write!(f, "Compiling"),
+            Status::InProgress => write!(f, "InProgress"),
             Status::Done(TaskResult::Success { .. }) => write!(f, "Success"),
             Status::Done(TaskResult::Failure(msg)) => write!(f, "Failure: {}", msg),
         }
@@ -85,51 +86,6 @@ impl From<Status> for AttributeMap {
     }
 }
 
-#[derive(thiserror::Error, Debug)]
-pub enum ItemError {
-    #[error("Invalid Item format")]
-    FormatError,
-    #[error(transparent)]
-    ParseError(#[from] std::num::ParseIntError),
-}
-
-pub struct Item {
-    // TODO: uuid?
-    pub id: String,
-    pub status: Status,
-    // TODO: type: Compiling/Verifying
-}
-
-impl Item {
-    pub const fn status_attribute_name() -> &'static str {
-        Status::attribute_name()
-    }
-
-    pub const fn data_attribute_name() -> &'static str {
-        "Data"
-    }
-
-    pub const fn id_attribute_name() -> &'static str {
-        "ID"
-    }
-
-    pub const fn primary_key_name() -> &'static str {
-        Self::id_attribute_name()
-    }
-}
-
-impl From<Item> for AttributeMap {
-    fn from(value: Item) -> Self {
-        let mut item_map = HashMap::from([(
-            Item::id_attribute_name().into(),
-            AttributeValue::S(value.id),
-        )]);
-        item_map.extend(HashMap::from(value.status));
-
-        item_map
-    }
-}
-
 impl TryFrom<&AttributeMap> for Status {
     type Error = ItemError;
     fn try_from(value: &AttributeMap) -> Result<Self, Self::Error> {
@@ -168,6 +124,63 @@ impl TryFrom<&AttributeMap> for Status {
     }
 }
 
+#[derive(thiserror::Error, Debug)]
+pub enum ItemError {
+    #[error("Invalid Item format")]
+    FormatError,
+    #[error(transparent)]
+    NumParseError(#[from] std::num::ParseIntError),
+    #[error(transparent)]
+    DataParseError(#[from] chrono::format::ParseError),
+}
+
+pub struct Item {
+    pub id: String,
+    pub status: Status,
+    pub created_at: DateTime<Utc>,
+    // TODO: type: Compiling/Verifying
+}
+
+impl Item {
+    pub const fn status_attribute_name() -> &'static str {
+        Status::attribute_name()
+    }
+
+    pub const fn data_attribute_name() -> &'static str {
+        "Data"
+    }
+
+    pub const fn id_attribute_name() -> &'static str {
+        "ID"
+    }
+
+    pub const fn created_at_attribute_name() -> &'static str {
+        "CreatedAt"
+    }
+
+    pub const fn primary_key_name() -> &'static str {
+        Self::id_attribute_name()
+    }
+}
+
+impl From<Item> for AttributeMap {
+    fn from(value: Item) -> Self {
+        let mut item_map = HashMap::from([
+            (
+                Item::id_attribute_name().into(),
+                AttributeValue::S(value.id),
+            ),
+            (
+                Item::created_at_attribute_name().into(),
+                AttributeValue::S(value.created_at.to_rfc3339()),
+            ),
+        ]);
+        item_map.extend(HashMap::from(value.status));
+
+        item_map
+    }
+}
+
 impl TryFrom<AttributeMap> for Item {
     type Error = ItemError;
     fn try_from(value: AttributeMap) -> Result<Item, Self::Error> {
@@ -177,9 +190,16 @@ impl TryFrom<AttributeMap> for Item {
         let id = id.as_s().map_err(|_| ItemError::FormatError)?;
         let status = (&value).try_into()?;
 
+        let created_at = value
+            .get(Item::created_at_attribute_name())
+            .ok_or(ItemError::FormatError)?;
+        let created_at = created_at.as_s().map_err(|_| ItemError::FormatError)?;
+        let created_at = DateTime::<FixedOffset>::parse_from_rfc3339(created_at.as_str())?;
+
         Ok(Item {
             id: id.clone(),
             status,
+            created_at: created_at.into(),
         })
     }
 }

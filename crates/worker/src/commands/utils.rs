@@ -14,7 +14,7 @@ use uuid::Uuid;
 use crate::clients::dynamodb_client::DynamoDBClient;
 use crate::clients::errors::DBError;
 use crate::clients::s3_client::S3Client;
-use crate::commands::compile::{ArtifactData, CompilationInput, CompilationOutput};
+use crate::commands::compile::{CompilationInput, CompilationOutput};
 use crate::commands::errors::{CommandResultHandleError, PreparationError};
 use crate::utils::cleaner::AutoCleanUp;
 use crate::utils::lib::{SOL_ROOT, ZKSOLC_VERSIONS};
