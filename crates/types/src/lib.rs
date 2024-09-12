@@ -51,8 +51,8 @@ pub enum SqsMessage {
 impl SqsMessage {
     pub fn id(&self) -> Uuid {
         match self {
-            SqsMessage::Compile {request} => request.id,
-            SqsMessage::Verify {request} => request.id,
+            SqsMessage::Compile { request } => request.id,
+            SqsMessage::Verify { request } => request.id,
         }
     }
 }

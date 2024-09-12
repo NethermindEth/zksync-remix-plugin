@@ -13,7 +13,6 @@ use std::num::NonZeroUsize;
 use crate::clients::dynamodb_client::DynamoDBClient;
 use crate::clients::s3_client::S3Client;
 use crate::clients::sqs_clients::wrapper::SqsClientWrapper;
-use crate::purgatory::State;
 use crate::worker::EngineBuilder;
 
 const AWS_PROFILE_DEFAULT: &str = "dev";
@@ -49,9 +48,7 @@ async fn main() {
     let s3_client = aws_sdk_s3::Client::new(&config);
     let s3_client = S3Client::new(s3_client, BUCKET_NAME_DEFAULT);
 
-    let state = State::load().await;
-
-    let engine = EngineBuilder::new(sqs_client, db_client, s3_client, state);
+    let engine = EngineBuilder::new(sqs_client, db_client, s3_client);
     let running_engine = engine.start(NonZeroUsize::new(10).unwrap());
 
     running_engine.wait().await;
