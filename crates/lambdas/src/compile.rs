@@ -36,9 +36,9 @@ async fn compile(
     sqs_client: &aws_sdk_sqs::Client,
     queue_url: &str,
 ) -> Result<(), Error> {
-    let created_at = Utc::now().to_rfc3339();
+    let created_at = Utc::now();
     let item = Item {
-        id: request.id.to_string(),
+        id: request.id,
         status: Status::Pending,
         created_at
     };
