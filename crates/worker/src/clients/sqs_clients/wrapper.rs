@@ -9,23 +9,8 @@ use tokio::sync::{mpsc, oneshot};
 use tokio::time::{sleep, Instant};
 
 use crate::clients::errors::{SqsDeleteError, SqsReceiveError};
-use crate::clients::sqs_clients::client::SqsClient;
-
-#[derive(Default)]
-pub enum Action {
-    #[default]
-    Default, // TODO: get rid of this. crutches
-    Receive(oneshot::Sender<Result<ReceiveMessageOutput, SqsReceiveError>>),
-    Delete {
-        receipt_handle: String,
-        sender: oneshot::Sender<Result<DeleteMessageOutput, SqsDeleteError>>,
-    },
-}
-
-enum State {
-    Connected = 0,
-    Reconnecting = 1,
-}
+use crate::clients::retriable::{Retrier, State};
+use crate::clients::sqs_clients::client::{Action, SqsClient};
 
 #[derive(Clone)]
 pub struct SqsClientWrapper {
@@ -40,96 +25,14 @@ impl SqsClientWrapper {
         let state = Arc::new(AtomicU8::new(State::Connected as u8));
         let (sender, receiver) = mpsc::channel(1000);
 
-        tokio::spawn(Self::worker(client.clone(), state.clone(), receiver));
+        let retrier = Retrier::new(client.clone(), receiver, state.clone());
+        tokio::spawn(retrier.start());
 
         Self {
             client,
             actions_sender: sender,
             state,
         }
-    }
-
-    async fn worker(client: SqsClient, state: Arc<AtomicU8>, mut receiver: mpsc::Receiver<Action>) {
-        const SLEEP_DURATION: Duration = Duration::from_secs(3);
-        let mut pending_actions = vec![];
-
-        loop {
-            if pending_actions.is_empty() {
-                if let Some(action) = receiver.recv().await {
-                    pending_actions.push(action);
-                } else {
-                    return;
-                }
-            }
-
-            Self::resend_pending_actions(&mut pending_actions, &client, &state).await;
-
-            let start_time = Instant::now();
-            let value = select! {
-                value = receiver.recv() => value,
-                _ = sleep(SLEEP_DURATION) => continue,
-            };
-
-            if let Some(action) = value {
-                pending_actions.push(action);
-            } else {
-                return;
-            }
-
-            let elapsed = start_time.elapsed();
-            if let Some(remaining_sleep) = SLEEP_DURATION.checked_sub(elapsed) {
-                sleep(remaining_sleep).await;
-            }
-        }
-    }
-
-    pub async fn resend_pending_actions(
-        pending_actions: &mut Vec<Action>,
-        client: &SqsClient,
-        state: &Arc<AtomicU8>,
-    ) {
-        let mut pivot = 0;
-        for i in 0..pending_actions.len() {
-            let action = std::mem::take(&mut pending_actions[i]);
-            match action {
-                Action::Receive(sender) => match client.receive_attempt().await {
-                    Ok(Some(val)) => {
-                        state.store(State::Connected as u8, Ordering::Release);
-                        let _ = sender.send(Ok(val));
-                    }
-                    Err(err) => {
-                        let _ = sender.send(Err(err));
-                    }
-                    Ok(None) => {
-                        // Keeping in the array to resend.
-                        pending_actions[pivot] = Action::Receive(sender);
-                        pivot += 1;
-                    }
-                },
-                Action::Delete {
-                    receipt_handle,
-                    sender,
-                } => match client.delete_attempt(receipt_handle.clone()).await {
-                    Ok(Some(val)) => {
-                        state.store(State::Connected as u8, Ordering::Release);
-                        let _ = sender.send(Ok(val));
-                    }
-                    Err(err) => {
-                        let _ = sender.send(Err(err));
-                    }
-                    Ok(None) => {
-                        pending_actions[pivot] = Action::Delete {
-                            receipt_handle,
-                            sender,
-                        };
-                        pivot += 1;
-                    }
-                },
-                Action::Default => unreachable!(),
-            };
-        }
-
-        pending_actions.truncate(pivot);
     }
 
     pub async fn receive_message(&self) -> Result<ReceiveMessageOutput, SqsReceiveError> {

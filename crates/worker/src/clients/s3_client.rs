@@ -4,9 +4,13 @@ use aws_sdk_s3::Client;
 use aws_smithy_types::byte_stream::ByteStream;
 use std::io::Write;
 use std::path::Path;
+use std::sync::atomic::{AtomicU8, Ordering};
+use std::sync::Arc;
+use tokio::sync::oneshot;
 use tracing::{error, warn};
 
-use crate::clients::errors::S3Error;
+use crate::clients::errors::{S3DeleteObjectError, S3Error};
+use crate::clients::retriable::{handle_action_result, match_result, ActionHandler, State};
 use crate::commands::compile::CompilationFile;
 
 #[derive(Clone)]
@@ -108,10 +112,11 @@ impl S3Client {
             self.delete_object(key).await?;
         }
 
-        self.delete_object(dir).await
+        self.delete_object(dir).await?;
+        Ok(())
     }
 
-    pub async fn delete_object(&self, key: &str) -> Result<(), S3Error> {
+    pub async fn delete_object(&self, key: &str) -> Result<(), S3DeleteObjectError> {
         let _ = self
             .client
             .delete_object()
@@ -119,6 +124,7 @@ impl S3Client {
             .key(key)
             .send()
             .await?;
+
         Ok(())
     }
 
@@ -161,5 +167,54 @@ impl S3Client {
         }
 
         Ok(objects)
+    }
+}
+
+#[derive(Default)]
+pub enum S3Action {
+    #[default]
+    Default,
+    DeleteDir {
+        dir: String,
+        sender: oneshot::Sender<Result<(), S3Error>>,
+    },
+    DeleteObject {
+        key: String,
+        sender: oneshot::Sender<Result<(), S3DeleteObjectError>>,
+    },
+}
+
+impl ActionHandler for S3Client {
+    type Action = S3Action;
+    async fn handle(&self, action: Self::Action, state: Arc<AtomicU8>) -> Option<Self::Action> {
+        match action {
+            S3Action::Default => unreachable!(),
+            S3Action::DeleteDir { dir, sender } => {
+                let result = self.delete_dir(&dir).await;
+                match result {
+                    Ok(()) => {
+                        state.store(State::Connected as u8, Ordering::Release);
+                        let _ = sender.send(Ok(()));
+                        None
+                    }
+                    Err(S3Error::DeleteObjectError(err)) => {
+                        let result = match_result!(S3DeleteObjectError, Err(err));
+                        let result = result.map_err(S3Error::from);
+                        handle_action_result(result, sender, state)
+                            .map(|sender| S3Action::DeleteDir { dir, sender })
+                    }
+                    Err(err) => {
+                        let _ = sender.send(Err(err));
+                        None
+                    }
+                }
+            }
+            S3Action::DeleteObject { key, sender } => {
+                let result = self.delete_object(&key).await;
+                let result = match_result!(S3DeleteObjectError, result);
+                handle_action_result(result, sender, state)
+                    .map(|sender| S3Action::DeleteObject { key, sender })
+            }
+        }
     }
 }

@@ -1,41 +1,12 @@
 use aws_sdk_sqs::operation::delete_message::DeleteMessageOutput;
 use aws_sdk_sqs::operation::receive_message::ReceiveMessageOutput;
 use aws_sdk_sqs::Client;
+use std::sync::atomic::{AtomicU8, Ordering};
+use std::sync::Arc;
+use tokio::sync::oneshot;
 
 use crate::clients::errors::{SqsDeleteError, SqsReceiveError};
-
-macro_rules! match_result {
-    ($err_type:ident, $result:expr) => {
-        match $result {
-            Ok(val) => Ok(Some(val)),
-            Err(err) => match err {
-                $err_type::ConstructionFailure(_) => Err(err),
-                $err_type::TimeoutError(_) => Ok(None),
-                $err_type::DispatchFailure(dispatch_err) => {
-                    if dispatch_err.is_io() {
-                        return Ok(None);
-                    }
-                    if dispatch_err.is_timeout() {
-                        return Ok(None);
-                    }
-                    if dispatch_err.is_user() {
-                        return Err($err_type::DispatchFailure(dispatch_err));
-                    }
-                    if let Some(other) = dispatch_err.as_other() {
-                        return match other {
-                            aws_config::retry::ErrorKind::ClientError => {
-                                Err($err_type::DispatchFailure(dispatch_err))
-                            }
-                            _ => Ok(None),
-                        };
-                    }
-                    Err($err_type::DispatchFailure(dispatch_err))
-                }
-                other => Err(other),
-            },
-        }
-    };
-}
+use crate::clients::retriable::{handle_action_result, match_result, ActionHandler};
 
 #[derive(Clone)]
 pub struct SqsClient {
@@ -76,5 +47,39 @@ impl SqsClient {
             .await;
 
         match_result!(SqsDeleteError, result)
+    }
+}
+
+#[derive(Default)]
+pub enum Action {
+    #[default]
+    Default, // TODO: get rid of this. crutches
+    Receive(oneshot::Sender<Result<ReceiveMessageOutput, SqsReceiveError>>),
+    Delete {
+        receipt_handle: String,
+        sender: oneshot::Sender<Result<DeleteMessageOutput, SqsDeleteError>>,
+    },
+}
+
+impl ActionHandler for SqsClient {
+    type Action = Action;
+    async fn handle(&self, action: Action, state: Arc<AtomicU8>) -> Option<Self::Action> {
+        match action {
+            Action::Default => unreachable!(),
+            Action::Receive(sender) => {
+                let result = self.receive_attempt().await;
+                handle_action_result(result, sender, state).map(|sender| Action::Receive(sender))
+            }
+            Action::Delete {
+                receipt_handle,
+                sender,
+            } => {
+                let result = self.delete_attempt(receipt_handle.clone()).await;
+                handle_action_result(result, sender, state).map(|sender| Action::Delete {
+                    sender,
+                    receipt_handle,
+                })
+            }
+        }
     }
 }
