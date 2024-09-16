@@ -11,7 +11,7 @@ use types::item::{Item, Status, TaskResult};
 use types::{CompilationRequest, ARTIFACTS_FOLDER};
 use uuid::Uuid;
 
-use crate::clients::dynamodb_client::DynamoDBClient;
+use crate::clients::dynamodb_clients::client::DynamoDBClient;
 use crate::clients::errors::{DBError, S3Error};
 use crate::clients::s3_clients::wrapper::S3ClientWrapper;
 use crate::commands::compile::{CompilationInput, CompilationOutput};
