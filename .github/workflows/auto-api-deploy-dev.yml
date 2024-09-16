@@ -5,7 +5,7 @@ on:
       - develop
     paths:
       - 'api/**'
-      - 'auto-api-deploy-dev.yml'
+      - '.github/workflows/auto-api-deploy-dev.yml'
 
 permissions:
   id-token: write
@@ -16,8 +16,8 @@ env:
   REPOSITORY: "zksync-remix-plugin"
   DEV_CLUSTER: "zksync-remix-plugin-dev-ecs-cluster"
   DEV_SERVICE_NAME: "rocket-dev-svc"
-  PROD_CLUSTER: "zksync-remix-plugin-production-ecs-cluster"
-  PROD_SERVICE_NAME: "rocket-production-svc"
+  PROD_CLUSTER: "zksync-remix-plugin-prod-ecs-cluster"
+  PROD_SERVICE_NAME: "rocket-prod-svc"
 jobs:
   Build:
     runs-on: ubuntu-latest
@@ -137,7 +137,7 @@ jobs:
 
       - name: Download task definition
         run: |
-          aws ecs describe-task-definition --task-definition zksync-remix-production-rocket --query taskDefinition > task-definition.json
+          aws ecs describe-task-definition --task-definition zksync-remix-prod-rocket --query taskDefinition > task-definition.json
 
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
