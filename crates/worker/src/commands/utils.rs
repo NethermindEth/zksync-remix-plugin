@@ -12,12 +12,13 @@ use types::{CompilationRequest, ARTIFACTS_FOLDER};
 use uuid::Uuid;
 
 use crate::clients::dynamodb_client::DynamoDBClient;
-use crate::clients::errors::DBError;
-use crate::clients::s3_client::S3Client;
+use crate::clients::errors::{DBError, S3Error};
+use crate::clients::s3_clients::wrapper::S3ClientWrapper;
 use crate::commands::compile::{CompilationInput, CompilationOutput};
 use crate::commands::errors::{CommandResultHandleError, PreparationError};
+use crate::sqs_listener::SqsReceiver;
 use crate::utils::cleaner::AutoCleanUp;
-use crate::utils::lib::{SOL_ROOT, ZKSOLC_VERSIONS};
+use crate::utils::lib::{s3_compilation_files_dir, SOL_ROOT, ZKSOLC_VERSIONS};
 
 async fn try_set_compiling_status(
     db_client: &DynamoDBClient,
@@ -60,7 +61,7 @@ async fn try_set_compiling_status(
 pub(crate) async fn prepare_compile_input(
     request: &CompilationRequest,
     db_client: &DynamoDBClient,
-    s3_client: &S3Client,
+    s3_client: &S3ClientWrapper,
 ) -> Result<CompilationInput, PreparationError> {
     let zksolc_version = request.config.version.as_str();
     if !ZKSOLC_VERSIONS.contains(&zksolc_version) {
@@ -95,10 +96,11 @@ pub(crate) async fn prepare_compile_input(
         contracts: files,
     })
 }
+
 pub async fn on_compilation_success(
     id: Uuid,
     db_client: &DynamoDBClient,
-    s3_client: &S3Client,
+    s3_client: &S3ClientWrapper,
     compilation_output: CompilationOutput,
 ) -> Result<TaskResult, CommandResultHandleError> {
     const DOWNLOAD_URL_EXPIRATION: Duration = Duration::from_secs(5 * 60 * 60);
@@ -110,7 +112,7 @@ pub async fn on_compilation_success(
     let mut presigned_urls = Vec::with_capacity(compilation_output.artifacts_data.len());
     for el in compilation_output.artifacts_data {
         let absolute_path = compilation_output.artifacts_dir.join(&el.file_path);
-        let file_content = tokio::fs::read(absolute_path).await?;
+        let file_content = tokio::fs::File::open(absolute_path).await?;
 
         let file_key = format!(
             "{}/{}/{}",
@@ -122,8 +124,9 @@ pub async fn on_compilation_success(
 
         let expires_in = PresigningConfig::expires_in(DOWNLOAD_URL_EXPIRATION).unwrap();
         let presigned_request = s3_client
-            .get_object_presigned(&file_key, expires_in)
-            .await?;
+            .get_object_presigned(&file_key, &expires_in)
+            .await
+            .map_err(S3Error::from)?;
 
         presigned_urls.push(presigned_request.uri().to_string());
     }

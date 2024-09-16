@@ -1,4 +1,3 @@
-use crate::clients::errors::S3DeleteObjectError;
 use std::sync::atomic::{AtomicU8, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
@@ -39,7 +38,7 @@ macro_rules! match_result {
 pub(crate) use match_result;
 
 pub trait ActionHandler {
-    type Action: Default;
+    type Action: Default; // TODO: get rid of default
     async fn handle(&self, action: Self::Action, state: Arc<AtomicU8>) -> Option<Self::Action>;
 }
 
@@ -73,13 +72,13 @@ pub enum State {
     Reconnecting = 1,
 }
 
-pub struct Retrier<T: ActionHandler + Clone> {
+pub struct Retrier<T: ActionHandler> {
     client: T,
     receiver: mpsc::Receiver<T::Action>,
     state: Arc<AtomicU8>,
 }
 
-impl<T: ActionHandler + Clone> Retrier<T> {
+impl<T: ActionHandler> Retrier<T> {
     pub fn new(client: T, receiver: mpsc::Receiver<T::Action>, state: Arc<AtomicU8>) -> Self {
         Self {
             client,

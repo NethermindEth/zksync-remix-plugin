@@ -3,10 +3,7 @@ use aws_sdk_sqs::operation::receive_message::ReceiveMessageOutput;
 use aws_sdk_sqs::Client;
 use std::sync::atomic::{AtomicU8, Ordering};
 use std::sync::Arc;
-use std::time::Duration;
-use tokio::select;
 use tokio::sync::{mpsc, oneshot};
-use tokio::time::{sleep, Instant};
 
 use crate::clients::errors::{SqsDeleteError, SqsReceiveError};
 use crate::clients::retriable::{Retrier, State};
