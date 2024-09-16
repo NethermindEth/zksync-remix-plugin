@@ -11,7 +11,7 @@ use tracing::warn;
 use types::item::{Item, ItemError, Status, TaskResult};
 use uuid::Uuid;
 
-use crate::clients::dynamodb_client::DynamoDBClient;
+use crate::clients::dynamodb_clients::client::DynamoDBClient;
 use crate::clients::s3_clients::wrapper::S3ClientWrapper;
 use crate::errors::PurgeError;
 use crate::utils::lib::{s3_artifacts_dir, s3_compilation_files_dir, timestamp};

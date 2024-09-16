@@ -4,7 +4,7 @@ use tokio::task::JoinHandle;
 use tracing::{error, info, warn};
 use types::{CompilationRequest, SqsMessage, VerificationRequest};
 
-use crate::clients::dynamodb_client::DynamoDBClient;
+use crate::clients::dynamodb_clients::client::DynamoDBClient;
 use crate::clients::s3_clients::wrapper::S3ClientWrapper;
 use crate::clients::sqs_clients::wrapper::SqsClientWrapper;
 use crate::commands::compile::{do_compile, CompilationInput};
