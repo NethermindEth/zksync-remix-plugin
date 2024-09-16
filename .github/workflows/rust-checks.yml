@@ -2,8 +2,6 @@ name: (ci/cd) Rust Checks
 
 on:
   pull_request:
-    branches:
-      - develop
 
 jobs:
   build:
