@@ -11,7 +11,7 @@ use aws_runtime::env_config::file::{EnvConfigFileKind, EnvConfigFiles};
 use std::num::NonZeroUsize;
 
 use crate::clients::dynamodb_client::DynamoDBClient;
-use crate::clients::s3_client::S3Client;
+use crate::clients::s3_clients::wrapper::S3ClientWrapper;
 use crate::clients::sqs_clients::wrapper::SqsClientWrapper;
 use crate::worker::EngineBuilder;
 
@@ -46,7 +46,7 @@ async fn main() {
 
     // Initialize S3 client
     let s3_client = aws_sdk_s3::Client::new(&config);
-    let s3_client = S3Client::new(s3_client, BUCKET_NAME_DEFAULT);
+    let s3_client = S3ClientWrapper::new(s3_client, BUCKET_NAME_DEFAULT);
 
     let engine = EngineBuilder::new(sqs_client, db_client, s3_client);
     let running_engine = engine.start(NonZeroUsize::new(10).unwrap());
