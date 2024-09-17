@@ -1,4 +1,3 @@
-use aws_sdk_dynamodb::types::AttributeValue;
 use chrono::{DateTime, Utc};
 use std::collections::HashMap;
 use std::marker::PhantomData;
@@ -11,7 +10,8 @@ use tracing::warn;
 use types::item::{Item, ItemError, Status, TaskResult};
 use uuid::Uuid;
 
-use crate::clients::dynamodb_clients::client::DynamoDBClient;
+use crate::clients::dynamodb_clients::wrapper::DynamoDBClientWrapper;
+use crate::clients::errors::DBError;
 use crate::clients::s3_clients::wrapper::S3ClientWrapper;
 use crate::errors::PurgeError;
 use crate::utils::lib::{s3_artifacts_dir, s3_compilation_files_dir, timestamp};
@@ -26,7 +26,7 @@ pub struct Purgatory {
 }
 
 impl Purgatory {
-    pub fn new(db_client: DynamoDBClient, s3_client: S3ClientWrapper) -> Self {
+    pub fn new(db_client: DynamoDBClientWrapper, s3_client: S3ClientWrapper) -> Self {
         let handle = NonNull::dangling();
         let this = Self {
             inner: Arc::new(Mutex::new(Inner::new(
@@ -67,7 +67,7 @@ impl Purgatory {
 struct Inner {
     state: State,
     s3_client: S3ClientWrapper,
-    db_client: DynamoDBClient,
+    db_client: DynamoDBClientWrapper,
 
     // No aliases possible since only we own the data
     handle: NonNull<JoinHandle<()>>,
@@ -88,7 +88,7 @@ impl Inner {
     fn new(
         handle: NonNull<JoinHandle<()>>,
         state: State,
-        db_client: DynamoDBClient,
+        db_client: DynamoDBClientWrapper,
         s3_client: S3ClientWrapper,
     ) -> Self {
         tokio::spawn(Self::global_state_purge(
@@ -115,7 +115,7 @@ impl Inner {
     }
 
     async fn global_state_purge(
-        db_client: DynamoDBClient,
+        db_client: DynamoDBClientWrapper,
         s3_client: S3ClientWrapper,
     ) -> Result<(), PurgeError> {
         const SYNC_FROM_OFFSET: Option<Duration> = PURGE_INTERVAL.checked_mul(6);
@@ -139,7 +139,7 @@ impl Inner {
     }
 
     pub async fn purge_item(
-        db_client: &DynamoDBClient,
+        db_client: &DynamoDBClientWrapper,
         s3_client: &S3ClientWrapper,
         id: &Uuid,
         status: &Status,
@@ -161,7 +161,7 @@ impl Inner {
                 db_client
                     .delete_item(id.to_string().as_str())
                     .await
-                    .unwrap(); // TODO: unwraps
+                    .map_err(DBError::from)?;
             }
             Status::Done(_) => {
                 let dir = s3_artifacts_dir(id.to_string().as_str());
@@ -169,7 +169,7 @@ impl Inner {
                 db_client
                     .delete_item(id.to_string().as_str())
                     .await
-                    .unwrap(); // TODO: unwraps
+                    .map_err(DBError::from)?;
             }
         }
 
@@ -207,13 +207,13 @@ impl Inner {
 }
 
 struct GlobalState {
-    db_client: DynamoDBClient,
+    db_client: DynamoDBClientWrapper,
     s3_client: S3ClientWrapper,
     pub items: Vec<Item>,
 }
 
 impl GlobalState {
-    pub fn new(db_client: DynamoDBClient, s3_client: S3ClientWrapper) -> Self {
+    pub fn new(db_client: DynamoDBClientWrapper, s3_client: S3ClientWrapper) -> Self {
         Self {
             db_client,
             s3_client,
@@ -228,20 +228,9 @@ impl GlobalState {
         loop {
             let output = self
                 .db_client
-                .client
-                .scan()
-                .table_name(self.db_client.table_name.clone())
-                .filter_expression("CreatedAt <= :created_at")
-                .expression_attribute_values(
-                    ":created_at",
-                    AttributeValue::S(sync_from.to_rfc3339()),
-                )
-                .limit(MAX_CAPACITY as i32)
-                .set_exclusive_start_key(last_evaluated_key)
-                .send()
+                .scan_items_prior_to(sync_from, &last_evaluated_key)
                 .await
-                .unwrap();
-
+                .map_err(DBError::from)?;
             let raw_items = if let Some(items) = output.items {
                 items
             } else {

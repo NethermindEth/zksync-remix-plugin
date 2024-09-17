@@ -4,7 +4,7 @@ use tokio::task::JoinHandle;
 use tracing::{error, info, warn};
 use types::{CompilationRequest, SqsMessage, VerificationRequest};
 
-use crate::clients::dynamodb_clients::client::DynamoDBClient;
+use crate::clients::dynamodb_clients::wrapper::DynamoDBClientWrapper;
 use crate::clients::s3_clients::wrapper::S3ClientWrapper;
 use crate::clients::sqs_clients::wrapper::SqsClientWrapper;
 use crate::commands::compile::{do_compile, CompilationInput};
@@ -19,7 +19,7 @@ use crate::utils::lib::s3_compilation_files_dir;
 
 pub struct EngineBuilder {
     sqs_client: SqsClientWrapper,
-    db_client: DynamoDBClient,
+    db_client: DynamoDBClientWrapper,
     s3_client: S3ClientWrapper,
     running_workers: Vec<RunningEngine>,
 }
@@ -27,7 +27,7 @@ pub struct EngineBuilder {
 impl EngineBuilder {
     pub fn new(
         sqs_client: SqsClientWrapper,
-        db_client: DynamoDBClient,
+        db_client: DynamoDBClientWrapper,
         s3_client: S3ClientWrapper,
     ) -> Self {
         EngineBuilder {
@@ -60,7 +60,7 @@ pub struct RunningEngine {
 impl RunningEngine {
     pub fn new(
         sqs_listener: SqsListener,
-        db_client: DynamoDBClient,
+        db_client: DynamoDBClientWrapper,
         s3_client: S3ClientWrapper,
         num_workers: usize,
     ) -> Self {
@@ -90,7 +90,7 @@ impl RunningEngine {
 
     async fn worker(
         sqs_receiver: SqsReceiver,
-        db_client: DynamoDBClient,
+        db_client: DynamoDBClientWrapper,
         s3_client: S3ClientWrapper,
         mut purgatory: Purgatory,
     ) {
@@ -154,7 +154,7 @@ impl RunningEngine {
         request: CompilationRequest,
         receipt_handle: String,
         sqs_receiver: &SqsReceiver,
-        db_client: &DynamoDBClient,
+        db_client: &DynamoDBClientWrapper,
         s3_client: &S3ClientWrapper,
         purgatory: &mut Purgatory,
     ) -> Result<(), MessageProcessorError> {
@@ -187,7 +187,7 @@ impl RunningEngine {
         request: &CompilationRequest,
         receipt_handle: &str,
         sqs_receiver: &SqsReceiver,
-        db_client: &DynamoDBClient,
+        db_client: &DynamoDBClientWrapper,
         s3_client: &S3ClientWrapper,
     ) -> Result<CompilationInput, MessageProcessorError> {
         let id = request.id;

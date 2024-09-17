@@ -11,38 +11,25 @@ use types::item::{Item, Status, TaskResult};
 use types::{CompilationRequest, ARTIFACTS_FOLDER};
 use uuid::Uuid;
 
-use crate::clients::dynamodb_clients::client::DynamoDBClient;
+use crate::clients::dynamodb_clients::wrapper::DynamoDBClientWrapper;
 use crate::clients::errors::{DBError, S3Error};
 use crate::clients::s3_clients::wrapper::S3ClientWrapper;
 use crate::commands::compile::{CompilationInput, CompilationOutput};
 use crate::commands::errors::{CommandResultHandleError, PreparationError};
-use crate::sqs_listener::SqsReceiver;
 use crate::utils::cleaner::AutoCleanUp;
-use crate::utils::lib::{s3_compilation_files_dir, SOL_ROOT, ZKSOLC_VERSIONS};
+use crate::utils::lib::{SOL_ROOT, ZKSOLC_VERSIONS};
 
 async fn try_set_compiling_status(
-    db_client: &DynamoDBClient,
+    db_client: &DynamoDBClientWrapper,
     key: Uuid,
 ) -> Result<(), PreparationError> {
     let db_update_result = db_client
-        .client
-        .update_item()
-        .table_name(db_client.table_name.clone())
-        .key(Item::primary_key_name(), AttributeValue::S(key.to_string()))
-        .update_expression("SET #status = :newStatus")
-        .condition_expression("#status = :currentStatus")
-        .expression_attribute_names("#status", Status::attribute_name())
-        .expression_attribute_values(
-            ":newStatus",
-            AttributeValue::N(u32::from(Status::InProgress).to_string()),
+        .update_item_status_conditional(
+            key.to_string().as_str(),
+            &Status::Pending,
+            &Status::InProgress,
         )
-        .expression_attribute_values(
-            ":currentStatus",
-            AttributeValue::N(u32::from(Status::Pending).to_string()),
-        )
-        .send()
         .await;
-
     match db_update_result {
         Ok(_) => Ok(()),
         Err(SdkError::ServiceError(err)) => match err.err() {
@@ -60,7 +47,7 @@ async fn try_set_compiling_status(
 
 pub(crate) async fn prepare_compile_input(
     request: &CompilationRequest,
-    db_client: &DynamoDBClient,
+    db_client: &DynamoDBClientWrapper,
     s3_client: &S3ClientWrapper,
 ) -> Result<CompilationInput, PreparationError> {
     let zksolc_version = request.config.version.as_str();
@@ -74,7 +61,6 @@ pub(crate) async fn prepare_compile_input(
     let item: Item = match item {
         Some(item) => item,
         None => {
-            error!("No item id: {}", request.id);
             return Err(PreparationError::NoDBItemError(request.id.to_string()));
         }
     };
@@ -99,7 +85,7 @@ pub(crate) async fn prepare_compile_input(
 
 pub async fn on_compilation_success(
     id: Uuid,
-    db_client: &DynamoDBClient,
+    db_client: &DynamoDBClientWrapper,
     s3_client: &S3ClientWrapper,
     compilation_output: CompilationOutput,
 ) -> Result<TaskResult, CommandResultHandleError> {
@@ -136,10 +122,11 @@ pub async fn on_compilation_success(
         presigned_urls.push("".to_string());
     }
 
-    db_client
+    let builder = db_client
+        .client
         .client
         .update_item()
-        .table_name(db_client.table_name.clone())
+        .table_name(db_client.client.table_name.clone())
         .key(Item::primary_key_name(), AttributeValue::S(id.to_string()))
         .update_expression("SET #status = :newStatus, #data = :data")
         .expression_attribute_names("#status", Status::attribute_name())
@@ -148,10 +135,9 @@ pub async fn on_compilation_success(
             ":newStatus",
             AttributeValue::N(2.to_string()), // Ready
         )
-        .expression_attribute_values(":data", AttributeValue::Ss(presigned_urls.clone()))
-        .send()
-        .await
-        .map_err(DBError::from)?;
+        .expression_attribute_values(":data", AttributeValue::Ss(presigned_urls.clone()));
+
+    db_client.update_item_raw(builder).await.map_err(DBError::from)?;
 
     auto_clean_up.clean_up().await;
     Ok(TaskResult::Success { presigned_urls })
@@ -159,13 +145,14 @@ pub async fn on_compilation_success(
 
 pub async fn on_compilation_failed(
     id: Uuid,
-    db_client: &DynamoDBClient,
+    db_client: &DynamoDBClientWrapper,
     message: String,
 ) -> Result<TaskResult, CommandResultHandleError> {
-    db_client
+    let builder = db_client
+        .client
         .client
         .update_item()
-        .table_name(db_client.table_name.clone())
+        .table_name(db_client.client.table_name.clone())
         .key(Item::primary_key_name(), AttributeValue::S(id.to_string()))
         .update_expression("SET #status = :newStatus, #data = :data")
         .expression_attribute_names("#status", Status::attribute_name())
@@ -174,10 +161,9 @@ pub async fn on_compilation_failed(
             ":newStatus",
             AttributeValue::N(3.to_string()), // Failed
         )
-        .expression_attribute_values(":data", AttributeValue::S(message.clone()))
-        .send()
-        .await
-        .map_err(DBError::from)?;
+        .expression_attribute_values(":data", AttributeValue::S(message.clone()));
+
+    db_client.update_item_raw(builder).await.map_err(DBError::from)?;
 
     Ok(TaskResult::Failure(message))
 }
