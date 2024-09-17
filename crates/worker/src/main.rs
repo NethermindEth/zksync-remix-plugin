@@ -10,7 +10,7 @@ use aws_config::BehaviorVersion;
 use aws_runtime::env_config::file::{EnvConfigFileKind, EnvConfigFiles};
 use std::num::NonZeroUsize;
 
-use clients::dynamodb_clients::client::DynamoDBClient;
+use crate::clients::dynamodb_clients::wrapper::DynamoDBClientWrapper;
 use crate::clients::s3_clients::wrapper::S3ClientWrapper;
 use crate::clients::sqs_clients::wrapper::SqsClientWrapper;
 use crate::worker::EngineBuilder;
@@ -42,7 +42,7 @@ async fn main() {
 
     // Initialize DynamoDb client
     let db_client = aws_sdk_dynamodb::Client::new(&config);
-    let db_client = DynamoDBClient::new(db_client, TABLE_NAME_DEFAULT);
+    let db_client = DynamoDBClientWrapper::new(db_client, TABLE_NAME_DEFAULT);
 
     // Initialize S3 client
     let s3_client = aws_sdk_s3::Client::new(&config);
