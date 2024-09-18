@@ -5,11 +5,10 @@ edition = "2021"
 
 [dependencies]
 aws-sdk-dynamodb.workspace = true
-chrono.worksapce = true
+chrono.workspace = true
 serde.workspace = true
-thiserror.worksapce = true
+thiserror.workspace = true
 uuid.workspace = true
-
 
 [dev-dependencies]
 serde_json.workspace = true
