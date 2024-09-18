@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 use std::ptr::NonNull;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::time::sleep;
+use tokio::time::{interval, sleep};
 use tokio::{sync::Mutex, task::JoinHandle};
 use tracing::warn;
 use types::item::{Status, TaskResult};
@@ -30,7 +30,7 @@ impl Purgatory {
 
         {
             let mut inner = this.inner.try_lock().unwrap();
-            let mut initialized_handle = tokio::spawn(this.clone().deamon());
+            let mut initialized_handle = tokio::spawn(this.clone().daemon());
             inner.handle = unsafe { NonNull::new_unchecked(&mut initialized_handle as *mut _) };
         }
 
@@ -45,12 +45,13 @@ impl Purgatory {
         self.inner.lock().await.add_record(id, result);
     }
 
-    async fn deamon(mut self) {
+    async fn daemon(mut self) {
         const PURGE_INTERVAL: Duration = Duration::from_secs(60);
 
+        let mut interval = interval(PURGE_INTERVAL);
         loop {
+            interval.tick().await;
             self.purge().await;
-            sleep(PURGE_INTERVAL).await;
         }
     }
 }
@@ -143,7 +144,6 @@ impl Inner {
                     let artifacts_dir = s3_compilation_files_dir(id.to_string().as_str());
                     self.s3_client.delete_dir(&artifacts_dir).await.unwrap(); // TODO: fix
 
-                    // TODO: design choice. Delete or update status to purged?
                     // Second would give neater replies
                     self.db_client
                         .delete_item(id.to_string().as_str())

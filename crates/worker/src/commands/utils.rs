@@ -78,12 +78,9 @@ pub(crate) async fn prepare_compile_input(
         }
     };
 
-    match item.status {
-        Status::Pending => {}
-        status => {
-            warn!("Item already processing: {}", status);
-            return Err(PreparationError::UnexpectedStatusError(status.to_string()));
-        }
+    if !matches!(item.status, Status::Pending) {
+        warn!("Item already processing: {}", item.status);
+        return Err(PreparationError::UnexpectedStatusError(item.status.to_string()));
     }
 
     let dir = format!("{}/", request.id);

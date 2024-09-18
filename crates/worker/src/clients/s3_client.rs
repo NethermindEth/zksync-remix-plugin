@@ -108,10 +108,7 @@ impl S3Client {
             self.delete_object(key).await?;
         }
 
-        // TODO: check that works
-        let result = self.delete_object(dir).await;
-        result?;
-        Ok(())
+        self.delete_object(dir).await
     }
 
     pub async fn delete_object(&self, key: &str) -> Result<(), S3Error> {
