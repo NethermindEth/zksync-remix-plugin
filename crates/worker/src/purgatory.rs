@@ -120,7 +120,7 @@ impl Inner {
     ) -> Result<(), PurgeError> {
         const SYNC_FROM_OFFSET: Option<Duration> = PURGE_INTERVAL.checked_mul(6);
 
-        let mut global_state = GlobalState::new(db_client.clone(), s3_client.clone());
+        let mut global_state = GlobalState::new(db_client.clone());
         let sync_from = Utc::now() - SYNC_FROM_OFFSET.unwrap();
 
         loop {
@@ -208,15 +208,13 @@ impl Inner {
 
 struct GlobalState {
     db_client: DynamoDBClientWrapper,
-    s3_client: S3ClientWrapper,
     pub items: Vec<Item>,
 }
 
 impl GlobalState {
-    pub fn new(db_client: DynamoDBClientWrapper, s3_client: S3ClientWrapper) -> Self {
+    pub fn new(db_client: DynamoDBClientWrapper) -> Self {
         Self {
             db_client,
-            s3_client,
             items: vec![],
         }
     }

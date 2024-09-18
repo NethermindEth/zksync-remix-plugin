@@ -1,11 +1,11 @@
 use aws_sdk_dynamodb::operation::scan::ScanOutput;
+use aws_sdk_dynamodb::operation::update_item::builders::UpdateItemFluentBuilder;
 use aws_sdk_dynamodb::types::AttributeValue;
 use aws_sdk_dynamodb::Client;
 use chrono::{DateTime, Utc};
 use std::collections::HashMap;
 use std::sync::atomic::AtomicU8;
 use std::sync::Arc;
-use aws_sdk_dynamodb::operation::update_item::builders::UpdateItemFluentBuilder;
 use tokio::sync::oneshot;
 use types::item::{Item, Status};
 
@@ -42,13 +42,22 @@ impl DynamoDBClient {
         match_result!(DBDeleteError, self.delete_item(id).await)
     }
 
-    pub async fn update_item_raw(&self, update_item_builder: UpdateItemFluentBuilder) -> Result<(), DBUpdateError> {
-        let _ = update_item_builder.send().await;
+    pub async fn update_item_raw(
+        &self,
+        update_item_builder: &UpdateItemFluentBuilder,
+    ) -> Result<(), DBUpdateError> {
+        let _ = update_item_builder.clone().send().await;
         Ok(())
     }
 
-    pub async fn update_item_raw_attempt(&self, update_item_builder: UpdateItemFluentBuilder) -> Result<Option<()>, DBUpdateError> {
-        match_result!(DBUpdateError, self.update_item_raw(update_item_builder).await)
+    pub async fn update_item_raw_attempt(
+        &self,
+        update_item_builder: &UpdateItemFluentBuilder,
+    ) -> Result<Option<()>, DBUpdateError> {
+        match_result!(
+            DBUpdateError,
+            self.update_item_raw(update_item_builder).await
+        )
     }
 
     pub async fn update_item_status_conditional(
@@ -161,7 +170,7 @@ pub enum DynamoDBAction {
     },
     UpdateItemRaw {
         update_item_builder: UpdateItemFluentBuilder,
-        sender: oneshot::Sender<Result<(), DBUpdateError>>
+        sender: oneshot::Sender<Result<(), DBUpdateError>>,
     },
     UpdateItemStatusConditional {
         id: String,
@@ -203,11 +212,16 @@ impl ActionHandler for DynamoDBClient {
                     }
                 })
             }
-            DynamoDBAction::UpdateItemRaw {update_item_builder, sender} => {
-                let result = self.update_item_raw_attempt(update_item_builder.clone()).await;
-                handle_action_result(result, sender, state).map(|sender| DynamoDBAction::UpdateItemRaw {
-                    update_item_builder,
-                    sender
+            DynamoDBAction::UpdateItemRaw {
+                update_item_builder,
+                sender,
+            } => {
+                let result = self.update_item_raw_attempt(&update_item_builder).await;
+                handle_action_result(result, sender, state).map(|sender| {
+                    DynamoDBAction::UpdateItemRaw {
+                        update_item_builder,
+                        sender,
+                    }
                 })
             }
             DynamoDBAction::UpdateItemStatusConditional {
