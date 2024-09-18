@@ -1,7 +1,7 @@
 use std::num::NonZeroUsize;
 use std::time::Duration;
 use tokio::task::JoinHandle;
-use tracing::{error, info, warn};
+use tracing::{error, warn};
 use types::{CompilationRequest, SqsMessage, VerificationRequest};
 
 use crate::clients::dynamodb_clients::wrapper::DynamoDBClientWrapper;

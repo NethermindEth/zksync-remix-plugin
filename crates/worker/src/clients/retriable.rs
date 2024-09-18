@@ -42,31 +42,6 @@ pub trait ActionHandler {
     async fn handle(&self, action: Self::Action, state: Arc<AtomicU8>) -> Option<Self::Action>;
 }
 
-pub(crate) fn handle_action_result<T, E>(
-    result: Result<Option<T>, E>,
-    sender: oneshot::Sender<Result<T, E>>,
-    state: Arc<AtomicU8>,
-) -> Option<oneshot::Sender<Result<T, E>>>
-where
-    T: Send + 'static,
-    E: Send + 'static,
-{
-    match result {
-        Ok(Some(val)) => {
-            state.store(State::Connected as u8, Ordering::Release);
-            let _ = sender.send(Ok(val));
-            None
-        }
-        Err(err) => {
-            let _ = sender.send(Err(err));
-            None
-        }
-        Ok(None) => {
-            state.store(State::Reconnecting as u8, Ordering::Release);
-            Some(sender)
-        }
-    }
-}
 pub enum State {
     Connected = 0,
     Reconnecting = 1,
@@ -89,7 +64,7 @@ impl<T: ActionHandler> Retrier<T> {
 
     pub async fn start(mut self) {
         const SLEEP_DURATION: Duration = Duration::from_secs(3);
-        // add lru instead
+        // TODO: introduce limit
         let mut pending_actions = vec![];
 
         loop {
@@ -137,4 +112,58 @@ impl<T: ActionHandler> Retrier<T> {
 
         pending_actions.truncate(pivot);
     }
+}
+
+pub(crate) fn handle_action_result<T, E>(
+    result: Result<Option<T>, E>,
+    sender: oneshot::Sender<Result<T, E>>,
+    state: Arc<AtomicU8>,
+) -> Option<oneshot::Sender<Result<T, E>>>
+where
+    T: Send + 'static,
+    E: Send + 'static,
+{
+    match result {
+        Ok(Some(val)) => {
+            state.store(State::Connected as u8, Ordering::Release);
+            let _ = sender.send(Ok(val));
+            None
+        }
+        Err(err) => {
+            let _ = sender.send(Err(err));
+            None
+        }
+        Ok(None) => {
+            state.store(State::Reconnecting as u8, Ordering::Release);
+            Some(sender)
+        }
+    }
+}
+
+pub(crate) async fn execute_retriable_operation<F, Fut, AFactory, A, T, E>(
+    operation: F,
+    action_factory: AFactory,
+    action_sender: &mpsc::Sender<A>,
+    state: &AtomicU8,
+) -> Result<T, E>
+where
+    F: Fn() -> Fut,
+    Fut: std::future::Future<Output = Result<Option<T>, E>>,
+    AFactory: Fn(oneshot::Sender<Result<T, E>>) -> A,
+{
+    match state.load(Ordering::Acquire) {
+        0 => match operation().await {
+            Ok(Some(val)) => return Ok(val),
+            Ok(None) => state.store(State::Reconnecting as u8, Ordering::Release),
+            Err(err) => return Err(err.into()),
+        },
+        1 => {}
+        _ => unreachable!(),
+    }
+
+    let (sender, receiver) = oneshot::channel();
+    let action = action_factory(sender);
+    action_sender.send(action).await;
+
+    receiver.await.unwrap() // TODO: remove unwrap
 }

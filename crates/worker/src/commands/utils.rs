@@ -137,7 +137,10 @@ pub async fn on_compilation_success(
         )
         .expression_attribute_values(":data", AttributeValue::Ss(presigned_urls.clone()));
 
-    db_client.update_item_raw(builder).await.map_err(DBError::from)?;
+    db_client
+        .update_item_raw(&builder)
+        .await
+        .map_err(DBError::from)?;
 
     auto_clean_up.clean_up().await;
     Ok(TaskResult::Success { presigned_urls })
@@ -163,7 +166,10 @@ pub async fn on_compilation_failed(
         )
         .expression_attribute_values(":data", AttributeValue::S(message.clone()));
 
-    db_client.update_item_raw(builder).await.map_err(DBError::from)?;
+    db_client
+        .update_item_raw(&builder)
+        .await
+        .map_err(DBError::from)?;
 
     Ok(TaskResult::Failure(message))
 }
