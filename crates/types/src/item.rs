@@ -92,33 +92,37 @@ impl TryFrom<&AttributeMap> for Status {
     fn try_from(value: &AttributeMap) -> Result<Self, Self::Error> {
         let status = value
             .get(Status::attribute_name())
-            .ok_or(ItemError::FormatError)?;
+            .ok_or(ItemError::absent_attribute_error(Status::attribute_name()))?;
         let status: u32 = status
             .as_n()
-            .map_err(|_| ItemError::FormatError)?
+            .map_err(|_| ItemError::invalid_attribute_type(Status::attribute_name(), "number"))?
             .parse::<u32>()?;
         let status = match status {
             0 => Status::Pending,
             1 => Status::InProgress,
             2 => {
-                let data = value
-                    .get(Item::data_attribute_name())
-                    .ok_or(ItemError::FormatError)?;
-                let data = data.as_ss().map_err(|_| ItemError::FormatError)?;
+                let data = value.get(Item::data_attribute_name()).ok_or(
+                    ItemError::absent_attribute_error(Item::data_attribute_name()),
+                )?;
+                let data = data.as_ss().map_err(|_| {
+                    ItemError::invalid_attribute_type(Item::data_attribute_name(), "string array")
+                })?;
 
                 Status::Done(TaskResult::Success {
                     presigned_urls: data.clone(),
                 })
             }
             3 => {
-                let data = value
-                    .get(Item::data_attribute_name())
-                    .ok_or(ItemError::FormatError)?;
-                let data = data.as_s().map_err(|_| ItemError::FormatError)?;
+                let data = value.get(Item::data_attribute_name()).ok_or(
+                    ItemError::absent_attribute_error(Item::data_attribute_name()),
+                )?;
+                let data = data.as_s().map_err(|_| {
+                    ItemError::invalid_attribute_type(Item::data_attribute_name(), "string")
+                })?;
 
                 Status::Done(TaskResult::Failure(data.clone()))
             }
-            _ => return Err(ItemError::FormatError),
+            val => return Err(ItemError::FormatError(format!("Status value is: {}", val))),
         };
 
         Ok(status)
@@ -127,12 +131,24 @@ impl TryFrom<&AttributeMap> for Status {
 
 #[derive(thiserror::Error, Debug)]
 pub enum ItemError {
-    #[error("Invalid Item format")]
-    FormatError,
+    #[error("Invalid Item format: {0}")]
+    FormatError(String),
     #[error(transparent)]
     NumParseError(#[from] std::num::ParseIntError),
     #[error(transparent)]
     DataParseError(#[from] chrono::format::ParseError),
+}
+
+impl ItemError {
+    fn absent_attribute_error(attribute_name: &str) -> Self {
+        let err_str = format!("No {} attribute in item", attribute_name);
+        Self::FormatError(err_str)
+    }
+
+    fn invalid_attribute_type(attribute_name: &str, t: &str) -> Self {
+        let err_str = format!("{} attribute value isn't a {}", attribute_name, t);
+        Self::FormatError(err_str)
+    }
 }
 
 pub struct Item {
@@ -187,16 +203,19 @@ impl TryFrom<AttributeMap> for Item {
     fn try_from(value: AttributeMap) -> Result<Item, Self::Error> {
         let id = value
             .get(Item::id_attribute_name())
-            .ok_or(ItemError::FormatError)?
+            .ok_or(ItemError::absent_attribute_error(Item::id_attribute_name()))?
             .as_s()
-            .map_err(|_| ItemError::FormatError)?;
-        let id = Uuid::parse_str(id.as_str()).map_err(|_| ItemError::FormatError)?;
+            .map_err(|_| ItemError::invalid_attribute_type(Item::id_attribute_name(), "string"))?;
+        let id =
+            Uuid::parse_str(id.as_str()).map_err(|err| ItemError::FormatError(err.to_string()))?;
         let status = (&value).try_into()?;
 
-        let created_at = value
-            .get(Item::created_at_attribute_name())
-            .ok_or(ItemError::FormatError)?;
-        let created_at = created_at.as_s().map_err(|_| ItemError::FormatError)?;
+        let created_at = value.get(Item::created_at_attribute_name()).ok_or(
+            ItemError::absent_attribute_error(Item::created_at_attribute_name()),
+        )?;
+        let created_at = created_at.as_s().map_err(|_| {
+            ItemError::invalid_attribute_type(Item::created_at_attribute_name(), "string")
+        })?;
         let created_at = DateTime::<FixedOffset>::parse_from_rfc3339(created_at.as_str())?;
 
         Ok(Item {
