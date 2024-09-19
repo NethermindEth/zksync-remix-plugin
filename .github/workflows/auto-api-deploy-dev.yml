@@ -114,6 +114,7 @@ jobs:
             PROMTAIL_PASSWORD=${{secrets.PROMTAIL_PASSWORD}}
             PROMETHEUS_USERNAME=${{secrets.PROMETHEUS_USERNAME}}
             PROMETHEUS_PASSWORD=${{secrets.PROMETHEUS_PASSWORD}}
+            WORKER_THREADS=1
             ENVIRONMENT=dev
 
       - name: Deploy Amazon ECS task definition
