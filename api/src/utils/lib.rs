@@ -23,7 +23,7 @@ pub const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
 
 pub const DURATION_TO_PURGE: u64 = 60 * 5; // 5 minutes
 
-pub const ZKSOLC_VERSIONS: [&str; 2] = ["1.4.1", "1.4.0"];
+pub const ZKSOLC_VERSIONS: [&str; 3] = ["1.5.3", "1.4.1", "1.4.0"];
 
 pub const DEFAULT_SOLIDITY_VERSION: &str = "0.8.24";
 
