@@ -20,7 +20,7 @@ uuid.workspace = true
 lambda_http = "0.13.0"
 
 # Inner crates
-types = {workspace = true}
+types.workspace = true
 
 [[bin]]
 name = "generate-presigned-urls"
