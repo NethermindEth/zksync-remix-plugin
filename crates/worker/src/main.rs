@@ -25,6 +25,13 @@ const BUCKET_NAME_DEFAULT: &str = "zksync-compilation-s3";
 
 #[tokio::main]
 async fn main() {
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::INFO)
+        .with_ansi(false)
+        .without_time() // CloudWatch will add the ingestion time
+        .with_target(false)
+        .init();
+
     let profile_name = std::env::var("AWS_PROFILE").unwrap_or(AWS_PROFILE_DEFAULT.into());
     let profile_files = EnvConfigFiles::builder()
         .with_file(EnvConfigFileKind::Credentials, "./credentials")
