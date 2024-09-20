@@ -27,6 +27,7 @@ pub struct VerifyConfig {
     pub network: String,
     pub contract_address: String,
     pub inputs: Vec<String>,
+    pub target_contract: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

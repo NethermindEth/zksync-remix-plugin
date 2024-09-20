@@ -4,7 +4,7 @@ use std::marker::PhantomData;
 use std::ptr::NonNull;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::time::{interval, sleep};
+use tokio::time::interval;
 use tokio::{sync::Mutex, task::JoinHandle};
 use tracing::warn;
 use types::item::{Item, ItemError, Status, TaskResult};
