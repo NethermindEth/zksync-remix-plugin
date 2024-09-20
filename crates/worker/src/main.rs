@@ -1,6 +1,8 @@
 mod clients;
 mod commands;
 mod errors;
+mod input_preparator;
+mod processor;
 mod purgatory;
 mod sqs_listener;
 mod utils;
