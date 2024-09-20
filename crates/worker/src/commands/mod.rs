@@ -3,7 +3,6 @@ use tokio::sync::Semaphore;
 
 pub mod compile;
 pub mod errors;
-pub mod utils;
 pub mod verify;
 
 const PROCESS_SPAWN_LIMIT: usize = 8;

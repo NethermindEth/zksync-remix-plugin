@@ -8,7 +8,7 @@ use std::ops::Add;
 use tracing::{error, info};
 use types::{
     item::{Item, Status},
-    CompilationRequest, SqsMessage,
+    SqsMessage, VerificationRequest,
 };
 
 mod common;
@@ -20,20 +20,9 @@ const TABLE_NAME_DEFAULT: &str = "zksync-table";
 
 const NO_OBJECTS_TO_COMPILE_ERROR: &str = "There are no objects to compile";
 const RECOMPILATION_ATTEMPT_ERROR: &str = "Recompilation attemp";
-// impl Deserialize for Response {
-//     fn deserialize<'de, D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
-//         todo!()
-//     }
-// }
-// TODO:
-// struct SqsClient {
-//     pub client: aws_sdk_sqs::Client,
-//     pub queue_url: String,
-//    // pub other_data: String
-// }
 
-async fn compile(
-    request: CompilationRequest,
+async fn verify(
+    request: VerificationRequest,
     dynamo_client: &aws_sdk_dynamodb::Client,
     table_name: &str,
     sqs_client: &aws_sdk_sqs::Client,
@@ -58,7 +47,7 @@ async fn compile(
         Ok(value) => value,
         Err(SdkError::ServiceError(val)) => match val.err() {
             PutItemError::ConditionalCheckFailedException(_) => {
-                error!("Recompilation attempt, id: {}", request.id);
+                error!("Reverification attempt, id: {}", request.id);
                 let response = lambda_http::Response::builder()
                     .status(400)
                     .header("content-type", "text/html")
@@ -72,7 +61,7 @@ async fn compile(
         Err(err) => return Err(Box::new(err).into()),
     };
 
-    let message = SqsMessage::Compile { request };
+    let message = SqsMessage::Verify { request };
     let message = match serde_json::to_string(&message) {
         Ok(val) => val,
         Err(err) => {
@@ -113,7 +102,7 @@ async fn process_request(
     s3_client: &aws_sdk_s3::Client,
     bucket_name: &str,
 ) -> Result<LambdaResponse<String>, Error> {
-    let request = extract_request::<CompilationRequest>(request)?;
+    let request = extract_request::<VerificationRequest>(request)?;
 
     let objects = s3_client
         .list_objects_v2()
@@ -135,8 +124,8 @@ async fn process_request(
         return Err(Error::HttpError(response));
     }
 
-    info!("Compile");
-    compile(request, dynamo_client, table_name, sqs_client, queue_url).await?;
+    info!("Verify");
+    verify(request, dynamo_client, table_name, sqs_client, queue_url).await?;
 
     let response = LambdaResponse::builder()
         .status(200)
