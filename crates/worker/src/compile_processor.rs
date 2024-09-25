@@ -1,19 +1,16 @@
-use crate::clients::errors::{DBError, S3Error};
 use crate::clients::s3_clients::wrapper::S3ClientWrapper;
 use crate::clients::sqs_clients::wrapper::SqsClientWrapper;
-use crate::commands::compile::{do_compile, CompilationInput, CompilationOutput};
-use crate::commands::errors::{CommandResultHandleError, PreparationError};
-use crate::errors::{CompileProcessorError, MessageProcessorError};
+use crate::commands::compile::{do_compile, CompilationOutput};
+use crate::errors::{CompileProcessorError};
 use crate::input_preparator::InputPreparator;
 use crate::purgatory::Purgatory;
 use crate::utils::cleaner::AutoCleanUp;
 use crate::utils::lib::{s3_compilation_files_dir, ZKSOLC_VERSIONS};
-use anyhow::{anyhow, Context};
-use aws_sdk_dynamodb::types::AttributeValue;
+use anyhow::{ Context};
 use aws_sdk_s3::presigning::PresigningConfig;
 use std::time::Duration;
-use tracing::{error, warn};
-use types::item::{Item, Status, TaskResult};
+use tracing::{error};
+use types::item::{TaskResult};
 use types::{CompilationRequest, ARTIFACTS_FOLDER};
 use uuid::Uuid;
 
@@ -61,7 +58,7 @@ impl CompileProcessor {
     ) -> Result<Vec<String>, CompileProcessorError> {
         let id = message.id;
 
-        self.validate_message(&message).await.or_else(|err| {
+        self.validate_message(&message).await.map_err(|err| {
             // Reckoned as independent piece
             let receipt_handle_copy = receipt_handle.clone();
             let dir = s3_compilation_files_dir(id.to_string().as_str());
@@ -76,14 +73,14 @@ impl CompileProcessor {
                 }
             });
 
-            Err(err)
+            err
         })?;
 
         let compilation_input = self
             .input_preparator
             .prepare_compile_input(&message)
             .await
-            .or_else(|err| {
+            .map_err(|err| {
                 let receipt_handle_copy = receipt_handle.clone();
                 let sqs_client = self.sqs_client.clone();
                 tokio::spawn(async move {
@@ -92,7 +89,7 @@ impl CompileProcessor {
                     }
                 });
 
-                Err(err)
+                err
             })?;
 
         let compilation_output = do_compile(compilation_input).await?;

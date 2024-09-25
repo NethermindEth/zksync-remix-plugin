@@ -1,28 +1,17 @@
 use anyhow::{anyhow, Context};
 use aws_sdk_dynamodb::error::SdkError;
-use aws_sdk_dynamodb::operation::update_item::builders::UpdateItemFluentBuilder;
 use aws_sdk_dynamodb::operation::update_item::UpdateItemError;
 use aws_sdk_dynamodb::types::AttributeValue;
-use aws_sdk_s3::presigning::PresigningConfig;
-use std::time::Duration;
-use tracing::{error, warn};
+use tracing::{error};
 use types::item::{Item, Status, TaskResult};
-use types::{CompilationRequest, SqsMessage, VerificationRequest, ARTIFACTS_FOLDER};
+use types::{SqsMessage, VerificationRequest};
 use uuid::Uuid;
 
 use crate::clients::dynamodb_clients::wrapper::DynamoDBClientWrapper;
-use crate::clients::errors::{DBError, S3Error};
 use crate::clients::s3_clients::wrapper::S3ClientWrapper;
-use crate::clients::sqs_clients::client::SqsClient;
 use crate::clients::sqs_clients::wrapper::SqsClientWrapper;
-use crate::commands::compile::{do_compile, CompilationInput, CompilationOutput};
-use crate::commands::errors::{CommandResultHandleError, PreparationError};
 use crate::compile_processor::CompileProcessor;
-use crate::input_preparator::InputPreparator;
 use crate::purgatory::Purgatory;
-use crate::sqs_listener::SqsReceiver;
-use crate::utils::cleaner::AutoCleanUp;
-use crate::utils::lib::s3_compilation_files_dir;
 
 // TODO: generic in the future, handling specific message type- chain dependant.
 pub struct Processor {
