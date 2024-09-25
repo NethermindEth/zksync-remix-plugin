@@ -1,7 +1,7 @@
 use types::item::ItemError;
 
 use crate::clients::errors::{DBError, S3Error};
-use crate::commands::errors::{CompilationError};
+use crate::commands::errors::CompilationError;
 
 #[derive(thiserror::Error, Debug)]
 pub enum PurgeError {

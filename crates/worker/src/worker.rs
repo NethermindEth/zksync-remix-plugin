@@ -2,7 +2,7 @@ use std::num::NonZeroUsize;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::task::JoinHandle;
-use tracing::{error};
+use tracing::error;
 
 use crate::clients::sqs_clients::wrapper::SqsClientWrapper;
 use crate::processor::Processor;

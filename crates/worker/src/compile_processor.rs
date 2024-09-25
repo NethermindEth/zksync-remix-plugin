@@ -1,16 +1,16 @@
 use crate::clients::s3_clients::wrapper::S3ClientWrapper;
 use crate::clients::sqs_clients::wrapper::SqsClientWrapper;
 use crate::commands::compile::{do_compile, CompilationOutput};
-use crate::errors::{CompileProcessorError};
+use crate::errors::CompileProcessorError;
 use crate::input_preparator::InputPreparator;
 use crate::purgatory::Purgatory;
 use crate::utils::cleaner::AutoCleanUp;
 use crate::utils::lib::{s3_compilation_files_dir, ZKSOLC_VERSIONS};
-use anyhow::{ Context};
+use anyhow::Context;
 use aws_sdk_s3::presigning::PresigningConfig;
 use std::time::Duration;
-use tracing::{error};
-use types::item::{TaskResult};
+use tracing::error;
+use types::item::TaskResult;
 use types::{CompilationRequest, ARTIFACTS_FOLDER};
 use uuid::Uuid;
 
