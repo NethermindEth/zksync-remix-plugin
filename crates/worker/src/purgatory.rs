@@ -46,11 +46,11 @@ impl Purgatory {
         this
     }
 
-    pub async fn purge(&mut self) {
+    pub async fn purge(&self) {
         self.inner.lock().await.purge().await;
     }
 
-    pub async fn add_record(&mut self, id: Uuid, result: TaskResult) {
+    pub async fn add_record(&self, id: Uuid, result: TaskResult) {
         self.inner.lock().await.add_record(id, result);
     }
 
