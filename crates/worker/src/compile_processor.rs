@@ -28,9 +28,9 @@ impl CompileProcessor {
     pub fn new(
         sqs_client: SqsClientWrapper,
         s3_client: S3ClientWrapper,
-        input_preparator: InputPreparator,
         purgatory: Purgatory,
     ) -> Self {
+        let input_preparator = InputPreparator::new(s3_client.clone());
         Self {
             sqs_client,
             s3_client,

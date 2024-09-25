@@ -1,4 +1,4 @@
-use anyhow::anyhow;
+use anyhow::{anyhow, Context};
 use aws_sdk_dynamodb::error::SdkError;
 use aws_sdk_dynamodb::operation::update_item::builders::UpdateItemFluentBuilder;
 use aws_sdk_dynamodb::operation::update_item::UpdateItemError;
@@ -70,22 +70,27 @@ impl Processor {
     }
 
     // TODO(future me): could return bool.
-    pub async fn process_message(&self, sqs_message: SqsMessage, receipt_handle: String) {
+    pub async fn process_message(
+        &self,
+        sqs_message: SqsMessage,
+        receipt_handle: String,
+    ) -> anyhow::Result<()> {
         let id = sqs_message.id();
-
-        {
-            let lock_result = self.lock_item(id).await;
-            if lock_result.is_err() {
+        self.lock_item(id).await.or_else(|err| {
+            let sqs_client = self.sqs_client.clone();
+            let receipt_handle_copy = receipt_handle.clone();
+            tokio::spawn(async move {
                 // That could be due to wrong Status or no item
                 // 1. No item is possible in case GlobalState purges old message - delete from sqs
                 // 2. Wrong Status - other instance picked this up.
-                //    For sake of safety still try to delete it. Doesn't matter if succeeds.
-                self.sqs_client.delete_message(receipt_handle).await?;
-                return;
-            }
+                // For sake of safety still try to delete it. Doesn't matter if succeeds.
+                if let Err(err) = sqs_client.delete_message(receipt_handle_copy).await {
+                    error!("Couldn't delete sqs message: {err}")
+                }
+            });
 
-            lock_result?;
-        }
+            Err(err)
+        })?;
 
         let task_result = match sqs_message {
             SqsMessage::Compile { request } => {
@@ -93,13 +98,12 @@ impl Processor {
                     .compile_processor
                     .process_message(request, receipt_handle)
                     .await;
-                // TODO: maybe some handle here
+
                 match result {
-                    Ok(val) => TaskResult::Success {presigned_urls: val},
-                    Err(err) => {
-                        warn!("{err}");
-                        return;
-                    }
+                    Ok(val) => TaskResult::Success {
+                        presigned_urls: val,
+                    },
+                    Err(err) => TaskResult::Failure(err.to_string()),
                 }
             }
             SqsMessage::Verify { request } => {
@@ -107,7 +111,7 @@ impl Processor {
             }
         };
 
-        self.handle_task_result(id, task_result).await?;
+        self.handle_task_result(id, task_result).await
     }
 
     async fn process_verify_request(
@@ -124,11 +128,7 @@ impl Processor {
         todo!()
     }
 
-    async fn handle_task_result(
-        &self,
-        id: Uuid,
-        task_result: TaskResult,
-    ) -> Result<(), CommandResultHandleError> {
+    async fn handle_task_result(&self, id: Uuid, task_result: TaskResult) -> anyhow::Result<()> {
         let mut builder = self
             .db_client
             .client
@@ -162,8 +162,7 @@ impl Processor {
         self.db_client
             .update_item_raw(&builder)
             .await
-            .map_err(DBError::from)?;
-
-        Ok(())
+            .map_err(anyhow::Error::from)
+            .with_context(|| "Couldn't write task result")
     }
 }
