@@ -127,46 +127,50 @@ const MethodInput: React.FC<CompiledContractsProps> = ({ element }: CompiledCont
 
   return (
     <div>
-      <button
-        onClick={() => {
-          callContract().catch(console.error)
-        }}
-        className={`
+      {element.inputs.length == inputs.length ? (
+        <>
+          <button
+            onClick={() => {
+              callContract().catch(console.error)
+            }}
+            className={`
           btn btn-primary w-100 text-break mb-1 mt-1 px-0
           ${element.stateMutability === 'view' ? '' : 'btn-warning'}
         `}
-      >
-        {element.name}
-      </button>
-      {element.stateMutability === 'payable' ? (
-        <InputField
-          key={'value'}
-          placeholder={'Amount (ETH)'}
-          index={element.inputs.length}
-          value={value}
-          onChange={(_, newValue) => {
-            setValue(newValue)
-          }}
-        />
-      ) : (
-        <></>
-      )}
-      {element.inputs.map((input: Input, index: number) => (
-        <InputField
-          key={index}
-          placeholder={generateInputName(input)}
-          index={index}
-          value={inputs[index].value}
-          onChange={(index, newValue) => {
-            const newInputs = [...inputs]
-            newInputs[index] = {
-              internalType: input.internalType || 'string',
-              value: newValue
-            }
-            setInputs(newInputs)
-          }}
-        />
-      ))}
+          >
+            {element.name}
+          </button>
+          {element.stateMutability === 'payable' ? (
+            <InputField
+              key={'value'}
+              placeholder={'Amount (ETH)'}
+              index={element.inputs.length}
+              value={value}
+              onChange={(_, newValue) => {
+                setValue(newValue)
+              }}
+            />
+          ) : (
+            <></>
+          )}
+          {element.inputs.map((input: Input, index: number) => (
+            <InputField
+              key={index}
+              placeholder={generateInputName(input)}
+              index={index}
+              value={inputs[index].value}
+              onChange={(index, newValue) => {
+                const newInputs = [...inputs]
+                newInputs[index] = {
+                  internalType: input.internalType || 'string',
+                  value: newValue
+                }
+                setInputs(newInputs)
+              }}
+            />
+          ))}
+        </>
+      ) : <></>}
     </div>
   )
 }
