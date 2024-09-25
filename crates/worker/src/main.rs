@@ -1,8 +1,6 @@
 mod clients;
 mod commands;
-mod compile_processor;
 mod errors;
-mod input_preparator;
 mod processor;
 mod purgatory;
 mod sqs_listener;
@@ -16,7 +14,7 @@ use std::num::NonZeroUsize;
 use crate::clients::dynamodb_clients::wrapper::DynamoDBClientWrapper;
 use crate::clients::s3_clients::wrapper::S3ClientWrapper;
 use crate::clients::sqs_clients::wrapper::SqsClientWrapper;
-use crate::compile_processor::CompileProcessor;
+use crate::processor::compile_processor::CompileProcessor;
 use crate::processor::Processor;
 use crate::purgatory::Purgatory;
 use crate::worker::EngineBuilder;
