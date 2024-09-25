@@ -1,5 +1,3 @@
-use crate::commands::compile::CompilationFile;
-use crate::errors::S3Error;
 use aws_sdk_s3::presigning::{PresignedRequest, PresigningConfig};
 use aws_sdk_s3::types::Object;
 use aws_sdk_s3::Client;
@@ -7,6 +5,9 @@ use aws_smithy_types::byte_stream::ByteStream;
 use std::io::Write;
 use std::path::Path;
 use tracing::{error, warn};
+
+use crate::clients::errors::S3Error;
+use crate::commands::compile::CompilationFile;
 
 #[derive(Clone)]
 pub struct S3Client {
@@ -42,10 +43,7 @@ impl S3Client {
                 .expect("Unreachable. list_all_keys bug.");
             files.push(CompilationFile {
                 file_content: contents,
-                file_path: file_path
-                    .to_str()
-                    .expect("Unexpected encoding issue.")
-                    .to_string(),
+                file_path: file_path.to_path_buf(),
             });
         }
 
@@ -100,6 +98,27 @@ impl S3Client {
             .send()
             .await?;
 
+        Ok(())
+    }
+
+    pub async fn delete_dir(&self, dir: &str) -> Result<(), S3Error> {
+        let objects = self.list_all_keys(dir).await?;
+        for object in objects {
+            let key = object.key().ok_or(S3Error::InvalidObjectError)?;
+            self.delete_object(key).await?;
+        }
+
+        self.delete_object(dir).await
+    }
+
+    pub async fn delete_object(&self, key: &str) -> Result<(), S3Error> {
+        let _ = self
+            .client
+            .delete_object()
+            .bucket(self.bucket_name.clone())
+            .key(key)
+            .send()
+            .await?;
         Ok(())
     }
 

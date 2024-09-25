@@ -1,7 +1,8 @@
-use crate::errors::DBError;
 use aws_sdk_dynamodb::types::AttributeValue;
 use aws_sdk_dynamodb::Client;
 use types::item::Item;
+
+use crate::clients::errors::DBError;
 
 #[derive(Clone)]
 pub struct DynamoDBClient {
@@ -17,23 +18,23 @@ impl DynamoDBClient {
         }
     }
 
-    pub async fn delete_item(&self, id: String) -> Result<(), DBError> {
+    pub async fn delete_item(&self, id: &str) -> Result<(), DBError> {
         self.client
             .delete_item()
             .table_name(self.table_name.clone())
-            .key(Item::primary_key_name(), AttributeValue::S(id))
+            .key(Item::primary_key_name(), AttributeValue::S(id.to_string()))
             .send()
             .await?;
 
         Ok(())
     }
 
-    pub async fn get_item(&self, id: String) -> Result<Option<Item>, DBError> {
+    pub async fn get_item(&self, key: &str) -> Result<Option<Item>, DBError> {
         let result = self
             .client
             .get_item()
             .table_name(self.table_name.clone())
-            .key(Item::primary_key_name(), AttributeValue::S(id))
+            .key(Item::primary_key_name(), AttributeValue::S(key.to_string()))
             .send()
             .await?;
 

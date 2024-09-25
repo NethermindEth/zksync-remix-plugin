@@ -1,8 +1,7 @@
+use crate::clients::errors::{SqsDeleteError, SqsReceiveError};
 use aws_sdk_sqs::operation::delete_message::DeleteMessageOutput;
 use aws_sdk_sqs::operation::receive_message::ReceiveMessageOutput;
 use aws_sdk_sqs::Client;
-
-use crate::errors::{SqsDeleteError, SqsReceiveError};
 
 macro_rules! match_result {
     ($err_type:ident, $result:expr) => {
@@ -23,7 +22,9 @@ macro_rules! match_result {
                     }
                     if let Some(other) = dispatch_err.as_other() {
                         return match other {
-                            aws_config::retry::ErrorKind::ClientError => Err($err_type::DispatchFailure(dispatch_err)),
+                            aws_config::retry::ErrorKind::ClientError => {
+                                Err($err_type::DispatchFailure(dispatch_err))
+                            }
                             _ => Ok(None),
                         };
                     }

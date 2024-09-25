@@ -1,6 +1,7 @@
 use crate::commands::compile::CompilationFile;
 use std::path::{Path, PathBuf};
 use tracing::debug;
+use types::ARTIFACTS_FOLDER;
 use uuid::Uuid;
 use walkdir::WalkDir;
 
@@ -16,8 +17,6 @@ pub const ARTIFACTS_ROOT: &str =
     concat!(env!("CARGO_MANIFEST_DIR"), "/", "hardhat_env/artifacts-zk");
 
 pub const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
-
-pub const DURATION_TO_PURGE: u64 = 60 * 5; // 5 minutes
 
 pub const ZKSOLC_VERSIONS: [&str; 2] = ["1.4.1", "1.4.0"];
 
@@ -166,6 +165,14 @@ pub fn list_files_in_directory<P: AsRef<Path>>(path: P) -> Result<Vec<String>, w
 //         target_path: None,
 //     }
 // }
+
+pub fn s3_artifacts_dir(id: &str) -> String {
+    format!("{}/{}/", ARTIFACTS_FOLDER, id)
+}
+
+pub fn s3_compilation_files_dir(id: &str) -> String {
+    format!("{}/", id)
+}
 
 pub fn generate_mock_solidity_file_content() -> String {
     r#"

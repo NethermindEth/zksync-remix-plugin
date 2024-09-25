@@ -36,7 +36,7 @@ async fn compile(
     queue_url: &str,
 ) -> Result<(), Error> {
     let item = Item {
-        id: request.id.clone(),
+        id: request.id.to_string(),
         status: Status::Pending,
     };
 
@@ -112,7 +112,7 @@ async fn process_request(
     let objects = s3_client
         .list_objects_v2()
         .delimiter('/')
-        .prefix(request.id.clone().add("/"))
+        .prefix(request.id.to_string().add("/"))
         .bucket(bucket_name)
         .send()
         .await
