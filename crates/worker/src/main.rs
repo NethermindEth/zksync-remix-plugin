@@ -1,5 +1,6 @@
 mod clients;
 mod commands;
+mod compile_processor;
 mod errors;
 mod input_preparator;
 mod processor;

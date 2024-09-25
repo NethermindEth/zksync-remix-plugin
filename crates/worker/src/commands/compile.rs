@@ -1,5 +1,6 @@
 // TODO: extract in class
 
+use anyhow::Context;
 use std::path::{Path, PathBuf};
 use std::process::Stdio;
 use tracing::{error, info};
@@ -44,8 +45,14 @@ pub async fn do_compile(
     let hardhat_config_path = workspace_path.join("hardhat.config.ts");
 
     // instantly create the directories
-    tokio::fs::create_dir_all(&workspace_path).await?;
-    tokio::fs::create_dir_all(&artifacts_path).await?;
+    tokio::fs::create_dir_all(&workspace_path)
+        .await
+        .map_err(anyhow::Error::from)
+        .with_context(|| format!("Couldn't create workspace dir: {}", workspace_path.display()))?;
+    tokio::fs::create_dir_all(&artifacts_path)
+        .await
+        .map_err(anyhow::Error::from)
+        .with_context(|| format!("Couldn't create artifacts dir: {}", artifacts_path.display()))?;
 
     // when the compilation is done, clean up the directories
     // it will be called when the AutoCleanUp struct is dropped
@@ -66,8 +73,14 @@ pub async fn do_compile(
     let hardhat_config_content = hardhat_config_builder.build().to_string_config();
 
     // create parent directories
-    tokio::fs::create_dir_all(hardhat_config_path.parent().unwrap()).await?;
-    tokio::fs::write(hardhat_config_path, hardhat_config_content).await?;
+    tokio::fs::create_dir_all(hardhat_config_path.parent().unwrap())
+        .await
+        .map_err(anyhow::Error::from)
+        .with_context(|| format!("Couldn't create hardhat dir: {}", hardhat_config_path.display()))?;
+    tokio::fs::write(hardhat_config_path, hardhat_config_content)
+        .await
+        .map_err(anyhow::Error::from)
+        .with_context(|| "Couldn't write hardhat.config file")?;
 
     // filter test files from compilation candidates
     let contracts = compilation_input
@@ -77,7 +90,10 @@ pub async fn do_compile(
         .collect();
 
     // initialize the files
-    initialize_files(&workspace_path, contracts).await?;
+    initialize_files(&workspace_path, contracts)
+        .await
+        .map_err(anyhow::Error::from)
+        .with_context(|| "Couldn't write contract to fs")?;
 
     // Limit number of spawned processes. RAII released
     let _permit = SPAWN_SEMAPHORE.acquire().await.expect("Expired semaphore");
@@ -88,9 +104,14 @@ pub async fn do_compile(
         .current_dir(&workspace_path)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
-        .spawn()?;
+        .spawn()
+        .map_err(anyhow::Error::from)
+        .with_context(|| "Couldn't spawn process")?;
 
-    let output = process.wait_with_output().await?;
+    let output = process
+        .wait_with_output()
+        .await
+        .map_err(anyhow::Error::from)?;
 
     let status = output.status;
     let message = String::from_utf8_lossy(&output.stdout).to_string();
@@ -105,8 +126,10 @@ pub async fn do_compile(
     }
 
     // fetch the files in the artifacts directory
-    let file_paths =
-        list_files_in_directory(&artifacts_path).expect("Unexpected error listing artifact");
+    let file_paths = list_files_in_directory(&artifacts_path)
+        .map_err(anyhow::Error::from)
+        .with_context(|| "Unexpected error listing artifact")?;
+
     let artifacts_data = file_paths
         .into_iter()
         .map(|file_path| {
