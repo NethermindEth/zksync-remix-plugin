@@ -117,7 +117,7 @@ impl DynamoDBClient {
             Err(DBError::GetItemError(err)) => {
                 match_result!(DBGetError, Err(err)).map_err(DBError::from)
             }
-            result => result.map(|value| Some(value)),
+            result => result.map(Some),
         }
     }
 

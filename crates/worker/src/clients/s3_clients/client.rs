@@ -70,7 +70,7 @@ impl S3Client {
             Err(S3Error::GetObjectError(err)) => {
                 match_result!(S3GetObjectError, Err(err)).map_err(S3Error::from)
             }
-            result => result.map(|value| Some(value)),
+            result => result.map(Some),
         }
     }
 

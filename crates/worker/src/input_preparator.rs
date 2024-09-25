@@ -1,11 +1,9 @@
 use std::path::Path;
 use types::CompilationRequest;
 
-use crate::clients::dynamodb_clients::wrapper::DynamoDBClientWrapper;
 use crate::clients::s3_clients::wrapper::S3ClientWrapper;
 use crate::commands::compile::CompilationInput;
-use crate::commands::errors::PreparationError;
-use crate::utils::lib::{SOL_ROOT, ZKSOLC_VERSIONS};
+use crate::utils::lib::{SOL_ROOT};
 
 pub struct InputPreparator {
     s3_client: S3ClientWrapper,

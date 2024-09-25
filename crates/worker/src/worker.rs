@@ -2,14 +2,10 @@ use std::num::NonZeroUsize;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::task::JoinHandle;
-use tracing::{error, warn};
-use types::SqsMessage;
+use tracing::{error};
 
-use crate::clients::dynamodb_clients::wrapper::DynamoDBClientWrapper;
-use crate::clients::s3_clients::wrapper::S3ClientWrapper;
 use crate::clients::sqs_clients::wrapper::SqsClientWrapper;
 use crate::processor::Processor;
-use crate::purgatory::Purgatory;
 use crate::sqs_listener::{SqsListener, SqsReceiver};
 
 pub struct EngineBuilder {
