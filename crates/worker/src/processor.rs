@@ -2,7 +2,7 @@ use anyhow::{anyhow, Context};
 use aws_sdk_dynamodb::error::SdkError;
 use aws_sdk_dynamodb::operation::update_item::UpdateItemError;
 use aws_sdk_dynamodb::types::AttributeValue;
-use tracing::{error};
+use tracing::error;
 use types::item::{Item, Status, TaskResult};
 use types::{SqsMessage, VerificationRequest};
 use uuid::Uuid;

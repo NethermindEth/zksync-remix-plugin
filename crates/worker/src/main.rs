@@ -64,8 +64,15 @@ async fn main() {
     let purgatory = Purgatory::new(db_client.clone(), s3_client.clone());
 
     // Initialize processors
-    let compile_processor = CompileProcessor::new(sqs_client.clone(), s3_client.clone(), purgatory.clone());
-    let processor = Processor:: new(db_client, s3_client, sqs_client.clone(), compile_processor, purgatory);
+    let compile_processor =
+        CompileProcessor::new(sqs_client.clone(), s3_client.clone(), purgatory.clone());
+    let processor = Processor::new(
+        db_client,
+        s3_client,
+        sqs_client.clone(),
+        compile_processor,
+        purgatory,
+    );
 
     // Engine
     let engine = EngineBuilder::new(sqs_client, processor);

@@ -3,7 +3,7 @@ use types::CompilationRequest;
 
 use crate::clients::s3_clients::wrapper::S3ClientWrapper;
 use crate::commands::compile::CompilationInput;
-use crate::utils::lib::{SOL_ROOT};
+use crate::utils::lib::SOL_ROOT;
 
 pub struct InputPreparator {
     s3_client: S3ClientWrapper,
@@ -11,9 +11,7 @@ pub struct InputPreparator {
 
 impl InputPreparator {
     pub fn new(s3_client: S3ClientWrapper) -> Self {
-        Self {
-            s3_client,
-        }
+        Self { s3_client }
     }
 
     pub(crate) async fn prepare_compile_input(
