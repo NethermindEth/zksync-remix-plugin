@@ -48,11 +48,21 @@ pub async fn do_compile(
     tokio::fs::create_dir_all(&workspace_path)
         .await
         .map_err(anyhow::Error::from)
-        .with_context(|| format!("Couldn't create workspace dir: {}", workspace_path.display()))?;
+        .with_context(|| {
+            format!(
+                "Couldn't create workspace dir: {}",
+                workspace_path.display()
+            )
+        })?;
     tokio::fs::create_dir_all(&artifacts_path)
         .await
         .map_err(anyhow::Error::from)
-        .with_context(|| format!("Couldn't create artifacts dir: {}", artifacts_path.display()))?;
+        .with_context(|| {
+            format!(
+                "Couldn't create artifacts dir: {}",
+                artifacts_path.display()
+            )
+        })?;
 
     // when the compilation is done, clean up the directories
     // it will be called when the AutoCleanUp struct is dropped
@@ -76,7 +86,12 @@ pub async fn do_compile(
     tokio::fs::create_dir_all(hardhat_config_path.parent().unwrap())
         .await
         .map_err(anyhow::Error::from)
-        .with_context(|| format!("Couldn't create hardhat dir: {}", hardhat_config_path.display()))?;
+        .with_context(|| {
+            format!(
+                "Couldn't create hardhat dir: {}",
+                hardhat_config_path.display()
+            )
+        })?;
     tokio::fs::write(hardhat_config_path, hardhat_config_content)
         .await
         .map_err(anyhow::Error::from)

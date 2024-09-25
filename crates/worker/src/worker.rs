@@ -61,7 +61,6 @@ impl RunningEngine {
     }
 
     async fn worker(sqs_receiver: SqsReceiver, processor: Arc<Processor>) {
-        // TODO: process error
         while let Ok(message) = sqs_receiver.recv().await {
             let receipt_handle = if let Some(ref receipt_handle) = message.receipt_handle {
                 receipt_handle.to_owned()
@@ -72,14 +71,17 @@ impl RunningEngine {
             let sqs_message = match message.try_into() {
                 Ok(val) => val,
                 Err(err) => {
-                    warn!("Error converting into SqsMessage: {err}");
+                    error!("Error converting into SqsMessage: {err}");
                     continue;
                 }
             };
 
             // TODO: add metrics for how long it takes &
             // adjust "visibility timeout" or receiver chan capacity
-            processor.process_message(sqs_message, receipt_handle).await;
+            // TODO: add critical errors and return
+            if let Err(err) = processor.process_message(sqs_message, receipt_handle).await {
+                error!("{err}");
+            }
         }
     }
 

@@ -8,14 +8,12 @@ use crate::commands::errors::PreparationError;
 use crate::utils::lib::{SOL_ROOT, ZKSOLC_VERSIONS};
 
 pub struct InputPreparator {
-    db_client: DynamoDBClientWrapper,
     s3_client: S3ClientWrapper,
 }
 
 impl InputPreparator {
-    pub fn new(db_client: DynamoDBClientWrapper, s3_client: S3ClientWrapper) -> Self {
+    pub fn new(s3_client: S3ClientWrapper) -> Self {
         Self {
-            db_client,
             s3_client,
         }
     }
