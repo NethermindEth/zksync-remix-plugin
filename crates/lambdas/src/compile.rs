@@ -4,6 +4,7 @@ use lambda_http::{
     run, service_fn, Error as LambdaError, Request as LambdaRequest, Response as LambdaResponse,
 };
 use std::ops::Add;
+use chrono::Utc;
 use tracing::{error, info};
 use types::{CompilationRequest, SqsMessage, item::{Item, Status}};
 
@@ -35,9 +36,11 @@ async fn compile(
     sqs_client: &aws_sdk_sqs::Client,
     queue_url: &str,
 ) -> Result<(), Error> {
+    let created_at = Utc::now();
     let item = Item {
-        id: request.id.to_string(),
+        id: request.id,
         status: Status::Pending,
+        created_at
     };
 
     let result = dynamo_client
