@@ -10,8 +10,13 @@ use uuid::Uuid;
 use crate::clients::dynamodb_clients::wrapper::DynamoDBClientWrapper;
 use crate::clients::s3_clients::wrapper::S3ClientWrapper;
 use crate::clients::sqs_clients::wrapper::SqsClientWrapper;
-use crate::compile_processor::CompileProcessor;
+use crate::processor::compile_processor::CompileProcessor;
 use crate::purgatory::Purgatory;
+
+pub mod compile_processor;
+mod input_preparator;
+pub mod verify_processor;
+pub mod errors;
 
 // TODO: generic in the future, handling specific message type- chain dependant.
 pub struct Processor {
