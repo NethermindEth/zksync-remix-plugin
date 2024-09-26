@@ -11,7 +11,7 @@ use crate::clients::s3_clients::wrapper::S3ClientWrapper;
 use crate::clients::sqs_clients::wrapper::SqsClientWrapper;
 use crate::commands::compile::{do_compile, CompilationOutput};
 use crate::processor::errors::CompileProcessorError;
-use crate::processor::input_preparator::InputPreparator;
+use crate::processor::input_preparator::CompileInputPreparator;
 use crate::purgatory::Purgatory;
 use crate::utils::cleaner::AutoCleanUp;
 use crate::utils::lib::{s3_compilation_files_dir, ZKSOLC_VERSIONS};
@@ -19,7 +19,7 @@ use crate::utils::lib::{s3_compilation_files_dir, ZKSOLC_VERSIONS};
 pub struct CompileProcessor {
     sqs_client: SqsClientWrapper,
     s3_client: S3ClientWrapper,
-    input_preparator: InputPreparator,
+    input_preparator: CompileInputPreparator,
     purgatory: Purgatory,
 }
 
@@ -29,7 +29,7 @@ impl CompileProcessor {
         s3_client: S3ClientWrapper,
         purgatory: Purgatory,
     ) -> Self {
-        let input_preparator = InputPreparator::new(s3_client.clone());
+        let input_preparator = CompileInputPreparator::new(s3_client.clone());
         Self {
             sqs_client,
             s3_client,

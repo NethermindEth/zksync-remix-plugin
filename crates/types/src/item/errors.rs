@@ -25,6 +25,8 @@ impl ItemError {
 pub enum ServerError {
     UnsupportedCompilerVersion,
     CompilationError,
+    UnknownNetworkError,
+    VerificationError,
     InternalError,
 }
 
@@ -34,6 +36,8 @@ impl Into<&'static str> for ServerError {
             ServerError::UnsupportedCompilerVersion => "UnsupportedCompilerVersion",
             ServerError::CompilationError => "CompilationError",
             ServerError::InternalError => "InternalError",
+            ServerError::UnknownNetworkError => "UnknownNetworkError",
+            ServerError::VerificationError => "VerificationError"
         }
     }
 }
@@ -45,6 +49,8 @@ impl TryFrom<&str> for ServerError {
             "UnsupportedCompilerVersion" => Ok(ServerError::UnsupportedCompilerVersion),
             "CompilationError" => Ok(ServerError::CompilationError),
             "InternalError" => Ok(ServerError::InternalError),
+            "VerificationError" => Ok(ServerError::VerificationError),
+            "UnknownNetworkError" => Ok(ServerError::UnknownNetworkError),
             _ => Err(value.into()),
         }
     }

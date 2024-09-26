@@ -12,6 +12,7 @@ use crate::clients::dynamodb_clients::wrapper::DynamoDBClientWrapper;
 use crate::clients::s3_clients::wrapper::S3ClientWrapper;
 use crate::clients::sqs_clients::wrapper::SqsClientWrapper;
 use crate::processor::compile_processor::CompileProcessor;
+use crate::processor::verify_processor::VerifyProcessor;
 use crate::purgatory::Purgatory;
 
 pub mod compile_processor;
@@ -25,6 +26,7 @@ pub struct Processor {
     s3_client: S3ClientWrapper,
     sqs_client: SqsClientWrapper,
     compile_processor: CompileProcessor,
+    verify_processor: VerifyProcessor,
     purgatory: Purgatory,
 }
 
@@ -34,11 +36,13 @@ impl Processor {
         s3_client: S3ClientWrapper,
         sqs_client: SqsClientWrapper,
         compile_processor: CompileProcessor,
+        verify_processor: VerifyProcessor,
         purgatory: Purgatory,
     ) -> Self {
         Self {
             db_client,
             compile_processor,
+            verify_processor,
             sqs_client,
             s3_client,
             purgatory,
@@ -102,7 +106,14 @@ impl Processor {
                 }
             }
             SqsMessage::Verify { request } => {
-                self.process_verify_request(request, receipt_handle).await
+                let result = self
+                    .verify_processor
+                    .process_message(request, receipt_handle)
+                    .await;
+                match result {
+                    Ok(message) => TaskResult::Success(TaskSuccess::Verify { message }),
+                    Err(err) => TaskResult::Failure(err.into()),
+                }
             }
         };
 
