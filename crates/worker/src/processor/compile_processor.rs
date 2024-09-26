@@ -2,7 +2,8 @@ use anyhow::Context;
 use aws_sdk_s3::presigning::PresigningConfig;
 use std::time::Duration;
 use tracing::error;
-use types::item::task_result::{TaskResult, TaskSuccess};
+use types::item::errors::ServerError;
+use types::item::task_result::{TaskFailure, TaskResult, TaskSuccess};
 use types::{CompilationRequest, ARTIFACTS_FOLDER};
 use uuid::Uuid;
 
@@ -125,9 +126,12 @@ impl CompileProcessor {
                 Ok(presigned_urls)
             }
             Err(err) => {
-                self.purgatory
-                    .add_record(id, TaskResult::Failure(err.to_string()))
-                    .await;
+                let task_result = TaskResult::Failure(TaskFailure {
+                    error_type: ServerError::InternalError,
+                    message: err.to_string(),
+                });
+                self.purgatory.add_record(id, task_result).await;
+
                 Err(err.into())
             }
         }

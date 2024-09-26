@@ -98,7 +98,7 @@ impl Processor {
                     Ok(val) => TaskResult::Success(TaskSuccess::Compile {
                         presigned_urls: val,
                     }),
-                    Err(err) => TaskResult::Failure(err.to_string()),
+                    Err(err) => TaskResult::Failure(err.into()),
                 }
             }
             SqsMessage::Verify { request } => {
