@@ -2,7 +2,7 @@ use anyhow::Context;
 use aws_sdk_s3::presigning::PresigningConfig;
 use std::time::Duration;
 use tracing::error;
-use types::item::TaskResult;
+use types::item::task_result::{TaskResult, TaskSuccess};
 use types::{CompilationRequest, ARTIFACTS_FOLDER};
 use uuid::Uuid;
 
@@ -117,9 +117,9 @@ impl CompileProcessor {
                 self.purgatory
                     .add_record(
                         id,
-                        TaskResult::Success {
+                        TaskResult::Success(TaskSuccess::Compile {
                             presigned_urls: presigned_urls.clone(),
-                        },
+                        }),
                     )
                     .await;
                 Ok(presigned_urls)
