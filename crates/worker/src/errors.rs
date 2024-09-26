@@ -1,4 +1,4 @@
-use types::item::ItemError;
+use types::item::errors::ItemError;
 
 use crate::clients::errors::{DBError, S3Error};
 

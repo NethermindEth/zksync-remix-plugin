@@ -3,7 +3,8 @@ use aws_sdk_dynamodb::error::SdkError;
 use aws_sdk_dynamodb::operation::update_item::UpdateItemError;
 use aws_sdk_dynamodb::types::AttributeValue;
 use tracing::error;
-use types::item::{Item, Status, TaskResult};
+use types::item::task_result::TaskSuccess;
+use types::item::{task_result::TaskResult, Item, Status};
 use types::{SqsMessage, VerificationRequest};
 use uuid::Uuid;
 
@@ -14,9 +15,9 @@ use crate::processor::compile_processor::CompileProcessor;
 use crate::purgatory::Purgatory;
 
 pub mod compile_processor;
+pub mod errors;
 mod input_preparator;
 pub mod verify_processor;
-pub mod errors;
 
 // TODO: generic in the future, handling specific message type- chain dependant.
 pub struct Processor {
@@ -94,9 +95,9 @@ impl Processor {
                     .await;
 
                 match result {
-                    Ok(val) => TaskResult::Success {
+                    Ok(val) => TaskResult::Success(TaskSuccess::Compile {
                         presigned_urls: val,
-                    },
+                    }),
                     Err(err) => TaskResult::Failure(err.to_string()),
                 }
             }
@@ -132,16 +133,19 @@ impl Processor {
             .key(Item::primary_key_name(), AttributeValue::S(id.to_string()))
             .update_expression("SET #status = :newStatus, #data = :data")
             .expression_attribute_names("#status", Status::attribute_name())
-            .expression_attribute_names("#data", Item::data_attribute_name());
+            .expression_attribute_names("#data", TaskResult::attribute_name());
 
         builder = match task_result {
-            TaskResult::Success { presigned_urls } => {
+            TaskResult::Success(value) => {
                 builder
                     .expression_attribute_values(
                         ":newStatus",
                         AttributeValue::N(2.to_string()), // Ready
                     )
-                    .expression_attribute_values(":data", AttributeValue::Ss(presigned_urls))
+                    .expression_attribute_values(
+                        ":data",
+                        AttributeValue::M(TaskResult::Success(value).into()),
+                    )
             }
             TaskResult::Failure(message) => {
                 builder
@@ -149,7 +153,10 @@ impl Processor {
                         ":newStatus",
                         AttributeValue::N(3.to_string()), // Failed
                     )
-                    .expression_attribute_values(":data", AttributeValue::S(message.clone()))
+                    .expression_attribute_values(
+                        ":data",
+                        AttributeValue::M(TaskResult::Failure(message).into()),
+                    )
             }
         };
 

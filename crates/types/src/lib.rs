@@ -63,7 +63,7 @@ pub enum SqsRawMessageError {
     #[error("Empty message body")]
     NoMessageBody,
     #[error(transparent)]
-    SerdeJsonError(#[from] serde_json::Error)
+    SerdeJsonError(#[from] serde_json::Error),
 }
 
 impl TryFrom<aws_sdk_sqs::types::Message> for SqsMessage {

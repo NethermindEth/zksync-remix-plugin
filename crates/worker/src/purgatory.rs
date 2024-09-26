@@ -7,7 +7,8 @@ use std::time::Duration;
 use tokio::time::interval;
 use tokio::{sync::Mutex, task::JoinHandle};
 use tracing::warn;
-use types::item::{Item, ItemError, Status, TaskResult};
+use types::item::errors::ItemError;
+use types::item::{task_result::TaskResult, Item, Status};
 use uuid::Uuid;
 
 use crate::clients::dynamodb_clients::wrapper::DynamoDBClientWrapper;
@@ -54,7 +55,7 @@ impl Purgatory {
         self.inner.lock().await.add_record(id, result);
     }
 
-    async fn daemon(mut self) {
+    async fn daemon(self) {
         const PURGE_INTERVAL: Duration = Duration::from_secs(60);
 
         let mut interval = interval(PURGE_INTERVAL);
