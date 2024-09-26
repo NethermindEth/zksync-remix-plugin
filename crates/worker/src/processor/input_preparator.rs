@@ -15,7 +15,7 @@ impl CompileInputPreparator {
         Self { s3_client }
     }
 
-    pub(crate) async fn prepare_compile_input(
+    pub(crate) async fn prepare_input(
         &self,
         request: &CompilationRequest,
     ) -> anyhow::Result<CompilationInput> {
@@ -43,7 +43,7 @@ impl VerifyInputPreparator {
         Self { s3_client }
     }
 
-    pub(crate) async fn prepare_compile_input(
+    pub(crate) async fn prepare_input(
         &self,
         request: &VerificationRequest,
     ) -> anyhow::Result<VerificationInput> {

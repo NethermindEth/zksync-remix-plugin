@@ -80,7 +80,7 @@ impl CompileProcessor {
 
         let compilation_input = self
             .input_preparator
-            .prepare_compile_input(&message)
+            .prepare_input(&message)
             .await
             .map_err(|err| {
                 let receipt_handle_copy = receipt_handle.clone();
