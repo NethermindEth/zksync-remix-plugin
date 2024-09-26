@@ -19,3 +19,33 @@ impl ItemError {
         Self::FormatError(err_str)
     }
 }
+
+#[derive(Debug, Clone)]
+#[cfg_attr(test, derive(PartialEq))]
+pub enum ServerError {
+    UnsupportedCompilerVersion,
+    CompilationError,
+    InternalError,
+}
+
+impl Into<&'static str> for ServerError {
+    fn into(self) -> &'static str {
+        match self {
+            ServerError::UnsupportedCompilerVersion => "UnsupportedCompilerVersion",
+            ServerError::CompilationError => "CompilationError",
+            ServerError::InternalError => "InternalError",
+        }
+    }
+}
+
+impl TryFrom<&str> for ServerError {
+    type Error = String;
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        match value {
+            "UnsupportedCompilerVersion" => Ok(ServerError::UnsupportedCompilerVersion),
+            "CompilationError" => Ok(ServerError::CompilationError),
+            "InternalError" => Ok(ServerError::InternalError),
+            _ => Err(value.into()),
+        }
+    }
+}

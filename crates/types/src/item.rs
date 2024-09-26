@@ -19,7 +19,7 @@ pub enum Status {
     // TODO: add FilesUploaded(?)
     Pending,
     InProgress,
-    Done(TaskResult),
+    Done(TaskResult), // TODO: TaskResult will be generic probably
 }
 
 impl Status {
@@ -187,12 +187,13 @@ impl TryFrom<AttributeMap> for Item {
 
 #[cfg(test)]
 mod tests {
-    use super::{*, task_result::*};
+    use super::{task_result::*, *};
 
+    use crate::item::errors::ServerError;
     use aws_sdk_dynamodb::types::AttributeValue;
     use chrono::Utc;
-    use uuid::Uuid;
     use std::collections::HashMap;
+    use uuid::Uuid;
 
     #[test]
     fn test_status_pending_to_attribute_map() {
@@ -294,7 +295,10 @@ mod tests {
                 TaskResult::attribute_name().to_string(),
                 AttributeValue::M(HashMap::from([(
                     TaskResult::failure_attribute_name().to_string(),
-                    AttributeValue::S("Compilation failed".to_string()),
+                    AttributeValue::Ss(vec![
+                        "CompilationError".to_string(),
+                        "Compilation failed".to_string(),
+                    ]),
                 )])),
             ),
         ])
@@ -304,8 +308,11 @@ mod tests {
     fn test_status_done_failure_to_attribute_map() {
         let expected_map = status_failure_compilation_map();
 
-        let task_result = TaskResult::Failure("Compilation failed".to_string());
-        let status = Status::Done(task_result.clone());
+        let task_result = TaskResult::Failure(TaskFailure {
+            error_type: ServerError::CompilationError,
+            message: "Compilation failed".to_string(),
+        });
+        let status = Status::Done(task_result);
         let attribute_map: AttributeMap = status.into();
 
         assert_eq!(attribute_map, expected_map);
@@ -313,7 +320,10 @@ mod tests {
 
     #[test]
     fn test_status_done_failure_from_attribute_map() {
-        let expected_result = Status::Done(TaskResult::Failure("Compilation failed".to_string()));
+        let expected_result = Status::Done(TaskResult::Failure(TaskFailure {
+            error_type: ServerError::CompilationError,
+            message: "Compilation failed".to_string(),
+        }));
 
         let attribute_map = status_failure_compilation_map();
         let result: Status = (&attribute_map).try_into().expect("Conversion failed");
@@ -377,4 +387,3 @@ mod tests {
         assert_eq!(result, expected_item);
     }
 }
-
