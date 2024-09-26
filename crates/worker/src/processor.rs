@@ -120,20 +120,6 @@ impl Processor {
         self.handle_task_result(id, task_result).await
     }
 
-    async fn process_verify_request(
-        &self,
-        request: VerificationRequest,
-        receipt_handle: String,
-    ) -> TaskResult {
-        // TODO: implement
-
-        // if let Err(err) = self.sqs_receiver.delete_message(receipt_handle).await {
-        //     warn!("{}", err);
-        // }
-
-        todo!()
-    }
-
     async fn handle_task_result(&self, id: Uuid, task_result: TaskResult) -> anyhow::Result<()> {
         let mut builder = self
             .db_client
