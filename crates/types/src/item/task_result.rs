@@ -2,14 +2,14 @@ use aws_sdk_dynamodb::types::AttributeValue;
 use std::collections::HashMap;
 use std::fmt::Formatter;
 
-use crate::item::errors::ItemError;
+use crate::item::errors::{ItemError, ServerError};
 use crate::item::AttributeMap;
 
 #[derive(Debug, Clone)]
 #[cfg_attr(test, derive(PartialEq))]
 pub enum TaskResult {
     Success(TaskSuccess),
-    Failure(String),
+    Failure(TaskFailure),
 }
 
 impl TaskResult {
@@ -30,7 +30,7 @@ impl std::fmt::Display for TaskResult {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             TaskResult::Success(_) => write!(f, "Success"),
-            TaskResult::Failure(msg) => write!(f, "Failure: {}", msg),
+            TaskResult::Failure(msg) => write!(f, "Failure: {}", msg.message),
         }
     }
 }
@@ -42,10 +42,7 @@ impl From<TaskResult> for AttributeMap {
                 TaskResult::success_attribute_name().into(),
                 AttributeValue::M(task_success.into()),
             )]),
-            TaskResult::Failure(message) => HashMap::from([(
-                TaskResult::failure_attribute_name().into(),
-                AttributeValue::S(message),
-            )]),
+            TaskResult::Failure(failure) => failure.into(),
         }
     }
 }
@@ -72,12 +69,7 @@ impl TryFrom<&AttributeMap> for TaskResult {
                     .map_err(|_| ItemError::FormatError("invalid type".into()))?;
                 Ok(TaskResult::Success(data.try_into()?))
             }
-            "Failure" => {
-                let data = value
-                    .as_s()
-                    .map_err(|_| ItemError::FormatError("invalid type".into()))?;
-                Ok(TaskResult::Failure(data.clone()))
-            }
+            "Failure" => Ok(TaskResult::Failure(value.try_into()?)),
             _ => Err(ItemError::FormatError(format!(
                 "Invalid key in TaskResult: {key}"
             ))),
@@ -159,6 +151,55 @@ impl TryFrom<&AttributeMap> for TaskSuccess {
     }
 }
 
+#[derive(Debug, Clone)]
+#[cfg_attr(test, derive(PartialEq))]
+pub struct TaskFailure {
+    pub error_type: ServerError,
+    pub message: String,
+}
+
+impl TaskFailure {
+    pub const fn attribute_name() -> &'static str {
+        "Failure"
+    }
+}
+
+impl From<TaskFailure> for AttributeMap {
+    fn from(value: TaskFailure) -> Self {
+        HashMap::from([(
+            TaskFailure::attribute_name().into(),
+            AttributeValue::Ss(vec![
+                <ServerError as Into<&'static str>>::into(value.error_type).to_string(),
+                value.message,
+            ]),
+        )])
+    }
+}
+
+impl TryFrom<&AttributeValue> for TaskFailure {
+    type Error = ItemError;
+
+    fn try_from(value: &AttributeValue) -> Result<Self, Self::Error> {
+        let data = value
+            .as_ss()
+            .map_err(|_| ItemError::FormatError("invalid type".into()))?;
+        if data.len() != 2 {
+            Err(ItemError::FormatError(
+                "Invalid Failure values format".into(),
+            ))
+        } else {
+            let error_type: ServerError = data[0]
+                .as_str()
+                .try_into()
+                .map_err(ItemError::FormatError)?;
+            Ok(TaskFailure {
+                error_type,
+                message: data[1].to_string(),
+            })
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -227,11 +268,17 @@ mod tests {
 
     #[test]
     fn test_task_result_failure_to_attribute_map() {
-        let task_result = TaskResult::Failure("Compilation failed".to_string());
+        let task_result = TaskResult::Failure(TaskFailure {
+            error_type: ServerError::CompilationError,
+            message: "Compilation failed".to_string(),
+        });
 
         let expected_map = HashMap::from([(
             "Failure".to_string(),
-            AttributeValue::S("Compilation failed".to_string()),
+            AttributeValue::Ss(vec![
+                "CompilationError".into(),
+                "Compilation failed".to_string(),
+            ]),
         )]);
 
         let attribute_map: AttributeMap = task_result.into();
@@ -242,10 +289,16 @@ mod tests {
     fn test_task_result_failure_from_attribute_map() {
         let attribute_map = HashMap::from([(
             "Failure".to_string(),
-            AttributeValue::S("Compilation failed".to_string()),
+            AttributeValue::Ss(vec![
+                "CompilationError".into(),
+                "Compilation failed".to_string(),
+            ]),
         )]);
 
-        let expected_task_result = TaskResult::Failure("Compilation failed".to_string());
+        let expected_task_result = TaskResult::Failure(TaskFailure {
+            error_type: ServerError::CompilationError,
+            message: "Compilation failed".to_string(),
+        });
 
         let result: TaskResult = (&attribute_map).try_into().expect("Conversion failed");
         assert_eq!(result, expected_task_result);
