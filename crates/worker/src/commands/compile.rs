@@ -7,15 +7,10 @@ use tracing::{error, info};
 use types::CompilationConfig;
 
 use crate::commands::errors::CompilationError;
-use crate::commands::SPAWN_SEMAPHORE;
+use crate::commands::{CompilationFile, SPAWN_SEMAPHORE};
 use crate::utils::cleaner::AutoCleanUp;
 use crate::utils::hardhat_config::HardhatConfigBuilder;
 use crate::utils::lib::{initialize_files, list_files_in_directory, DEFAULT_SOLIDITY_VERSION};
-
-pub struct CompilationFile {
-    pub file_path: PathBuf,
-    pub file_content: Vec<u8>,
-}
 
 pub struct CompilationInput {
     pub workspace_path: PathBuf,

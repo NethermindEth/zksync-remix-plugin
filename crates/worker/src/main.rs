@@ -15,6 +15,7 @@ use crate::clients::dynamodb_clients::wrapper::DynamoDBClientWrapper;
 use crate::clients::s3_clients::wrapper::S3ClientWrapper;
 use crate::clients::sqs_clients::wrapper::SqsClientWrapper;
 use crate::processor::compile_processor::CompileProcessor;
+use crate::processor::verify_processor::VerifyProcessor;
 use crate::processor::Processor;
 use crate::purgatory::Purgatory;
 use crate::worker::EngineBuilder;
@@ -64,11 +65,14 @@ async fn main() {
     // Initialize processors
     let compile_processor =
         CompileProcessor::new(sqs_client.clone(), s3_client.clone(), purgatory.clone());
+    let verify_processor =
+        VerifyProcessor::new(sqs_client.clone(), s3_client.clone(), purgatory.clone());
     let processor = Processor::new(
         db_client,
         s3_client,
         sqs_client.clone(),
         compile_processor,
+        verify_processor,
         purgatory,
     );
 
