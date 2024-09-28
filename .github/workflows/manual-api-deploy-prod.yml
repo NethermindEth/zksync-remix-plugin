@@ -109,7 +109,6 @@ jobs:
             SERVICE_VERSION=v${{ needs.Build.outputs.image-version }}
             VITE_URL=https://zksync-plugin.nethermind.io
             PROMTAIL_USERNAME=${{secrets.PROMTAIL_USERNAME}}
-            PROMTAIL_PASSWORD=${{secrets.PROMTAIL_PASSWORD}}
             PROMETHEUS_USERNAME=${{secrets.PROMETHEUS_USERNAME}}
             PROMETHEUS_PASSWORD=${{secrets.PROMETHEUS_PASSWORD}}
             ENVIRONMENT=prod
