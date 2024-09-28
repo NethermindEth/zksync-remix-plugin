@@ -120,3 +120,4 @@ jobs:
           service: ${{ env.PROD_SERVICE_NAME }}
           cluster: ${{ env.PROD_CLUSTER }}
           wait-for-service-stability: true
+          propagate-tags: SERVICE
