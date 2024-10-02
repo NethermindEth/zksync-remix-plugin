@@ -11,15 +11,16 @@ import { zkSync, zkSyncSepoliaTestnet } from 'viem/chains'
 import { WalletConnectConnector } from 'wagmi/connectors/walletConnect'
 import { InjectedConnector } from 'wagmi/connectors/injected'
 import { EIP6963Connector, walletConnectProvider } from '@web3modal/wagmi'
+import { zkCandySepoliaTestnet } from './utils/chains'
 
 const projectId: string = import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID // TODO who owns this? make sure nethermind owns this
 
 const { publicClient } = configureChains(
-  [zkSync, zkSyncSepoliaTestnet],
+  [zkSync, zkSyncSepoliaTestnet, zkCandySepoliaTestnet],
   [walletConnectProvider({ projectId }), publicProvider()]
 )
 
-const chains = [zkSyncSepoliaTestnet, zkSync]
+const chains = [zkSyncSepoliaTestnet, zkSync, zkCandySepoliaTestnet]
 
 const metadata = {
   name: 'zkSync remix plugin',
