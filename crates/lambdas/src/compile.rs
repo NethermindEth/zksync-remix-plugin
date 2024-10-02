@@ -14,7 +14,7 @@ use types::{
 mod common;
 use crate::common::{errors::Error, utils::extract_request, BUCKET_NAME_DEFAULT};
 
-// TODO: remove on release
+// TODO: remove on release. random change
 const QUEUE_URL_DEFAULT: &str = "https://sqs.ap-southeast-2.amazonaws.com/266735844848/zksync-sqs";
 const TABLE_NAME_DEFAULT: &str = "zksync-table";
 
