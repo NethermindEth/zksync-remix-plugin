@@ -12,5 +12,7 @@ serde_json.workspace = true
 thiserror.workspace = true
 uuid.workspace = true
 
+http = "1.1.0"
+
 [dev-dependencies]
 serde_json.workspace = true
