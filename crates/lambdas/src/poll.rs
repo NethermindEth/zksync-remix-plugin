@@ -5,12 +5,10 @@ use lambda_http::{
     run, service_fn, Error as LambdaError, Request as LambdaRequest, Response as LambdaResponse,
 };
 use serde::Deserialize;
-use tracing::{error};
+use tracing::error;
 use types::item::errors::ItemError;
 use types::item::task_result::TaskResult;
-use types::{
-    item::{Item, Status},
-};
+use types::item::{Item, Status};
 use uuid::Uuid;
 
 const TABLE_NAME_DEFAULT: &str = "zksync-table";
@@ -43,7 +41,6 @@ async fn process_request(
         .map_err(Box::new)?;
 
     let raw_item = output.item.ok_or_else(|| {
-        error!("No objects in folder: {}", request.id);
         let response = LambdaResponse::builder()
             .status(StatusCode::NOT_FOUND)
             .header("content-type", "text/html")
@@ -57,6 +54,7 @@ async fn process_request(
     })?;
 
     let item: Item = raw_item.try_into().map_err(|err: ItemError| {
+        error!("Failed to deserialize item. id: {}", request.id);
         let response = LambdaResponse::builder()
             .status(StatusCode::INTERNAL_SERVER_ERROR)
             .header("content-type", "text/html")
