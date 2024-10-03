@@ -20,7 +20,7 @@ impl ItemError {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 #[cfg_attr(test, derive(PartialEq))]
 pub enum ServerError {
     UnsupportedCompilerVersion,
@@ -37,7 +37,7 @@ impl Into<&'static str> for ServerError {
             ServerError::CompilationError => "CompilationError",
             ServerError::InternalError => "InternalError",
             ServerError::UnknownNetworkError => "UnknownNetworkError",
-            ServerError::VerificationError => "VerificationError"
+            ServerError::VerificationError => "VerificationError",
         }
     }
 }
@@ -52,6 +52,18 @@ impl TryFrom<&str> for ServerError {
             "VerificationError" => Ok(ServerError::VerificationError),
             "UnknownNetworkError" => Ok(ServerError::UnknownNetworkError),
             _ => Err(value.into()),
+        }
+    }
+}
+
+impl Into<http::StatusCode> for ServerError {
+    fn into(self) -> http::StatusCode {
+        match self {
+            Self::UnsupportedCompilerVersion
+            | Self::CompilationError
+            | Self::UnknownNetworkError
+            | Self::VerificationError => http::StatusCode::BAD_REQUEST,
+            Self::InternalError => http::StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 }

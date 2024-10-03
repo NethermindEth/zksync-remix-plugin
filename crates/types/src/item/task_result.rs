@@ -1,4 +1,5 @@
 use aws_sdk_dynamodb::types::AttributeValue;
+use serde::Serialize;
 use std::collections::HashMap;
 use std::fmt::Formatter;
 
@@ -77,8 +78,9 @@ impl TryFrom<&AttributeMap> for TaskResult {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 #[cfg_attr(test, derive(PartialEq))]
+#[serde(untagged)]
 pub enum TaskSuccess {
     Compile { presigned_urls: Vec<String> },
     Verify { message: String },
