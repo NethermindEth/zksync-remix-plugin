@@ -71,7 +71,7 @@ async fn process_request(
         warn!("MAX_FILES limit exceeded");
         let response = LambdaResponse::builder()
             .status(400)
-            .header("content-type", "text/html")
+            .header("content-type", "application/json")
             .body(EXCEEDED_MAX_FILES_ERROR.into())
             .map_err(Box::new)?;
 

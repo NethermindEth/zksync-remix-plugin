@@ -5,6 +5,7 @@ use lambda_http::{
     run, service_fn, Error as LambdaError, Request as LambdaRequest, Response as LambdaResponse,
 };
 use std::ops::Add;
+use lambda_http::http::StatusCode;
 use tracing::{error, info};
 use types::{
     item::{Item, Status},
@@ -60,8 +61,8 @@ async fn compile(
             PutItemError::ConditionalCheckFailedException(_) => {
                 error!("Recompilation attempt, id: {}", request.id);
                 let response = lambda_http::Response::builder()
-                    .status(400)
-                    .header("content-type", "text/html")
+                    .status(StatusCode::CONFLICT)
+                    .header("content-type", "application/json")
                     .body(RECOMPILATION_ATTEMPT_ERROR.into())
                     .map_err(Error::from)?;
 
@@ -127,8 +128,8 @@ async fn process_request(
     if let None = &objects.contents {
         error!("No objects in folder: {}", request.id);
         let response = LambdaResponse::builder()
-            .status(400)
-            .header("content-type", "text/html")
+            .status(StatusCode::BAD_REQUEST)
+            .header("content-type", "application/json")
             .body(NO_OBJECTS_TO_COMPILE_ERROR.into())
             .map_err(Error::from)?;
 
@@ -139,8 +140,8 @@ async fn process_request(
     compile(request, dynamo_client, table_name, sqs_client, queue_url).await?;
 
     let response = LambdaResponse::builder()
-        .status(200)
-        .header("content-type", "text/html")
+        .status(StatusCode::OK)
+        .header("content-type", "application/json")
         .body(Default::default())
         .map_err(Box::new)?;
 

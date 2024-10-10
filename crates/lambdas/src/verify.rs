@@ -50,7 +50,7 @@ async fn verify(
                 error!("Reverification attempt, id: {}", request.id);
                 let response = lambda_http::Response::builder()
                     .status(400)
-                    .header("content-type", "text/html")
+                    .header("content-type", "application/json")
                     .body(RECOMPILATION_ATTEMPT_ERROR.into())
                     .map_err(Error::from)?;
 
@@ -117,7 +117,7 @@ async fn process_request(
         error!("No objects in folder: {}", request.id);
         let response = LambdaResponse::builder()
             .status(400)
-            .header("content-type", "text/html")
+            .header("content-type", "application/json")
             .body(NO_OBJECTS_TO_COMPILE_ERROR.into())
             .map_err(Error::from)?;
 
@@ -129,7 +129,7 @@ async fn process_request(
 
     let response = LambdaResponse::builder()
         .status(200)
-        .header("content-type", "text/html")
+        .header("content-type", "application/json")
         .body(Default::default())
         .map_err(Box::new)?;
 

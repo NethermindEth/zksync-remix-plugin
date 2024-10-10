@@ -10,7 +10,7 @@ import { type AccordianTabs } from '@/types/common'
 import ConstructorInput, { ContractInputType } from '@/components/ConstructorInput'
 import { type VerificationResult, type DeployedContract } from '@/types/contracts'
 import { mockManualChain, type Transaction } from '@/types/transaction'
-import { asyncPost } from '@/api/asyncRequests'
+import { asyncPost, initializeTask, POLL_LAMBDA_URL, VERIFY_LAMBDA_URL } from '@/api/asyncRequests'
 import {
   transactionsAtom,
   accountAtom,
@@ -34,6 +34,7 @@ import {
 import './styles.css'
 import { getAllContractFiles } from '@/utils/remix_storage'
 import { parseContractInputs } from '@/utils/utils'
+import { TaskResult, VerificationRequest } from '@/api/types'
 
 interface DeploymentProps {
   setActiveTab: (tab: AccordianTabs) => void
@@ -88,34 +89,30 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     setSelectedChainName(name)
   }, [provider, env])
 
-  async function verify(contract: DeployedContract | null): Promise<void> {
-    if (!contract) {
-      throw new Error('Not able to retrieve deployed contract for verification')
-    }
-
+  async function verify(contract: DeployedContract): Promise<void> {
     setIsVerifying(true)
     setDeployStatus('IN_PROGRESS')
     // clear current file annotations: inline syntax error reporting
     await remixClient.editor.clearAnnotations()
-    try {
-      const workspaceContents = {
-        config: {
-          zksolc_version: solidityVersion,
-          // solc_version: ,
-          network: selectedChainName ?? 'unknown',
-          contract_address: contract.address,
-          inputs: parseContractInputs(inputs)
-        },
-        contracts: [] as Array<{ file_name: string; file_content: string; is_contract: boolean }>
-      }
 
-      console.log(`currentWorkspacePath: ${currentWorkspacePath}`)
+    try {
       const workspaceFiles = await remixClient.fileManager.readdir(`${currentWorkspacePath}/`)
       console.log(`workspaceFiles: ${JSON.stringify(workspaceFiles)}`)
 
-      workspaceContents.contracts = await getAllContractFiles(remixClient, currentWorkspacePath)
+      const contracts = await getAllContractFiles(remixClient, currentWorkspacePath)
+      const id = await initializeTask(contracts)
+      const request: VerificationRequest = {
+        id: id,
+        config: {
+          zksolc_version: solidityVersion,
+          solc_version: undefined, // TODO: is that correct?
+          network: selectedChainName ?? 'unknown',
+          contract_address: contract.address,
+          inputs: parseContractInputs(inputs)
+        }
+      }
 
-      const response = await asyncPost('verify-async', 'verify-result', workspaceContents)
+      const taskReault = await asyncPost<TaskResult>(VERIFY_LAMBDA_URL, POLL_LAMBDA_URL, contracts, id)
 
       if (!response.ok) {
         setDeployStatus('ERROR')

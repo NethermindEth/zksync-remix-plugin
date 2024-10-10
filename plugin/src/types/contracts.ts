@@ -12,7 +12,8 @@ interface Contract {
 }
 
 interface ContractFile {
-  file_name: string
+  // path without workspace
+  file_path: string
   file_content: string
   is_contract: boolean
 }
@@ -35,8 +36,7 @@ interface VerificationResult {
 }
 
 interface CompiledArtifact {
-  // Is a relative path to a file
-  file_name: string
+  file_path: string
   file_content: string
   is_contract: boolean
 }

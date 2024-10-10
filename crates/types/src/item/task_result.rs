@@ -6,7 +6,7 @@ use std::fmt::Formatter;
 use crate::item::errors::{ItemError, ServerError};
 use crate::item::AttributeMap;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 #[cfg_attr(test, derive(PartialEq))]
 pub enum TaskResult {
     Success(TaskSuccess),
@@ -80,7 +80,7 @@ impl TryFrom<&AttributeMap> for TaskResult {
 
 #[derive(Debug, Clone, Serialize)]
 #[cfg_attr(test, derive(PartialEq))]
-#[serde(untagged)]
+// #[serde(untagged)]
 pub enum TaskSuccess {
     Compile { presigned_urls: Vec<String> },
     Verify { message: String },
@@ -153,7 +153,7 @@ impl TryFrom<&AttributeMap> for TaskSuccess {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 #[cfg_attr(test, derive(PartialEq))]
 pub struct TaskFailure {
     pub error_type: ServerError,
