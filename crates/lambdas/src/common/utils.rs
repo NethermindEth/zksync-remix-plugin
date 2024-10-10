@@ -14,7 +14,7 @@ where
         Ok(None) => {
             let response = Response::builder()
                 .status(400)
-                .header("content-type", "text/html")
+                .header("content-type", "application/json")
                 .body(EMPTY_PAYLOAD_ERROR.into())
                 .map_err(Box::new)?;
 
@@ -23,7 +23,7 @@ where
         Err(err) => {
             let response = Response::builder()
                 .status(400)
-                .header("content-type", "text/html")
+                .header("content-type", "application/json")
                 .body(err.to_string().into())
                 .map_err(Box::new)?;
 

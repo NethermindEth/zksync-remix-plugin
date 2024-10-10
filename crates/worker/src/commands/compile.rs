@@ -2,7 +2,7 @@
 
 use anyhow::Context;
 use std::path::{Path, PathBuf};
-use std::process::Stdio;
+use std::process::{Output, Stdio};
 use tracing::{error, info};
 use types::CompilationConfig;
 
@@ -27,6 +27,25 @@ pub struct ArtifactData {
 pub struct CompilationOutput {
     pub artifacts_dir: PathBuf,
     pub artifacts_data: Vec<ArtifactData>,
+}
+
+fn process_output(process_output: Output) -> Result<(), CompilationError> {
+    const NOTHING_TO_COMPILE: &str = "Nothing to compile";
+
+    if !process_output.status.success() {
+        let err_msg = String::from_utf8_lossy(&process_output.stderr);
+        error!("Compilation error: {}", err_msg);
+        Err(CompilationError::CompilationFailureError(
+            err_msg.to_string(),
+        ))
+    } else {
+        let message = String::from_utf8_lossy(&process_output.stdout).to_string();
+        if message.contains(NOTHING_TO_COMPILE) {
+            Err(CompilationError::NothingToCompileError)
+        } else {
+            Ok(())
+        }
+    }
 }
 
 pub async fn do_compile(
@@ -122,18 +141,7 @@ pub async fn do_compile(
         .wait_with_output()
         .await
         .map_err(anyhow::Error::from)?;
-
-    let status = output.status;
-    let message = String::from_utf8_lossy(&output.stdout).to_string();
-    info!("Output: \n{:?}", message);
-
-    if !status.success() {
-        let err_msg = String::from_utf8_lossy(&output.stderr);
-        error!("Compilation error: {}", err_msg);
-        return Err(CompilationError::CompilationFailureError(
-            err_msg.to_string(),
-        ));
-    }
+    process_output(output)?;
 
     // fetch the files in the artifacts directory
     let file_paths = list_files_in_directory(&artifacts_path)

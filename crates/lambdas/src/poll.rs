@@ -2,10 +2,11 @@ use aws_config::BehaviorVersion;
 use aws_sdk_dynamodb::types::AttributeValue;
 use lambda_http::http::StatusCode;
 use lambda_http::{
-    run, service_fn, Error as LambdaError, Request as LambdaRequest, Response as LambdaResponse,
+    run, service_fn, Error as LambdaError, Request as LambdaRequest, RequestExt,
+    Response as LambdaResponse, Response,
 };
 use serde::Deserialize;
-use tracing::error;
+use tracing::{error, info, warn};
 use types::item::errors::ItemError;
 use types::item::task_result::TaskResult;
 use types::item::{Item, Status};
@@ -22,13 +23,46 @@ struct PollRequest {
     pub id: Uuid,
 }
 
+#[tracing::instrument(skip(request))]
+fn extract_uuid_from_request(request: &LambdaRequest) -> Result<Uuid, Error> {
+    let path = request.uri().path();
+    let path_segments: Vec<&str> = path.split('/').collect();
+    if let Some(uuid_str) = path_segments.last() {
+        match Uuid::parse_str(uuid_str) {
+            Ok(uuid) => Ok(uuid),
+            Err(_) => {
+                info!("User supplied invalid uuid: {}", uuid_str);
+                let response = Response::builder()
+                    .status(StatusCode::BAD_REQUEST)
+                    .header("content-type", "application/json")
+                    .body("Invalid UUID format".to_string())
+                    .map_err(Box::new)?;
+
+                return Err(Error::HttpError(response));
+            }
+        }
+    } else {
+        info!("Invalid user request: {}", path);
+        let response = Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .header("content-type", "application/json")
+            .body("Invalid url".to_string())
+            .map_err(Box::new)?;
+
+        return Err(Error::HttpError(response));
+    }
+}
+
 #[tracing::instrument(skip(dynamo_client, table_name))]
 async fn process_request(
     request: LambdaRequest,
     dynamo_client: &aws_sdk_dynamodb::Client,
     table_name: &str,
 ) -> Result<LambdaResponse<String>, Error> {
-    let request = extract_request::<PollRequest>(&request)?;
+    let request = PollRequest {
+        id: extract_uuid_from_request(&request)?,
+    };
+
     let output = dynamo_client
         .get_item()
         .table_name(table_name)
@@ -41,9 +75,10 @@ async fn process_request(
         .map_err(Box::new)?;
 
     let raw_item = output.item.ok_or_else(|| {
+        info!("Requested non existing item: {}", request.id);
         let response = LambdaResponse::builder()
             .status(StatusCode::NOT_FOUND)
-            .header("content-type", "text/html")
+            .header("content-type", "application/json")
             .body(NO_SUCH_ITEM.to_string())
             .map_err(Error::from);
 
@@ -57,7 +92,7 @@ async fn process_request(
         error!("Failed to deserialize item. id: {}", request.id);
         let response = LambdaResponse::builder()
             .status(StatusCode::INTERNAL_SERVER_ERROR)
-            .header("content-type", "text/html")
+            .header("content-type", "application/json")
             .body(err.to_string())
             .map_err(Error::from);
 
@@ -71,34 +106,20 @@ async fn process_request(
         Ok(task_result)
     } else {
         let response = LambdaResponse::builder()
-            .status(StatusCode::BAD_REQUEST)
-            .header("content-type", "text/html")
-            .body("Task isn't ready".to_owned())
+            .status(StatusCode::ACCEPTED)
+            .header("content-type", "application/json")
+            .body("Running".to_owned())
             .map_err(Error::from)?;
 
         Err(Error::HttpError(response))
     }?;
 
-    match task_result {
-        TaskResult::Success(value) => {
-            let response = LambdaResponse::builder()
-                .status(StatusCode::OK)
-                .header("Content-Type", "application/json")
-                .body(serde_json::to_string(&value)?)?;
+    let response = LambdaResponse::builder()
+        .status(StatusCode::OK)
+        .header("Content-Type", "application/json")
+        .body(serde_json::to_string(&task_result)?)?;
 
-            Ok(response)
-        }
-        TaskResult::Failure(value) => {
-            let status_code: StatusCode = value.error_type.into();
-            let response = LambdaResponse::builder()
-                .status(status_code)
-                .header("content-type", "text/html")
-                .body(value.message)
-                .map_err(Box::new)?;
-
-            Err(Error::HttpError(response))
-        }
-    }
+    Ok(response)
 }
 
 #[tokio::main]
@@ -121,7 +142,10 @@ async fn main() -> Result<(), LambdaError> {
         match result {
             Ok(val) => Ok(val),
             Err(Error::HttpError(val)) => Ok(val),
-            Err(Error::LambdaError(err)) => Err(err),
+            Err(Error::LambdaError(err)) => {
+                error!("LambdaError: {}", err);
+                Err(err)
+            }
         }
     }))
     .await
