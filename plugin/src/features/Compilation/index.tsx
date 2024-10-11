@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import Container from '@/ui_components/Container'
 import { type AccordianTabs } from '@/types/common'
-import { type CompilationResult } from '@/types/contracts'
 import { asyncPost, COMPILE_LAMBDA_URL, downloadArtifacts, initializeTask, POLL_LAMBDA_URL } from '@/api/asyncRequests'
 import {
   compilationAtom,
@@ -61,7 +60,6 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
         console.error(`Failed to read current workspace ${error.message}`)
       })
   }, [currentWorkspacePath, remixClient])
-
   async function handleCompile({ type }: { type: CompilationType }): Promise<void> {
     setCompilationType(type)
     setIsCompiling(true)

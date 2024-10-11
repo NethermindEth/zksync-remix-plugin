@@ -6,7 +6,7 @@ import {
   solidityVersionAtom
 } from '@/atoms'
 import { currentFilenameAtom, currentWorkspacePathAtom, remixClientAtom } from '@/stores/remixClient'
-import { CompilationResult, CompiledArtifact, Contract } from '@/types/contracts'
+import { CompiledArtifact, Contract } from '@/types/contracts'
 import { artifactFolder } from '@/utils/utils'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { CompilationRequest, TaskFailure } from '@/api/types'
