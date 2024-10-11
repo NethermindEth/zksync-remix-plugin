@@ -1,12 +1,13 @@
 import { RemixClient } from '@/PluginClient'
+import { TaskFailure } from '@/api/types'
 
-export async function handleCompilationFailure(remixClient: RemixClient) {
+export async function handleCompilationFailure(remixClient: RemixClient, taskFailure: TaskFailure) {
   await remixClient.terminal.log({
-    value: verificationResult.message,
+    value: taskFailure.message,
     type: 'error'
   })
 
-  const errorLets = verificationResult.message.trim().split('\n')
+  const errorLets = taskFailure.message.trim().split('\n')
 
   // remove last element if it's starts with `Error:`
   if (errorLets[errorLets.length - 1].startsWith('Error:')) {
@@ -30,7 +31,7 @@ export async function handleCompilationFailure(remixClient: RemixClient) {
   errorLetsArray.shift()
 
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
-  errorLetsArray.forEach(async (errorLet: any) => {
+  const promises = errorLetsArray.map(async (errorLet: any) => {
     const errorType = errorLet[0].split(':')[0].trim()
     const errorTitle = errorLet[0].split(':').slice(1).join(':').trim()
     const errorLine = errorLet[1].split(':')[1].trim()
@@ -46,8 +47,10 @@ export async function handleCompilationFailure(remixClient: RemixClient) {
     })
   })
 
+  await Promise.all(promises)
+
   // trim sierra message to get last line
-  const lastLine = verificationResult.message.trim().split('\n').pop()?.trim()
+  const lastLine = taskFailure.message.trim().split('\n').pop()?.trim()
 
   remixClient.emit('statusChanged', {
     key: 'failed',

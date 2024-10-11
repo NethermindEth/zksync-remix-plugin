@@ -180,7 +180,7 @@ impl CompileProcessor {
             let expires_in = PresigningConfig::expires_in(DOWNLOAD_URL_EXPIRATION).unwrap();
             let presigned_request = self
                 .s3_client
-                .get_object_presipollgned(el.as_str(), &expires_in)
+                .get_object_presigned(el.as_str(), &expires_in)
                 .await
                 .map_err(anyhow::Error::from)?; // TODO: maybe extra handle in case chan closed TODO(101)
 

@@ -3,16 +3,16 @@ import { GeneratePresignedUrlsRequest, GeneratePresignedUrlsResponse } from '@/a
 
 export const GENERATE_LAMBDA_URL = 'https://7462iuvrevrwndflwr5r6nf2340owkmz.lambda-url.ap-southeast-2.on.aws/'
 export const COMPILE_LAMBDA_URL = 'https://w6myokcnql4lw2oel27xj52njy0cfrto.lambda-url.ap-southeast-2.on.aws/'
-export const VERIFY_LAMBDA_URL = '' // TODO: proper url
+export const VERIFY_LAMBDA_URL = 'https://ctjjdwtukv76u3nhmsfvbbkh440lmqen.lambda-url.ap-southeast-2.on.aws/'
 export const POLL_LAMBDA_URL = 'https://a2pwosrlela2fwuz5tsdznkgma0ovkuj.lambda-url.ap-southeast-2.on.aws/'
 
 export async function asyncPost<T>(methodUrl: string, getterMethodUrl: string, data: any, pid: string): Promise<T> {
+  console.log(data)
   const response = await fetch(methodUrl, {
     method: 'POST',
     redirect: 'follow',
     headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json'
+      Accept: 'application/json'
     },
     body: JSON.stringify({ ...data })
   })
@@ -26,12 +26,12 @@ export async function asyncPost<T>(methodUrl: string, getterMethodUrl: string, d
 }
 
 async function post<T>(methodUrl: string, data: any): Promise<T> {
+  console.log(data)
   const response = await fetch(methodUrl, {
     method: 'POST',
     redirect: 'follow',
     headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json'
+      Accept: 'application/json'
     },
     body: JSON.stringify({ ...data })
   })

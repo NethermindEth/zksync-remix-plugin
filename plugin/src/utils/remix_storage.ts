@@ -41,6 +41,6 @@ export const getContractTargetPath = (contractFilePath: string) => {
 
 export const findFilesNotInContracts = (allContracts: ContractFile[]) => {
   return allContracts
-    .filter(({ file_name, is_contract }) => is_contract && !file_name.startsWith('contracts/'))
-    .map(({ file_name }) => file_name.split('/').pop())
+    .filter(({ file_path, is_contract }) => is_contract && !file_path.startsWith('contracts/'))
+    .map(({ file_path }) => file_path.split('/').pop())
 }
