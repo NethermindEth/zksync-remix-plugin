@@ -98,10 +98,3 @@ jobs:
             --label "zksolc,update" \
             --assignee "varex83,stranger80")
           echo "PR_URL=${PR_URL}" >> $GITHUB_ENV
-
-      - name: Assign reviewers
-        if: env.update_required == 'true' && env.pr_exists == 'false'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh pr edit "${{ env.PR_URL }}" --add-reviewer "varex83,stranger80"
