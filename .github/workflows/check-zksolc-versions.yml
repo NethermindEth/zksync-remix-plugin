@@ -44,10 +44,11 @@ jobs:
         id: check_pr_exists
         if: env.update_required == 'true'
         run: |
-          PR_EXIST=$(gh pr list --state=open --head update-zksolc-${{ env.ZKSOLC_VERSION }} | wc -l)
-          if [ "$PR_EXIST" -gt 0 ]; then
-            echo "PR already exists."
+          PR_URL=$(gh pr list --state=open --head update-zksolc-${{ env.ZKSOLC_VERSION }} --json url --jq '.[0].url')
+          if [ -n "$PR_URL" ]; then
+            echo "PR already exists: $PR_URL"
             echo "pr_exists=true" >> $GITHUB_ENV
+            echo "PR_URL=${PR_URL}" >> $GITHUB_ENV
           else
             echo "No PR exists."
             echo "pr_exists=false" >> $GITHUB_ENV
@@ -55,7 +56,7 @@ jobs:
 
       - name: Check if branch already exists
         id: check_branch_exists
-        if: env.update_required == 'true'
+        if: env.update_required == 'true' && env.pr_exists == 'false'
         run: |
           BRANCH_EXIST=$(git ls-remote --heads origin update-zksolc-${{ env.ZKSOLC_VERSION }} | wc -l)
           if [ "$BRANCH_EXIST" -gt 0 ]; then
@@ -85,23 +86,23 @@ jobs:
         run: |
           git push origin update-zksolc-${{ env.ZKSOLC_VERSION }}
 
-      - name: Create Pull Request
-        if: env.update_required == 'true' && env.pr_exists == 'false'
+      - name: Create or Update Pull Request
+        if: env.update_required == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          PR_URL=$(gh pr create \
-            --head update-zksolc-${{ env.ZKSOLC_VERSION }} \
-            --base develop \
-            --title "Update zksolc-bin to version ${{ env.ZKSOLC_VERSION }}" \
-            --body "A new version of zksolc-bin has been released: **${{ env.ZKSOLC_VERSION }}**.\nThis PR updates the project with the latest version." \
-            --label "zksolc,update" \
-            --assignee "varex83,stranger80")
+          PR_BODY="A new version of zksolc-bin has been released: **${{ env.ZKSOLC_VERSION }}**. This PR updates the project with the latest version."
+          if [ "${{ env.pr_exists }}" == "true" ]; then
+            gh pr edit "${{ env.PR_URL }}" --body "$PR_BODY"
+            echo "Updated existing PR: ${{ env.PR_URL }}"
+          else
+            PR_URL=$(gh pr create \
+              --head update-zksolc-${{ env.ZKSOLC_VERSION }} \
+              --base develop \
+              --title "Update zksolc-bin to version ${{ env.ZKSOLC_VERSION }}" \
+              --body "$PR_BODY" \
+              --label "zksolc,update" \
+              --assignee "varex83,stranger80")
+            echo "Created new PR: $PR_URL"
+          fi
           echo "PR_URL=${PR_URL}" >> $GITHUB_ENV
-
-      - name: Assign reviewers
-        if: env.update_required == 'true' && env.pr_exists == 'false'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh pr edit "${{ env.PR_URL }}" --add-reviewer "varex83,stranger80"
