@@ -43,6 +43,8 @@ jobs:
       - name: Check if PR already exists
         id: check_pr_exists
         if: env.update_required == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           PR_URL=$(gh pr list --state=open --head update-zksolc-${{ env.ZKSOLC_VERSION }} --json url --jq '.[0].url')
           if [ -n "$PR_URL" ]; then
