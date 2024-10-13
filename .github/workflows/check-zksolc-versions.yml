@@ -1,0 +1,107 @@
+name: Check zksolc-bin Version
+on:
+  schedule:
+    - cron: '0 0 * * *' # Runs at midnight every day
+  workflow_dispatch: # Allows for manual triggering
+permissions:
+  contents: write
+  pull-requests: write
+jobs:
+  check-zksolc-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Get latest zksolc-bin version
+        id: get_latest_version
+        run: |
+          ZKSOLC_VERSION=$(curl -s https://api.github.com/repos/matter-labs/zksolc-bin/releases/latest | jq -r '.tag_name')
+          echo "ZKSOLC_VERSION=${ZKSOLC_VERSION}" >> $GITHUB_ENV
+
+      - name: Load previous zksolc-bin version
+        id: load_previous_version
+        run: |
+          if [ -f .zksolc-version ]; then
+            PREVIOUS_VERSION=$(cat .zksolc-version)
+          else
+            PREVIOUS_VERSION="none"
+          fi
+          echo "PREVIOUS_VERSION=${PREVIOUS_VERSION}" >> $GITHUB_ENV
+
+      - name: Compare versions
+        id: compare_versions
+        run: |
+          if [ "$ZKSOLC_VERSION" != "$PREVIOUS_VERSION" ]; then
+            echo "New version found: $ZKSOLC_VERSION"
+            echo "update_required=true" >> $GITHUB_ENV
+          else
+            echo "No update required"
+            echo "update_required=false" >> $GITHUB_ENV
+          fi
+
+      - name: Check if PR already exists
+        id: check_pr_exists
+        if: env.update_required == 'true'
+        run: |
+          PR_EXIST=$(gh pr list --state=open --head update-zksolc-${{ env.ZKSOLC_VERSION }} | wc -l)
+          if [ "$PR_EXIST" -gt 0 ]; then
+            echo "PR already exists."
+            echo "pr_exists=true" >> $GITHUB_ENV
+          else
+            echo "No PR exists."
+            echo "pr_exists=false" >> $GITHUB_ENV
+          fi
+
+      - name: Check if branch already exists
+        id: check_branch_exists
+        if: env.update_required == 'true'
+        run: |
+          BRANCH_EXIST=$(git ls-remote --heads origin update-zksolc-${{ env.ZKSOLC_VERSION }} | wc -l)
+          if [ "$BRANCH_EXIST" -gt 0 ]; then
+            echo "Branch already exists."
+            echo "branch_exists=true" >> $GITHUB_ENV
+          else
+            echo "Branch does not exist."
+            echo "branch_exists=false" >> $GITHUB_ENV
+          fi
+
+      - name: Create a new branch for the update
+        if: env.update_required == 'true' && env.pr_exists == 'false' && env.branch_exists == 'false'
+        run: |
+          git checkout -b update-zksolc-${{ env.ZKSOLC_VERSION }}
+          echo "${{ env.ZKSOLC_VERSION }}" > .zksolc-version
+
+      - name: Commit changes
+        if: env.update_required == 'true' && env.pr_exists == 'false' && env.branch_exists == 'false'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .zksolc-version
+          git commit -m "Update zksolc-bin to ${{ env.ZKSOLC_VERSION }}"
+
+      - name: Push changes to new branch
+        if: env.update_required == 'true' && env.pr_exists == 'false' && env.branch_exists == 'false'
+        run: |
+          git push origin update-zksolc-${{ env.ZKSOLC_VERSION }}
+
+      - name: Create Pull Request
+        if: env.update_required == 'true' && env.pr_exists == 'false'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_URL=$(gh pr create \
+            --head update-zksolc-${{ env.ZKSOLC_VERSION }} \
+            --base develop \
+            --title "Update zksolc-bin to version ${{ env.ZKSOLC_VERSION }}" \
+            --body "A new version of zksolc-bin has been released: **${{ env.ZKSOLC_VERSION }}**.\nThis PR updates the project with the latest version." \
+            --label "zksolc,update" \
+            --assignee "varex83,stranger80")
+          echo "PR_URL=${PR_URL}" >> $GITHUB_ENV
+
+      - name: Assign reviewers
+        if: env.update_required == 'true' && env.pr_exists == 'false'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr edit "${{ env.PR_URL }}" --add-reviewer "varex83,stranger80"
