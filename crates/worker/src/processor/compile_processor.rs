@@ -1,9 +1,9 @@
-use anyhow::Context;
+use anyhow::{anyhow, Context};
 use aws_sdk_s3::presigning::PresigningConfig;
 use std::time::Duration;
 use tracing::error;
 use types::item::errors::ServerError;
-use types::item::task_result::{TaskFailure, TaskResult, TaskSuccess};
+use types::item::task_result::{ArtifactPair, TaskFailure, TaskResult, TaskSuccess};
 use types::{CompilationRequest, ARTIFACTS_FOLDER};
 use uuid::Uuid;
 
@@ -57,7 +57,7 @@ impl CompileProcessor {
         &self,
         message: CompilationRequest,
         receipt_handle: String,
-    ) -> Result<Vec<String>, CompileProcessorError> {
+    ) -> Result<Vec<ArtifactPair>, CompileProcessorError> {
         let id = message.id;
 
         self.validate_message(&message).await.map_err(|err| {
@@ -114,16 +114,17 @@ impl CompileProcessor {
         }
 
         match self.generate_presigned_urls(&file_keys).await {
-            Ok(presigned_urls) => {
+            Ok(artifact_pairs) => {
                 self.purgatory
                     .add_record(
                         id,
                         TaskResult::Success(TaskSuccess::Compile {
-                            presigned_urls: presigned_urls.clone(),
+                            artifact_pairs: artifact_pairs.clone(),
                         }),
                     )
                     .await;
-                Ok(presigned_urls)
+
+                Ok(artifact_pairs)
             }
             Err(err) => {
                 let task_result = TaskResult::Failure(TaskFailure {
@@ -143,7 +144,13 @@ impl CompileProcessor {
         compilation_output: CompilationOutput,
     ) -> anyhow::Result<Vec<String>> {
         let auto_clean_up = AutoCleanUp {
-            dirs: vec![compilation_output.artifacts_dir.to_str().unwrap()],
+            dirs: vec![compilation_output
+                .artifacts_dir
+                .parent()
+                .ok_or(anyhow!("No parent"))?
+                .to_str()
+                .ok_or(anyhow!("Couldn't convert to utf8"))
+                .with_context(|| "Workspace cleanup")?],
         };
 
         let mut file_keys = Vec::with_capacity(compilation_output.artifacts_data.len());
@@ -172,7 +179,7 @@ impl CompileProcessor {
         Ok(file_keys)
     }
 
-    async fn generate_presigned_urls(&self, file_keys: &[String]) -> anyhow::Result<Vec<String>> {
+    async fn generate_presigned_urls(&self, file_keys: &[String]) -> anyhow::Result<Vec<ArtifactPair>> {
         const DOWNLOAD_URL_EXPIRATION: Duration = Duration::from_secs(5 * 60 * 60);
 
         let mut presigned_urls = Vec::with_capacity(file_keys.len());
@@ -184,7 +191,10 @@ impl CompileProcessor {
                 .await
                 .map_err(anyhow::Error::from)?; // TODO: maybe extra handle in case chan closed TODO(101)
 
-            presigned_urls.push(presigned_request.uri().to_string());
+            presigned_urls.push(ArtifactPair {
+                file_path: el.to_owned(), // TODO: trim to provide correct path
+                presigned_url: presigned_request.uri().to_string()
+            });
         }
 
         Ok(presigned_urls)

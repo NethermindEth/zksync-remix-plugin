@@ -23,7 +23,7 @@ export const useCompileHelpers = () => {
   const getDefaultCompilationRequest = (id: string): CompilationRequest => ({
     id,
     config: {
-      version: solidityVersion,
+      version: '1.4.1' || solidityVersion,
       user_libraries: []
     }
   })

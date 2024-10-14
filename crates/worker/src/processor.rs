@@ -100,7 +100,7 @@ impl Processor {
 
                 match result {
                     Ok(val) => TaskResult::Success(TaskSuccess::Compile {
-                        presigned_urls: val,
+                        artifact_pairs: val,
                     }),
                     Err(err) => TaskResult::Failure(err.into()),
                 }

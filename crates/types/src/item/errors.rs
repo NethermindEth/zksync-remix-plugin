@@ -67,7 +67,8 @@ impl Into<http::StatusCode> for ServerError {
             Self::UnsupportedCompilerVersion
             | Self::CompilationError
             | Self::UnknownNetworkError
-            | Self::VerificationError | Self::NothingToCompile => http::StatusCode::BAD_REQUEST,
+            | Self::VerificationError
+            | Self::NothingToCompile => http::StatusCode::BAD_REQUEST,
             Self::InternalError => http::StatusCode::INTERNAL_SERVER_ERROR,
         }
     }

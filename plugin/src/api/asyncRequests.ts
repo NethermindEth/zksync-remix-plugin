@@ -1,5 +1,5 @@
 import { CompiledArtifact, ContractFile } from '@/types/contracts'
-import { GeneratePresignedUrlsRequest, GeneratePresignedUrlsResponse } from '@/api/types'
+import { ArtifactPair, GeneratePresignedUrlsRequest, GeneratePresignedUrlsResponse } from '@/api/types'
 
 export const GENERATE_LAMBDA_URL = 'https://7462iuvrevrwndflwr5r6nf2340owkmz.lambda-url.ap-southeast-2.on.aws/'
 export const COMPILE_LAMBDA_URL = 'https://w6myokcnql4lw2oel27xj52njy0cfrto.lambda-url.ap-southeast-2.on.aws/'
@@ -12,7 +12,8 @@ export async function asyncPost<T>(methodUrl: string, getterMethodUrl: string, d
     method: 'POST',
     redirect: 'follow',
     headers: {
-      Accept: 'application/json'
+      Accept: 'application/json',
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify({ ...data })
   })
@@ -99,7 +100,7 @@ export async function initializeTask(files: ContractFile[]): Promise<string> {
     throw new Error(`Expected number of URLs: ${expected}, actual: ${actual}`)
   }
 
-  const uploadTasks = response.presigned_urls.map((url, i) => uploadFileToS3(url, request.files[i]))
+  const uploadTasks = response.presigned_urls.map((url, i) => uploadFileToS3(url, files[i].file_content))
   await Promise.all(uploadTasks)
 
   return response.id
@@ -122,8 +123,8 @@ async function uploadFileToS3(presignedUrl: string, file: string) {
   }
 }
 
-export async function downloadArtifacts(presignedUrls: string[]): Promise<CompiledArtifact[]> {
-  const promises = presignedUrls.map((el) => get(el))
+export async function downloadArtifacts(artifactPairs: ArtifactPair[]): Promise<CompiledArtifact[]> {
+  const promises = artifactPairs.map((el) => get(el.presigned_url))
   const responses = await Promise.all(promises)
 
   // TODO: cleanup
@@ -134,10 +135,10 @@ export async function downloadArtifacts(presignedUrls: string[]): Promise<Compil
   const textPromises = responses.map((el) => el.text())
   const files = await Promise.all(textPromises)
 
-  return files.map((file): CompiledArtifact => {
+  return files.map((file, index): CompiledArtifact => {
     console.log(file)
     return {
-      file_path: 'huh',
+      file_path: artifactPairs[index].file_path,
       file_content: file,
       is_contract: true
     }

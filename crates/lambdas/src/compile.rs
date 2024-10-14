@@ -1,11 +1,11 @@
 use aws_config::BehaviorVersion;
 use aws_sdk_dynamodb::{error::SdkError, operation::put_item::PutItemError};
 use chrono::Utc;
+use lambda_http::http::StatusCode;
 use lambda_http::{
     run, service_fn, Error as LambdaError, Request as LambdaRequest, Response as LambdaResponse,
 };
 use std::ops::Add;
-use lambda_http::http::StatusCode;
 use tracing::{error, info};
 use types::{
     item::{Item, Status},
@@ -114,22 +114,24 @@ async fn process_request(
     s3_client: &aws_sdk_s3::Client,
     bucket_name: &str,
 ) -> Result<LambdaResponse<String>, Error> {
+    info!("extract_request");
     let request = extract_request::<CompilationRequest>(&request)?;
 
     let objects = s3_client
         .list_objects_v2()
+        .bucket(bucket_name)
         .delimiter('/')
         .prefix(request.id.to_string().add("/"))
-        .bucket(bucket_name)
         .send()
         .await
         .map_err(Box::new)?;
+    info!("list_objects_v2");
 
     if let None = &objects.contents {
         error!("No objects in folder: {}", request.id);
         let response = LambdaResponse::builder()
             .status(StatusCode::BAD_REQUEST)
-            .header("content-type", "application/json")
+            .header("Content-Type", "application/json")
             .body(NO_OBJECTS_TO_COMPILE_ERROR.into())
             .map_err(Error::from)?;
 
@@ -180,8 +182,14 @@ async fn main() -> Result<(), LambdaError> {
 
         match result {
             Ok(val) => Ok(val),
-            Err(Error::HttpError(val)) => Ok(val),
-            Err(Error::LambdaError(err)) => Err(err),
+            Err(Error::HttpError(val)) => {
+                error!("HttpError: {}", val.body());
+                Ok(val)
+            }
+            Err(Error::LambdaError(err)) => {
+                error!("LambdaError: {}", err.to_string());
+                Err(err)
+            }
         }
     }))
     .await

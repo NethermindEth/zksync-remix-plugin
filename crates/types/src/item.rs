@@ -194,6 +194,7 @@ mod tests {
     use chrono::Utc;
     use std::collections::HashMap;
     use uuid::Uuid;
+    use crate::item::task_result::tests::{task_success_compile, task_success_compile_map};
 
     #[test]
     fn test_status_pending_to_attribute_map() {
@@ -251,10 +252,7 @@ mod tests {
                 TaskResult::attribute_name().to_string(),
                 AttributeValue::M(HashMap::from([(
                     TaskResult::success_attribute_name().to_string(),
-                    AttributeValue::M(HashMap::from([(
-                        TaskSuccess::compile_attribute_name().to_string(),
-                        AttributeValue::Ss(vec!["url1".to_string(), "url2".to_string()]),
-                    )])),
+                    AttributeValue::M(task_success_compile_map()),
                 )])),
             ),
         ])
@@ -264,9 +262,7 @@ mod tests {
     fn test_status_done_compile_success_to_attribute_map() {
         let expected_map = status_success_compile_map();
 
-        let task_result = TaskResult::Success(TaskSuccess::Compile {
-            presigned_urls: vec!["url1".to_string(), "url2".to_string()],
-        });
+        let task_result = TaskResult::Success(task_success_compile());
         let status = Status::Done(task_result.clone());
         let attribute_map: AttributeMap = status.into();
 
@@ -275,9 +271,7 @@ mod tests {
 
     #[test]
     fn test_status_done_compile_success_from_attribute_map() {
-        let expected_result = Status::Done(TaskResult::Success(TaskSuccess::Compile {
-            presigned_urls: vec!["url1".to_string(), "url2".to_string()],
-        }));
+        let expected_result = Status::Done(TaskResult::Success(task_success_compile()));
 
         let attribute_map = status_success_compile_map();
         let result: Status = (&attribute_map).try_into().expect("Conversion failed");

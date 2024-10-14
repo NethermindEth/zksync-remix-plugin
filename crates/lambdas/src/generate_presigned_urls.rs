@@ -1,5 +1,6 @@
 use aws_config::BehaviorVersion;
 use aws_sdk_s3::presigning::PresigningConfig;
+use lambda_http::http::Method;
 use lambda_http::{
     http::StatusCode, run, service_fn, Error as LambdaError, Request as LambdaRequest,
     Response as LambdaResponse,
@@ -9,7 +10,6 @@ use std::{
     path::{Path, PathBuf},
     time::Duration,
 };
-use lambda_http::http::Method;
 use tracing::{error, info, warn};
 use uuid::Uuid;
 
@@ -44,11 +44,6 @@ async fn generate_presigned_urs(
 
     let mut output = Vec::with_capacity(files.len());
     for file in files {
-        // let presigned = s3_client
-        //     .put_object()
-        //     .bucket(bucket_name)
-        //     .key(uuid_dir.join(file).to_string_lossy().to_string()).
-
         let presigned = s3_client
             .put_object()
             .bucket(bucket_name)
@@ -56,10 +51,6 @@ async fn generate_presigned_urs(
             .presigned(PresigningConfig::expires_in(OBJECT_EXPIRATION_TIME).map_err(Box::new)?)
             .await
             .map_err(Box::new)?;
-
-        presigned.headers().for_each( |(key, val)| {
-            info!("header {}: {}", key, val);
-        });
 
         output.push(presigned.uri().into());
     }
@@ -76,39 +67,21 @@ async fn process_request(
     bucket_name: &str,
     s3_client: &aws_sdk_s3::Client,
 ) -> Result<LambdaResponse<String>, Error> {
-    if request.method() == Method::OPTIONS {
-        info!("OPTIONS");
-        let response = LambdaResponse::builder()
-            .status(StatusCode::OK)
-            // .header("Access-Control-Allow-Origin", "*")
-            // .header("Access-Control-Allow-Methods", "*")
-            // .header("Access-Control-Allow-Headers", "Content-Type")
-            .header("Content-Type", "application/json")
-            .body("".to_string())?;
-
-        return Ok(response)
-    }
-
-    info!("Extracting");
     let request = extract_request::<Request>(&request)?;
     if request.files.len() > MAX_FILES {
         warn!("MAX_FILES limit exceeded");
         let response = LambdaResponse::builder()
             .status(400)
-            .header("content-type", "application/json")
+            .header("Content-Type", "application/json")
             .body(EXCEEDED_MAX_FILES_ERROR.into())
             .map_err(Box::new)?;
 
         return Err(Error::HttpError(response));
     }
 
-    info!("Generating");
     let response = generate_presigned_urs(request.files, bucket_name, s3_client).await?;
     let response = LambdaResponse::builder()
         .status(StatusCode::OK)
-        // .header("Access-Control-Allow-Origin", "*")
-        // .header("Access-Control-Allow-Methods", "*")
-        // .header("Access-Control-Allow-Headers", "Content-Type")
         .header("Content-Type", "application/json")
         .body(serde_json::to_string(&response)?)?;
 
@@ -133,18 +106,15 @@ async fn main() -> Result<(), LambdaError> {
         let result = process_request(request, &bucket_name, &s3_client).await;
 
         match result {
-            Ok(val) => {
-                info!("success");
-                Ok(val)
-            },
+            Ok(val) => Ok(val),
             Err(Error::HttpError(val)) => {
                 error!("HttpError: {}", val.body());
                 Ok(val)
-            },
+            }
             Err(Error::LambdaError(err)) => {
                 error!("LambdaError: {}", err.to_string());
                 Err(err)
-            },
+            }
         }
     }))
     .await

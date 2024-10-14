@@ -78,7 +78,7 @@ async fn process_request(
         info!("Requested non existing item: {}", request.id);
         let response = LambdaResponse::builder()
             .status(StatusCode::NOT_FOUND)
-            .header("content-type", "application/json")
+            .header("Content-Type", "application/json")
             .body(NO_SUCH_ITEM.to_string())
             .map_err(Error::from);
 
@@ -92,7 +92,7 @@ async fn process_request(
         error!("Failed to deserialize item. id: {}", request.id);
         let response = LambdaResponse::builder()
             .status(StatusCode::INTERNAL_SERVER_ERROR)
-            .header("content-type", "application/json")
+            .header("Content-Type", "application/json")
             .body(err.to_string())
             .map_err(Error::from);
 
@@ -107,7 +107,7 @@ async fn process_request(
     } else {
         let response = LambdaResponse::builder()
             .status(StatusCode::ACCEPTED)
-            .header("content-type", "application/json")
+            .header("Content-Type", "application/json")
             .body("Running".to_owned())
             .map_err(Error::from)?;
 
@@ -141,9 +141,12 @@ async fn main() -> Result<(), LambdaError> {
 
         match result {
             Ok(val) => Ok(val),
-            Err(Error::HttpError(val)) => Ok(val),
+            Err(Error::HttpError(val)) => {
+                error!("HttpError: {}", val.body());
+                Ok(val)
+            }
             Err(Error::LambdaError(err)) => {
-                error!("LambdaError: {}", err);
+                error!("LambdaError: {}", err.to_string());
                 Err(err)
             }
         }

@@ -105,7 +105,7 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
       console.log('compile result', compileSuccess)
       await remixClient.call('notification' as any, 'toast', 'Solidity compilation request successful')
 
-      const compilationArtifacts = await downloadArtifacts(compileSuccess.presigned_urls)
+      const compilationArtifacts = await downloadArtifacts(compileSuccess.artifact_pairs)
       setCompiledContracts(compilationArtifacts, type)
       await writeResultsToArtifacts(compilationArtifacts)
       setCompileStatus('done')
