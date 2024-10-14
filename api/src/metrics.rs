@@ -1,9 +1,11 @@
-use crate::errors::CoreError;
 use prometheus::core::{AtomicU64, GenericCounter, GenericCounterVec};
 use prometheus::{Encoder, IntCounter, IntCounterVec, Opts, Registry, TextEncoder};
 use rocket::fairing::{Fairing, Info, Kind};
+use rocket::http::Method;
 use rocket::{Data, Request, State};
 use tracing::instrument;
+
+use crate::errors::CoreError;
 
 const NAMESPACE: &str = "zksync_api";
 
@@ -24,10 +26,21 @@ impl Fairing for Metrics {
     }
 
     async fn on_request(&self, req: &mut Request<'_>, _data: &mut Data<'_>) {
+        match req.method() {
+            Method::Options => {}
+            _ => self.update_metrics(req),
+        }
+    }
+}
+
+impl Metrics {
+    fn update_metrics(&self, req: &mut Request<'_>) {
         if let Some(val) = req.client_ip() {
-            self.num_distinct_users
-                .with_label_values(&[val.to_string().as_str()])
-                .inc();
+            let ip = val.to_string();
+            let ip = ip.as_str();
+            info!("Plugin launched by: {}", ip);
+
+            self.num_distinct_users.with_label_values(&[ip]).inc();
         }
 
         match req.uri().path().as_str() {
@@ -37,6 +50,7 @@ impl Fairing for Metrics {
         }
     }
 }
+
 pub(crate) fn create_metrics(registry: Registry) -> Result<Metrics, CoreError> {
     let opts = Opts::new("num_distinct_users", "Number of distinct users").namespace(NAMESPACE);
     let num_distinct_users = IntCounterVec::new(opts, &["ip"])?;
