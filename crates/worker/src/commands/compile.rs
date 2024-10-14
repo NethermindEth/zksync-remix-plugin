@@ -78,12 +78,6 @@ pub async fn do_compile(
             )
         })?;
 
-    // when the compilation is done, clean up the directories
-    // it will be called when the AutoCleanUp struct is dropped
-    let auto_clean_up = AutoCleanUp {
-        dirs: vec![workspace_path.to_str().unwrap()],
-    };
-
     // write the hardhat config file
     let zksolc_version = compilation_input.config.version;
     let mut hardhat_config_builder = HardhatConfigBuilder::new();
@@ -166,8 +160,6 @@ pub async fn do_compile(
         })
         .collect();
 
-    // calling here explicitly to avoid dropping the AutoCleanUp struct
-    auto_clean_up.clean_up().await;
     Ok(CompilationOutput {
         artifacts_dir: artifacts_path,
         artifacts_data,

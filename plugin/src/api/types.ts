@@ -37,8 +37,13 @@ export interface TaskFailure {
   message: string
 }
 
+export interface ArtifactPair {
+  file_path: string
+  presigned_url: string
+}
+
 export interface TaskSuccessCompile {
-  presigned_urls: string[]
+  artifact_pairs: ArtifactPair[]
 }
 
 export interface TaskSuccessVerify {
