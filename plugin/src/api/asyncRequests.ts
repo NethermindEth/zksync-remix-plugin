@@ -31,9 +31,9 @@ async function post<T>(methodUrl: string, data: any): Promise<T> {
     method: 'POST',
     redirect: 'follow',
     headers: {
-      Accept: 'application/json'
+      'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ ...data })
+    body: JSON.stringify(data)
   })
 
   const text = await response.text()
@@ -89,7 +89,7 @@ export async function waitProcess<T>(getterMethodUrl: string, pid: string): Prom
 // Return ID associated with the task
 export async function initializeTask(files: ContractFile[]): Promise<string> {
   const request: GeneratePresignedUrlsRequest = {
-    files: files.map((el) => el.file_content)
+    files: files.map((el) => el.file_path)
   }
 
   const response = await post<GeneratePresignedUrlsResponse>(GENERATE_LAMBDA_URL, request)
@@ -106,13 +106,13 @@ export async function initializeTask(files: ContractFile[]): Promise<string> {
 }
 
 async function uploadFileToS3(presignedUrl: string, file: string) {
-  const blob = new Blob([file], { type: 'text/plain' })
+  const blob = new Blob([file], { type: 'application/octet-stream' })
 
   const uploadResponse = await fetch(presignedUrl, {
     method: 'PUT',
     body: blob,
     headers: {
-      'Content-Type': 'text/plain'
+      'Content-Type': 'application/octet-stream'
     }
   })
 
