@@ -5,16 +5,21 @@ pub mod types;
 pub mod utils;
 pub mod verify;
 
-use crate::errors::ApiError;
-use crate::handlers::compile::do_compile;
-use crate::handlers::compiler_version::do_compiler_version;
-use crate::handlers::types::{ApiCommand, ApiCommandResult, HealthCheckResponse};
-use crate::handlers::verify::do_verify;
-use crate::utils::lib::generate_mock_compile_request;
 use lazy_static::lazy_static;
+use rocket::State;
 use tokio::sync::Semaphore;
+use tokio::time::Instant;
 use tracing::info;
 use tracing::instrument;
+
+use crate::errors::ApiError;
+use crate::handlers::compile::{do_compile, COMPILATION_LABEL_VALUE};
+use crate::handlers::compiler_version::do_compiler_version;
+use crate::handlers::types::{ApiCommand, ApiCommandResult, HealthCheckResponse};
+use crate::handlers::verify::{do_verify, VERIFICATION_LABEL_VALUE};
+use crate::metrics::Metrics;
+use crate::utils::lib::generate_mock_compile_request;
+use crate::worker::WorkerEngine;
 
 const PROCESS_SPAWN_LIMIT: usize = 8;
 lazy_static! {
@@ -23,10 +28,10 @@ lazy_static! {
 
 #[instrument]
 #[get("/health")]
-pub async fn health() -> HealthCheckResponse {
+pub async fn health(engine: &State<WorkerEngine>) -> HealthCheckResponse {
     info!("/health");
 
-    let result = do_compile(generate_mock_compile_request()).await;
+    let result = do_compile(generate_mock_compile_request(), &engine.metrics).await;
 
     if result.is_ok() {
         HealthCheckResponse::ok()
@@ -42,20 +47,60 @@ pub async fn who_is_this() -> &'static str {
     "Who are you?"
 }
 
-pub async fn dispatch_command(command: ApiCommand) -> Result<ApiCommandResult, ApiError> {
+pub async fn dispatch_command(
+    command: ApiCommand,
+    metrics: &Metrics,
+) -> Result<ApiCommandResult, ApiError> {
+    let start_time = Instant::now();
+
     match command {
         ApiCommand::CompilerVersion => match do_compiler_version() {
             Ok(result) => Ok(ApiCommandResult::CompilerVersion(result)),
             Err(e) => Err(e),
         },
-        ApiCommand::Compile(request) => match do_compile(request).await {
-            Ok(compile_response) => Ok(ApiCommandResult::Compile(compile_response.into_inner())),
-            Err(e) => Err(e),
-        },
-        ApiCommand::Verify(request) => match do_verify(request).await {
-            Ok(verify_response) => Ok(ApiCommandResult::Verify(verify_response.into_inner())),
-            Err(e) => Err(e),
-        },
+        ApiCommand::Compile(request) => {
+            let res = match do_compile(request, metrics).await {
+                Ok(compile_response) => {
+                    Ok(ApiCommandResult::Compile(compile_response.into_inner()))
+                }
+                Err(e) => {
+                    metrics
+                        .action_failures_total
+                        .with_label_values(&[COMPILATION_LABEL_VALUE])
+                        .inc();
+                    Err(e)
+                }
+            };
+
+            let elapsed_time = start_time.elapsed().as_secs_f64();
+            metrics
+                .action_duration_seconds
+                .with_label_values(&[COMPILATION_LABEL_VALUE])
+                .set(elapsed_time);
+
+            res
+        }
+        ApiCommand::Verify(request) => {
+            let res = match do_verify(request, metrics).await {
+                Ok(verify_response) => Ok(ApiCommandResult::Verify(verify_response.into_inner())),
+                Err(e) => {
+                    metrics
+                        .action_failures_total
+                        .with_label_values(&[VERIFICATION_LABEL_VALUE])
+                        .inc();
+
+                    Err(e)
+                }
+            };
+
+            let elapsed_time = start_time.elapsed().as_secs_f64();
+            metrics
+                .action_duration_seconds
+                .with_label_values(&[VERIFICATION_LABEL_VALUE])
+                .set(elapsed_time);
+
+            res
+        }
         ApiCommand::Shutdown => Ok(ApiCommandResult::Shutdown),
     }
 }

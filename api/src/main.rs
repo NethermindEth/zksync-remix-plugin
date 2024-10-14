@@ -56,7 +56,7 @@ fn create_app(metrics: Metrics) -> Rocket<Build> {
     };
 
     // Launch the worker processes
-    let mut engine = WorkerEngine::new(number_of_workers, queue_size);
+    let mut engine = WorkerEngine::new(number_of_workers, queue_size, metrics.clone());
     engine.start();
 
     // Create a new scheduler

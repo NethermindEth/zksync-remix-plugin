@@ -1,7 +1,15 @@
+use rocket::serde::{json, json::Json};
+use rocket::{tokio, State};
+use std::path::Path;
+use std::process::Stdio;
+use tracing::info;
+use tracing::instrument;
+
 use crate::errors::{ApiError, Result};
 use crate::handlers::process::{do_process_command, fetch_process_result};
 use crate::handlers::types::{ApiCommand, ApiCommandResult, VerificationRequest, VerifyResponse};
 use crate::handlers::SPAWN_SEMAPHORE;
+use crate::metrics::Metrics;
 use crate::rate_limiter::RateLimited;
 use crate::utils::cleaner::AutoCleanUp;
 use crate::utils::hardhat_config::HardhatConfigBuilder;
@@ -10,22 +18,19 @@ use crate::utils::lib::{
     ZKSOLC_VERSIONS,
 };
 use crate::worker::WorkerEngine;
-use rocket::serde::{json, json::Json};
-use rocket::{tokio, State};
-use std::path::Path;
-use std::process::Stdio;
-use tracing::info;
-use tracing::instrument;
+
+pub(crate) const VERIFICATION_LABEL_VALUE: &str = "compilation";
 
 #[instrument]
 #[post("/verify", format = "json", data = "<verification_request_json>")]
 pub async fn verify(
     verification_request_json: Json<VerificationRequest>,
     _rate_limited: RateLimited,
+    engine: &State<WorkerEngine>,
 ) -> Json<VerifyResponse> {
     info!("/verify");
 
-    do_verify(verification_request_json.0)
+    do_verify(verification_request_json.0, &engine.metrics)
         .await
         .unwrap_or_else(|e| {
             Json(VerifyResponse {
@@ -79,7 +84,10 @@ fn extract_verify_args(request: &VerificationRequest) -> Vec<String> {
     args
 }
 
-pub async fn do_verify(verification_request: VerificationRequest) -> Result<Json<VerifyResponse>> {
+pub async fn do_verify(
+    verification_request: VerificationRequest,
+    metrics: &Metrics,
+) -> Result<Json<VerifyResponse>> {
     let zksolc_version = verification_request.config.zksolc_version.clone();
 
     // check if the version is supported
@@ -170,11 +178,21 @@ pub async fn do_verify(verification_request: VerificationRequest) -> Result<Json
     auto_clean_up.clean_up().await;
 
     if !status.success() {
+        metrics
+            .action_failures_total
+            .with_label_values(&[VERIFICATION_LABEL_VALUE])
+            .inc();
+
         return Ok(Json(VerifyResponse {
             status: "Error".to_string(),
             message: String::from_utf8_lossy(&output.stderr).to_string(),
         }));
     }
+
+    metrics
+        .action_successes_total
+        .with_label_values(&[VERIFICATION_LABEL_VALUE])
+        .inc();
 
     Ok(Json(VerifyResponse {
         status: "Success".to_string(),
