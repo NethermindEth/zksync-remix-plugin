@@ -4,6 +4,7 @@ use crate::handlers::types::{
     ApiCommand, ApiCommandResult, CompilationRequest, CompileResponse, CompiledFile,
 };
 use crate::handlers::SPAWN_SEMAPHORE;
+use crate::metrics::Metrics;
 use crate::rate_limiter::RateLimited;
 use crate::utils::cleaner::AutoCleanUp;
 use crate::utils::hardhat_config::HardhatConfigBuilder;
@@ -20,21 +21,26 @@ use std::process::Stdio;
 use tracing::instrument;
 use tracing::{error, info};
 
+pub(crate) const COMPILATION_LABEL_VALUE: &'static str = "compilation";
+
 #[instrument]
 #[post("/compile", format = "json", data = "<request_json>")]
 pub async fn compile(
     request_json: Json<CompilationRequest>,
     _rate_limited: RateLimited,
+    engine: &State<WorkerEngine>,
 ) -> Json<CompileResponse> {
     info!("/compile/{:?}", request_json.config);
 
-    do_compile(request_json.0).await.unwrap_or_else(|e| {
-        Json(CompileResponse {
-            file_content: vec![],
-            message: e.to_string(),
-            status: "Error".to_string(),
+    do_compile(request_json.0, &engine.metrics)
+        .await
+        .unwrap_or_else(|e| {
+            Json(CompileResponse {
+                file_content: vec![],
+                message: e.to_string(),
+                status: "Error".to_string(),
+            })
         })
-    })
 }
 
 #[instrument]
@@ -62,7 +68,10 @@ pub async fn get_compile_result(process_id: String, engine: &State<WorkerEngine>
     })
 }
 
-pub async fn do_compile(compilation_request: CompilationRequest) -> Result<Json<CompileResponse>> {
+pub async fn do_compile(
+    compilation_request: CompilationRequest,
+    metrics: &Metrics,
+) -> Result<Json<CompileResponse>> {
     let zksolc_version = compilation_request.config.version;
 
     // check if the version is supported
@@ -161,6 +170,11 @@ pub async fn do_compile(compilation_request: CompilationRequest) -> Result<Json<
             "Compilation error: {}",
             String::from_utf8_lossy(&output.stderr)
         );
+        metrics
+            .action_failures_total
+            .with_label_values(&[COMPILATION_LABEL_VALUE])
+            .inc();
+
         return Ok(Json(CompileResponse {
             file_content: vec![],
             message: format!(
@@ -197,6 +211,10 @@ pub async fn do_compile(compilation_request: CompilationRequest) -> Result<Json<
     // calling here explicitly to avoid dropping the AutoCleanUp struct
     auto_clean_up.clean_up().await;
 
+    metrics
+        .action_successes_total
+        .with_label_values(&[COMPILATION_LABEL_VALUE])
+        .inc();
     Ok(Json(CompileResponse {
         file_content: file_contents,
         status: status_code_to_message(status.code()),
