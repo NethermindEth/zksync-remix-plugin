@@ -19,7 +19,7 @@ use crate::utils::lib::{
 };
 use crate::worker::WorkerEngine;
 
-pub(crate) const VERIFICATION_LABEL_VALUE: &'static str = "compilation";
+pub(crate) const VERIFICATION_LABEL_VALUE: &str = "compilation";
 
 #[instrument]
 #[post("/verify", format = "json", data = "<verification_request_json>")]

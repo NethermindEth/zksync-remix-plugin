@@ -59,7 +59,7 @@ pub async fn dispatch_command(
             Err(e) => Err(e),
         },
         ApiCommand::Compile(request) => {
-            let res = match do_compile(request, &metrics).await {
+            let res = match do_compile(request, metrics).await {
                 Ok(compile_response) => {
                     Ok(ApiCommandResult::Compile(compile_response.into_inner()))
                 }
@@ -81,7 +81,7 @@ pub async fn dispatch_command(
             res
         }
         ApiCommand::Verify(request) => {
-            let res = match do_verify(request, &metrics).await {
+            let res = match do_verify(request, metrics).await {
                 Ok(verify_response) => Ok(ApiCommandResult::Verify(verify_response.into_inner())),
                 Err(e) => {
                     metrics

@@ -21,7 +21,7 @@ use std::process::Stdio;
 use tracing::instrument;
 use tracing::{error, info};
 
-pub(crate) const COMPILATION_LABEL_VALUE: &'static str = "compilation";
+pub(crate) const COMPILATION_LABEL_VALUE: &str = "compilation";
 
 #[instrument]
 #[post("/compile", format = "json", data = "<request_json>")]
