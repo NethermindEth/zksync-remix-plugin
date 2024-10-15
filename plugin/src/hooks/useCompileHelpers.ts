@@ -129,6 +129,7 @@ export const useCompileHelpers = () => {
       }
     }
 
+    console.log('contractsToAdd:', contractsToAdd)
     setContracts(contractsToAdd)
     setSelectedContract(contractsToAdd[0])
   }
