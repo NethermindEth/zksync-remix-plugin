@@ -9,7 +9,7 @@ use uuid::Uuid;
 
 use crate::clients::s3_clients::wrapper::S3ClientWrapper;
 use crate::clients::sqs_clients::wrapper::SqsClientWrapper;
-use crate::commands::compile::{do_compile, CompilationOutput};
+use crate::commands::compile::{do_compile, ArtifactData, CompilationOutput};
 use crate::processor::errors::CompileProcessorError;
 use crate::processor::input_preparator::CompileInputPreparator;
 use crate::purgatory::Purgatory;
@@ -95,25 +95,10 @@ impl CompileProcessor {
             })?;
 
         let compilation_output = do_compile(compilation_input).await?;
-        let file_keys = self.upload_artifacts(id, compilation_output).await?;
-
-        // Reckoned as independent piece
+        match self
+            .handle_output(id, &compilation_output, receipt_handle)
+            .await
         {
-            let dir = s3_compilation_files_dir(id.to_string().as_str());
-            let s3_client = self.s3_client.clone();
-            let sqs_client = self.sqs_client.clone();
-            tokio::spawn(async move {
-                // Clean compilation input files right away
-                if let Err(err) = s3_client.delete_dir(&dir).await {
-                    error!("Filed to delete compilation file: {err}")
-                }
-                if let Err(err) = sqs_client.delete_message(receipt_handle).await {
-                    error!("Failed to delete message from sqs: {err}");
-                }
-            });
-        }
-
-        match self.generate_presigned_urls(&file_keys).await {
             Ok(artifact_pairs) => {
                 self.purgatory
                     .add_record(
@@ -138,23 +123,47 @@ impl CompileProcessor {
         }
     }
 
+    async fn handle_output(
+        &self,
+        id: Uuid,
+        compilation_output: &CompilationOutput,
+        receipt_handle: String,
+    ) -> anyhow::Result<Vec<ArtifactPair>> {
+        let auto_clean_up = AutoCleanUp {
+            dirs: vec![compilation_output.workspace_dir.as_path()],
+        };
+
+        let file_keys = self.upload_artifacts(id, &compilation_output).await?;
+
+        // Reckoned as independent piece
+        {
+            let dir = s3_compilation_files_dir(id.to_string().as_str());
+            let s3_client = self.s3_client.clone();
+            let sqs_client = self.sqs_client.clone();
+            tokio::spawn(async move {
+                // Clean compilation input files right away
+                if let Err(err) = s3_client.delete_dir(&dir).await {
+                    error!("Failed to delete compilation file: {err}")
+                }
+                if let Err(err) = sqs_client.delete_message(receipt_handle).await {
+                    error!("Failed to delete message from sqs: {err}");
+                }
+            });
+        }
+
+        auto_clean_up.clean_up().await;
+        Ok(self
+            .generate_artifact_pairs(&file_keys, compilation_output.artifacts_data.as_slice())
+            .await?)
+    }
+
     async fn upload_artifacts(
         &self,
         id: Uuid,
-        compilation_output: CompilationOutput,
+        compilation_output: &CompilationOutput,
     ) -> anyhow::Result<Vec<String>> {
-        let auto_clean_up = AutoCleanUp {
-            dirs: vec![compilation_output
-                .artifacts_dir
-                .parent()
-                .ok_or(anyhow!("No parent"))?
-                .to_str()
-                .ok_or(anyhow!("Couldn't convert to utf8"))
-                .with_context(|| "Workspace cleanup")?],
-        };
-
         let mut file_keys = Vec::with_capacity(compilation_output.artifacts_data.len());
-        for el in compilation_output.artifacts_data {
+        for el in &compilation_output.artifacts_data {
             let absolute_path = compilation_output.artifacts_dir.join(&el.file_path);
             let file_content = tokio::fs::File::open(absolute_path.clone())
                 .await
@@ -165,38 +174,52 @@ impl CompileProcessor {
                 "{}/{}/{}",
                 ARTIFACTS_FOLDER,
                 id,
-                el.file_path.to_str().unwrap()
+                el.file_path
+                    .to_str()
+                    .ok_or(anyhow!("Couldn't convert file_path to utf-8"))?
             );
             self.s3_client
                 .put_object(&file_key, file_content)
                 .await
                 .map_err(anyhow::Error::from)
                 .with_context(|| "Couldn't upload artifact")?; // TODO: TODO(101)
+
             file_keys.push(file_key);
         }
 
-        auto_clean_up.clean_up().await;
         Ok(file_keys)
     }
 
-    async fn generate_presigned_urls(&self, file_keys: &[String]) -> anyhow::Result<Vec<ArtifactPair>> {
+    async fn generate_artifact_pairs(
+        &self,
+        file_keys: &[String],
+        artifact_paths: &[ArtifactData],
+    ) -> anyhow::Result<Vec<ArtifactPair>> {
         const DOWNLOAD_URL_EXPIRATION: Duration = Duration::from_secs(5 * 60 * 60);
 
-        let mut presigned_urls = Vec::with_capacity(file_keys.len());
-        for el in file_keys {
+        let mut artifact_pairs = Vec::with_capacity(file_keys.len());
+        for (file_key, artifact_data) in file_keys.iter().zip(artifact_paths.iter()) {
             let expires_in = PresigningConfig::expires_in(DOWNLOAD_URL_EXPIRATION).unwrap();
             let presigned_request = self
                 .s3_client
-                .get_object_presigned(el.as_str(), &expires_in)
+                .get_object_presigned(file_key.as_str(), &expires_in)
                 .await
                 .map_err(anyhow::Error::from)?; // TODO: maybe extra handle in case chan closed TODO(101)
 
-            presigned_urls.push(ArtifactPair {
-                file_path: el.to_owned(), // TODO: trim to provide correct path
-                presigned_url: presigned_request.uri().to_string()
+            artifact_pairs.push(ArtifactPair {
+                is_contract: artifact_data.is_contract,
+                file_path: artifact_data
+                    .file_path
+                    .to_str()
+                    .ok_or(anyhow!(format!(
+                        "Can't convert artifact_path to utf-8: {}",
+                        artifact_data.file_path.display()
+                    )))?
+                    .to_string(),
+                presigned_url: presigned_request.uri().to_string(),
             });
         }
 
-        Ok(presigned_urls)
+        Ok(artifact_pairs)
     }
 }

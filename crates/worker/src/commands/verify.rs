@@ -90,7 +90,7 @@ pub async fn do_verify(
     // when the compilation is done, clean up the directories
     // it will be called when the AutoCleanUp struct is dropped
     let auto_clean_up = AutoCleanUp {
-        dirs: vec![workspace_path.to_str().unwrap()],
+        dirs: vec![workspace_path.as_path()],
     };
 
     // write the hardhat config file

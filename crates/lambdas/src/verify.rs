@@ -106,7 +106,6 @@ async fn process_request(
 
     let objects = s3_client
         .list_objects_v2()
-        .delimiter('/')
         .prefix(request.id.to_string().add("/"))
         .bucket(bucket_name)
         .send()

@@ -5,7 +5,7 @@ use aws_sdk_dynamodb::types::AttributeValue;
 use tracing::error;
 use types::item::task_result::TaskSuccess;
 use types::item::{task_result::TaskResult, Item, Status};
-use types::{SqsMessage, VerificationRequest};
+use types::SqsMessage;
 use uuid::Uuid;
 
 use crate::clients::dynamodb_clients::wrapper::DynamoDBClientWrapper;

@@ -208,7 +208,16 @@ impl TryFrom<&AttributeValue> for TaskFailure {
 
 #[derive(Debug, Clone, Serialize)]
 #[cfg_attr(test, derive(PartialEq))]
+pub enum ArtifactType {
+    Unknown = 0,
+    Contract,
+    Dbg,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[cfg_attr(test, derive(PartialEq))]
 pub struct ArtifactPair {
+    pub artifact_type: ArtifactType,
     pub file_path: String,
     pub presigned_url: String,
 }

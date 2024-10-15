@@ -3,12 +3,11 @@
 use anyhow::Context;
 use std::path::{Path, PathBuf};
 use std::process::{Output, Stdio};
-use tracing::{error, info};
+use tracing::error;
 use types::CompilationConfig;
 
 use crate::commands::errors::CompilationError;
 use crate::commands::{CompilationFile, SPAWN_SEMAPHORE};
-use crate::utils::cleaner::AutoCleanUp;
 use crate::utils::hardhat_config::HardhatConfigBuilder;
 use crate::utils::lib::{initialize_files, list_files_in_directory, DEFAULT_SOLIDITY_VERSION};
 
@@ -25,6 +24,7 @@ pub struct ArtifactData {
 }
 
 pub struct CompilationOutput {
+    pub workspace_dir: PathBuf,
     pub artifacts_dir: PathBuf,
     pub artifacts_data: Vec<ArtifactData>,
 }
@@ -161,6 +161,7 @@ pub async fn do_compile(
         .collect();
 
     Ok(CompilationOutput {
+        workspace_dir: workspace_path,
         artifacts_dir: artifacts_path,
         artifacts_data,
     })
