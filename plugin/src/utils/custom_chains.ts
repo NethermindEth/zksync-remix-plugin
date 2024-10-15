@@ -1,5 +1,5 @@
-import { defineChain } from 'viem'
- 
+import {defineChain} from 'viem'
+
 export const zkCandySepoliaTestnet = defineChain({
     id: 302,
     name: 'zkCandy Sepolia Testnet',
@@ -17,7 +17,7 @@ export const zkCandySepoliaTestnet = defineChain({
         }
     },
     blockExplorers: {
-        default: { name: 'Explorer', url: 'https://sepolia.explorer.zkcandy.io/' },
+        default: {name: 'Explorer', url: 'https://sepolia.explorer.zkcandy.io/'},
     },
     network: ''
 })
@@ -41,7 +41,7 @@ export const zkLinkNova = defineChain({
         }
     },
     blockExplorers: {
-        default: { name: 'Explorer', url: 'https://explorer.zklink.io' },
+        default: {name: 'Explorer', url: 'https://explorer.zklink.io'},
     },
     network: '',
     contracts: {
@@ -68,7 +68,31 @@ export const zkLinkNovaTestnet = defineChain({
         }
     },
     blockExplorers: {
-        default: { name: 'Explorer', url: 'https://sepolia.explorer.zklink.io' },
+        default: {name: 'Explorer', url: 'https://sepolia.explorer.zklink.io'},
+    },
+    network: ''
+})
+
+export const sophonTestnet = defineChain({
+    id: 531050104,
+    name: 'Sophon testnet',
+    nativeCurrency: {
+        decimals: 18,
+        name: 'Sophon',
+        symbol: 'SOPH',
+    },
+    rpcUrls: {
+        default: {
+            http: ['https://rpc.testnet.sophon.xyz'],
+            webSocket: ['wss://rpc.testnet.sophon.xyz']
+        },
+        public: {
+            http: ['https://rpc.testnet.sophon.xyz'],
+            webSocket: ['wss://rpc.testnet.sophon.xyz']
+        }
+    },
+    blockExplorers: {
+        default: {name: 'Explorer', url: 'https://explorer.testnet.sophon.xyz'},
     },
     network: ''
 })
