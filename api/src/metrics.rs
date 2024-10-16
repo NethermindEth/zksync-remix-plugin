@@ -102,7 +102,7 @@ pub(crate) fn create_metrics(registry: Registry) -> Result<Metrics, CoreError> {
     })
 }
 
-#[instrument]
+#[instrument(skip(registry))]
 #[get("/metrics")]
 pub(crate) async fn metrics(registry: &State<Registry>) -> String {
     let metric_families = registry.gather();

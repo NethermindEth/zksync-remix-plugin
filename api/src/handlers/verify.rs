@@ -21,14 +21,14 @@ use crate::worker::WorkerEngine;
 
 pub(crate) const VERIFICATION_LABEL_VALUE: &str = "compilation";
 
-#[instrument]
+#[instrument(skip(verification_request_json, _rate_limited, engine))]
 #[post("/verify", format = "json", data = "<verification_request_json>")]
 pub async fn verify(
     verification_request_json: Json<VerificationRequest>,
     _rate_limited: RateLimited,
     engine: &State<WorkerEngine>,
 ) -> Json<VerifyResponse> {
-    info!("/verify");
+    info!("/verify/{:?}", verification_request_json.config);
 
     do_verify(verification_request_json.0, &engine.metrics)
         .await
@@ -40,19 +40,19 @@ pub async fn verify(
         })
 }
 
-#[instrument]
+#[instrument(skip(_rate_limited, engine))]
 #[post("/verify-async", format = "json", data = "<verification_request_json>")]
 pub fn verify_async(
     verification_request_json: Json<VerificationRequest>,
     _rate_limited: RateLimited,
     engine: &State<WorkerEngine>,
 ) -> String {
-    info!("/verify-async",);
+    info!("/verify-async/{:?}", verification_request_json.config);
 
     do_process_command(ApiCommand::Verify(verification_request_json.0), engine)
 }
 
-#[instrument]
+#[instrument(skip(engine))]
 #[get("/verify-result/<process_id>")]
 pub async fn get_verify_result(process_id: String, engine: &State<WorkerEngine>) -> String {
     info!("/verify-result/{:?}", process_id);

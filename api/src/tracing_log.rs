@@ -99,7 +99,7 @@ pub fn filter_layer(level: LogLevel) -> EnvFilter {
         LogLevel::Off => "off",
     };
 
-    tracing_subscriber::filter::EnvFilter::try_new(filter_str).expect("filter string must parse")
+    EnvFilter::try_new(filter_str).expect("filter string must parse")
 }
 
 pub fn init_logger() -> Result<(), CoreError> {
@@ -120,7 +120,7 @@ pub fn init_logger() -> Result<(), CoreError> {
     let log_type = LogType::from(std::env::var("LOG_TYPE").unwrap_or_else(|_| "json".to_string()));
     let log_level = LogLevel::from(
         std::env::var("LOG_LEVEL")
-            .unwrap_or_else(|_| "debug".to_string())
+            .unwrap_or_else(|_| "normal".to_string())
             .as_str(),
     );
 
