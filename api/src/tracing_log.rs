@@ -1,14 +1,12 @@
 use tracing_appender::rolling;
-
+use tracing_subscriber::field::MakeExt;
 use tracing_subscriber::fmt::writer::MakeWriterExt;
 use tracing_subscriber::registry::LookupSpan;
+use tracing_subscriber::Layer;
 use tracing_subscriber::{prelude::*, EnvFilter};
-
-use tracing_subscriber::field::MakeExt;
+use yansi::Paint;
 
 use crate::errors::CoreError;
-use tracing_subscriber::Layer;
-use yansi::Paint;
 
 pub enum LogType {
     Formatted,
@@ -115,7 +113,8 @@ pub fn init_logger() -> Result<(), CoreError> {
     let rolling_files = tracing_subscriber::fmt::layer()
         .json()
         .with_writer(all_files)
-        .with_ansi(false);
+        .with_ansi(false)
+        .with_filter(filter_layer(LogLevel::Debug));
 
     let log_type = LogType::from(std::env::var("LOG_TYPE").unwrap_or_else(|_| "json".to_string()));
     let log_level = LogLevel::from(
@@ -132,8 +131,7 @@ pub fn init_logger() -> Result<(), CoreError> {
         )?,
         LogType::Json => tracing::subscriber::set_global_default(
             tracing_subscriber::registry()
-                .with(json_logging_layer())
-                .with(filter_layer(log_level))
+                .with(json_logging_layer().with_filter(filter_layer(log_level)))
                 .with(rolling_files),
         )?,
     };
