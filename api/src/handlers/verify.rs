@@ -40,7 +40,7 @@ pub async fn verify(
         })
 }
 
-#[instrument(skip(_rate_limited, engine))]
+#[instrument(skip(verification_request_json, _rate_limited, engine))]
 #[post("/verify-async", format = "json", data = "<verification_request_json>")]
 pub fn verify_async(
     verification_request_json: Json<VerificationRequest>,
