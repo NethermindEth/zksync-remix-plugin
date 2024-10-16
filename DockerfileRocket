@@ -16,9 +16,11 @@ RUN apt-get install -y curl \
     software-properties-common \
     wget \
     npm
-RUN add-apt-repository ppa:ethereum/ethereum
-RUN apt-get update
-RUN apt-get install -y ethereum
+RUN wget https://github.com/ethereum/solidity/releases/download/v0.8.24/solc-static-linux -O /usr/local/bin/solc
+RUN chmod +x /usr/local/bin/solc
+
+RUN solc --version
+
 # Installing grafana agent
 RUN mkdir -p /etc/apt/keyrings/
 RUN wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor | tee /etc/apt/keyrings/grafana.gpg > /dev/null
