@@ -3,7 +3,7 @@ use aws_sdk_s3::presigning::PresigningConfig;
 use std::time::Duration;
 use tracing::error;
 use types::item::errors::ServerError;
-use types::item::task_result::{ArtifactPair, TaskFailure, TaskResult, TaskSuccess};
+use types::item::task_result::{ArtifactInfo, TaskFailure, TaskResult, TaskSuccess};
 use types::{CompilationRequest, ARTIFACTS_FOLDER};
 use uuid::Uuid;
 
@@ -57,7 +57,7 @@ impl CompileProcessor {
         &self,
         message: CompilationRequest,
         receipt_handle: String,
-    ) -> Result<Vec<ArtifactPair>, CompileProcessorError> {
+    ) -> Result<Vec<ArtifactInfo>, CompileProcessorError> {
         let id = message.id;
 
         self.validate_message(&message).await.map_err(|err| {
@@ -104,7 +104,7 @@ impl CompileProcessor {
                     .add_record(
                         id,
                         TaskResult::Success(TaskSuccess::Compile {
-                            artifact_pairs: artifact_pairs.clone(),
+                            artifacts_info: artifact_pairs.clone(),
                         }),
                     )
                     .await;
@@ -128,7 +128,7 @@ impl CompileProcessor {
         id: Uuid,
         compilation_output: &CompilationOutput,
         receipt_handle: String,
-    ) -> anyhow::Result<Vec<ArtifactPair>> {
+    ) -> anyhow::Result<Vec<ArtifactInfo>> {
         let auto_clean_up = AutoCleanUp {
             dirs: vec![compilation_output.workspace_dir.as_path()],
         };
@@ -194,7 +194,7 @@ impl CompileProcessor {
         &self,
         file_keys: &[String],
         artifact_paths: &[ArtifactData],
-    ) -> anyhow::Result<Vec<ArtifactPair>> {
+    ) -> anyhow::Result<Vec<ArtifactInfo>> {
         const DOWNLOAD_URL_EXPIRATION: Duration = Duration::from_secs(5 * 60 * 60);
 
         let mut artifact_pairs = Vec::with_capacity(file_keys.len());
@@ -206,8 +206,8 @@ impl CompileProcessor {
                 .await
                 .map_err(anyhow::Error::from)?; // TODO: maybe extra handle in case chan closed TODO(101)
 
-            artifact_pairs.push(ArtifactPair {
-                is_contract: artifact_data.is_contract,
+            artifact_pairs.push(ArtifactInfo {
+                artifact_type: artifact_data.artifact_type,
                 file_path: artifact_data
                     .file_path
                     .to_str()

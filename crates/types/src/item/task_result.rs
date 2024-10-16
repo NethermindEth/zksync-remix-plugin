@@ -81,7 +81,7 @@ impl TryFrom<&AttributeMap> for TaskResult {
 #[derive(Debug, Clone, Serialize)]
 #[cfg_attr(test, derive(PartialEq))]
 pub enum TaskSuccess {
-    Compile { artifact_pairs: Vec<ArtifactPair> },
+    Compile { artifacts_info: Vec<ArtifactInfo> },
     Verify { message: String },
 }
 
@@ -99,7 +99,7 @@ impl From<TaskSuccess> for AttributeMap {
     fn from(value: TaskSuccess) -> Self {
         match value {
             TaskSuccess::Compile {
-                artifact_pairs,
+                artifacts_info: artifact_pairs,
             } => HashMap::from([(
                 TaskSuccess::compile_attribute_name().into(),
                 AttributeValue::L(artifact_pairs.into_iter().map(|pair| pair.into()).collect()),
@@ -139,7 +139,9 @@ impl TryFrom<&AttributeMap> for TaskSuccess {
                     .map(|value| value.try_into())
                     .collect::<Result<_, ItemError>>()?;
 
-                Ok(TaskSuccess::Compile { artifact_pairs })
+                Ok(TaskSuccess::Compile {
+                    artifacts_info: artifact_pairs,
+                })
             }
             "Verify" => {
                 let message = value
@@ -206,46 +208,90 @@ impl TryFrom<&AttributeValue> for TaskFailure {
     }
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Copy, Serialize)]
 #[cfg_attr(test, derive(PartialEq))]
+#[serde(rename_all = "PascalCase")]
 pub enum ArtifactType {
-    Unknown = 0,
+    Unknown,
     Contract,
     Dbg,
 }
 
+impl From<ArtifactType> for &'static str {
+    fn from(value: ArtifactType) -> Self {
+        match value {
+            ArtifactType::Unknown => "Unknown",
+            ArtifactType::Contract => "Contract",
+            ArtifactType::Dbg => "Dbg",
+        }
+    }
+}
+
+impl TryFrom<String> for ArtifactType {
+    type Error = ItemError;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        value.try_into()
+    }
+}
+
+impl TryFrom<&String> for ArtifactType {
+    type Error = ItemError;
+    fn try_from(value: &String) -> Result<Self, Self::Error> {
+        match value.as_str() {
+            "Unknown" => Ok(Self::Unknown),
+            "Contract" => Ok(Self::Contract),
+            "Dbg" => Ok(Self::Dbg),
+            _ => Err(ItemError::FormatError(format!(
+                "Unknown ArtifactType variant: {}",
+                value
+            ))),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize)]
 #[cfg_attr(test, derive(PartialEq))]
-pub struct ArtifactPair {
+pub struct ArtifactInfo {
     pub artifact_type: ArtifactType,
     pub file_path: String,
     pub presigned_url: String,
 }
 
-impl From<ArtifactPair> for AttributeValue {
-    fn from(value: ArtifactPair) -> Self {
-        AttributeValue::Ss(vec![value.file_path, value.presigned_url])
+impl ArtifactInfo {
+    pub const fn size() -> usize {
+        3
     }
 }
 
-impl TryFrom<&AttributeValue> for ArtifactPair {
+impl From<ArtifactInfo> for AttributeValue {
+    fn from(value: ArtifactInfo) -> Self {
+        AttributeValue::Ss(vec![
+            <ArtifactType as Into<&'static str>>::into(value.artifact_type).to_string(),
+            value.file_path,
+            value.presigned_url,
+        ])
+    }
+}
+
+impl TryFrom<&AttributeValue> for ArtifactInfo {
     type Error = ItemError;
     fn try_from(value: &AttributeValue) -> Result<Self, Self::Error> {
-        let pair = value
+        let data = value
             .as_ss()
             .map_err(|_| ItemError::FormatError("Artifact pair".into()))?;
-        if pair.len() != 2 {
+        if data.len() != ArtifactInfo::size() {
             Err(ItemError::FormatError(format!(
                 "Invalid number of values: {}",
-                pair.len()
+                data.len()
             )))
         } else {
             Ok(())
         }?;
 
-        Ok(ArtifactPair {
-            file_path: pair[0].to_owned(),
-            presigned_url: pair[1].to_owned(),
+        Ok(ArtifactInfo {
+            artifact_type: (&data[0]).try_into()?,
+            file_path: data[1].to_owned(),
+            presigned_url: data[2].to_owned(),
         })
     }
 }
@@ -258,12 +304,14 @@ pub(crate) mod tests {
 
     pub fn task_success_compile() -> TaskSuccess {
         TaskSuccess::Compile {
-            artifact_pairs: vec![
-                ArtifactPair {
+            artifacts_info: vec![
+                ArtifactInfo {
+                    artifact_type: ArtifactType::Contract,
                     presigned_url: "url1".to_string(),
                     file_path: "path1".to_string(),
                 },
-                ArtifactPair {
+                ArtifactInfo {
+                    artifact_type: ArtifactType::Contract,
                     presigned_url: "url2".to_string(),
                     file_path: "path2".to_string(),
                 },
@@ -275,8 +323,16 @@ pub(crate) mod tests {
         HashMap::from([(
             "Compile".to_string(),
             AttributeValue::L(vec![
-                AttributeValue::Ss(vec!["path1".to_string(), "url1".to_string()]),
-                AttributeValue::Ss(vec!["path2".to_string(), "url2".to_string()]),
+                AttributeValue::Ss(vec![
+                    "Contract".to_string(),
+                    "path1".to_string(),
+                    "url1".to_string(),
+                ]),
+                AttributeValue::Ss(vec![
+                    "Contract".to_string(),
+                    "path2".to_string(),
+                    "url2".to_string(),
+                ]),
             ]),
         )])
     }

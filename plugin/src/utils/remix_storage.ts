@@ -11,7 +11,7 @@ export const getAllContractFiles = async (
   for (const [path, entry] of Object.entries<any>(pathFiles)) {
     if (entry.isDirectory) {
       const deps = await getAllContractFiles(remixClient, workspacePath, path)
-      for (const dep of deps) files.push(dep)
+      files.push(...deps)
       continue
     }
 
@@ -26,6 +26,7 @@ export const getAllContractFiles = async (
       is_contract: true
     })
   }
+
   return files
 }
 

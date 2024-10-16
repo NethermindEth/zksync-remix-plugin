@@ -102,10 +102,9 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
         throw new Error(`Expected compilation result, got: ${taskSuccess}`)
       }
 
-      console.log('compile result', compileSuccess)
       await remixClient.call('notification' as any, 'toast', 'Solidity compilation request successful')
 
-      const compilationArtifacts = await downloadArtifacts(compileSuccess.artifact_pairs)
+      const compilationArtifacts = await downloadArtifacts(compileSuccess.artifacts_info)
       setCompiledContracts(compilationArtifacts, type)
       await writeResultsToArtifacts(compilationArtifacts)
       setCompileStatus('done')

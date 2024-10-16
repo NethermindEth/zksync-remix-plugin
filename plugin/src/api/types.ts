@@ -37,13 +37,20 @@ export interface TaskFailure {
   message: string
 }
 
-export interface ArtifactPair {
+export enum ArtifactType {
+  Unknown = 'Unknown',
+  Contract = 'Contract',
+  Dbg = 'Dbg'
+}
+
+export interface ArtifactInfo {
+  artifact_type: ArtifactType
   file_path: string
   presigned_url: string
 }
 
 export interface TaskSuccessCompile {
-  artifact_pairs: ArtifactPair[]
+  artifacts_info: ArtifactInfo[]
 }
 
 export interface TaskSuccessVerify {

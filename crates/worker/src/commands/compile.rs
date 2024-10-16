@@ -4,6 +4,7 @@ use anyhow::Context;
 use std::path::{Path, PathBuf};
 use std::process::{Output, Stdio};
 use tracing::error;
+use types::item::task_result::ArtifactType;
 use types::CompilationConfig;
 
 use crate::commands::errors::CompilationError;
@@ -20,7 +21,7 @@ pub struct CompilationInput {
 
 pub struct ArtifactData {
     pub file_path: PathBuf,
-    pub is_contract: bool,
+    pub artifact_type: ArtifactType,
 }
 
 pub struct CompilationOutput {
@@ -150,12 +151,18 @@ pub async fn do_compile(
                 .strip_prefix(&artifacts_path)
                 .expect("Unexpected prefix");
 
-            let is_contract =
-                !relative_path.ends_with(".dbg.json") && relative_path.ends_with(".json");
+            // Work on original string since Path::ends_with matches whole segment
+            let artifact_type = if file_path.ends_with(".dbg.json") {
+                ArtifactType::Dbg
+            } else if file_path.ends_with(".json") {
+                ArtifactType::Contract
+            } else {
+                ArtifactType::Unknown
+            };
 
             ArtifactData {
                 file_path: relative_path.to_path_buf(),
-                is_contract,
+                artifact_type,
             }
         })
         .collect();

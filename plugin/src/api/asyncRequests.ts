@@ -1,5 +1,5 @@
 import { CompiledArtifact, ContractFile } from '@/types/contracts'
-import { ArtifactPair, GeneratePresignedUrlsRequest, GeneratePresignedUrlsResponse } from '@/api/types'
+import { ArtifactInfo, GeneratePresignedUrlsRequest, GeneratePresignedUrlsResponse } from '@/api/types'
 
 export const GENERATE_LAMBDA_URL = 'https://7462iuvrevrwndflwr5r6nf2340owkmz.lambda-url.ap-southeast-2.on.aws/'
 export const COMPILE_LAMBDA_URL = 'https://w6myokcnql4lw2oel27xj52njy0cfrto.lambda-url.ap-southeast-2.on.aws/'
@@ -7,7 +7,6 @@ export const VERIFY_LAMBDA_URL = 'https://ctjjdwtukv76u3nhmsfvbbkh440lmqen.lambd
 export const POLL_LAMBDA_URL = 'https://a2pwosrlela2fwuz5tsdznkgma0ovkuj.lambda-url.ap-southeast-2.on.aws/'
 
 export async function asyncPost<T>(methodUrl: string, getterMethodUrl: string, data: any, pid: string): Promise<T> {
-  console.log(data)
   const response = await fetch(methodUrl, {
     method: 'POST',
     redirect: 'follow',
@@ -27,7 +26,6 @@ export async function asyncPost<T>(methodUrl: string, getterMethodUrl: string, d
 }
 
 async function post<T>(methodUrl: string, data: any): Promise<T> {
-  console.log(data)
   const response = await fetch(methodUrl, {
     method: 'POST',
     redirect: 'follow',
@@ -123,24 +121,18 @@ async function uploadFileToS3(presignedUrl: string, file: string) {
   }
 }
 
-export async function downloadArtifacts(artifactPairs: ArtifactPair[]): Promise<CompiledArtifact[]> {
-  const promises = artifactPairs.map((el) => get(el.presigned_url))
+export async function downloadArtifacts(artifactData: ArtifactInfo[]): Promise<CompiledArtifact[]> {
+  const promises = artifactData.map((el) => get(el.presigned_url))
   const responses = await Promise.all(promises)
-
-  // TODO: cleanup
-  {
-    responses.forEach((el) => console.log('downloadArtifacts::response:', el))
-  }
 
   const textPromises = responses.map((el) => el.text())
   const files = await Promise.all(textPromises)
 
   return files.map((file, index): CompiledArtifact => {
-    console.log(file)
     return {
-      file_path: artifactPairs[index].file_path,
-      file_content: file,
-      is_contract: true
+      file_path: artifactData[index].file_path,
+      artifact_type: artifactData[index].artifact_type,
+      file_content: file
     }
   })
 }

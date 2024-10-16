@@ -1,6 +1,5 @@
 use aws_config::BehaviorVersion;
 use aws_sdk_s3::presigning::PresigningConfig;
-use lambda_http::http::Method;
 use lambda_http::{
     http::StatusCode, run, service_fn, Error as LambdaError, Request as LambdaRequest,
     Response as LambdaResponse,
