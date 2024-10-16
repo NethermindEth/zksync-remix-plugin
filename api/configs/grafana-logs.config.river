@@ -13,6 +13,9 @@ loki.source.file "logs" {
 }
 
 loki.write "logs" {
+    external_labels = {
+        environment = env("ENVIRONMENT"),
+    }
     endpoint {
         url = "https://logs-prod-us-central1.grafana.net/loki/api/v1/push"
         basic_auth {

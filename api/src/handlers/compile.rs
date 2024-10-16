@@ -23,7 +23,7 @@ use tracing::{error, info};
 
 pub(crate) const COMPILATION_LABEL_VALUE: &str = "compilation";
 
-#[instrument]
+#[instrument(skip(request_json, _rate_limited, engine))]
 #[post("/compile", format = "json", data = "<request_json>")]
 pub async fn compile(
     request_json: Json<CompilationRequest>,
@@ -43,7 +43,7 @@ pub async fn compile(
         })
 }
 
-#[instrument]
+#[instrument(skip(request_json, _rate_limited, engine))]
 #[post("/compile-async", format = "json", data = "<request_json>")]
 pub async fn compile_async(
     request_json: Json<CompilationRequest>,
@@ -55,7 +55,7 @@ pub async fn compile_async(
     do_process_command(ApiCommand::Compile(request_json.0), engine)
 }
 
-#[instrument]
+#[instrument(skip(engine))]
 #[get("/compile-result/<process_id>")]
 pub async fn get_compile_result(process_id: String, engine: &State<WorkerEngine>) -> String {
     info!("/compile-result/{:?}", process_id);
