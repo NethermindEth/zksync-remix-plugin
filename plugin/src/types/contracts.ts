@@ -1,4 +1,5 @@
 import type { EnvType } from './transaction'
+import { ArtifactType } from '@/api/types'
 
 interface Contract {
   contractName: string
@@ -38,7 +39,7 @@ interface VerificationResult {
 interface CompiledArtifact {
   file_path: string
   file_content: string
-  is_contract: boolean
+  artifact_type: ArtifactType
 }
 
 interface Input {

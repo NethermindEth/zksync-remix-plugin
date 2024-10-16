@@ -189,11 +189,12 @@ impl TryFrom<AttributeMap> for Item {
 mod tests {
     use super::{task_result::*, *};
 
-    use crate::item::errors::ServerError;
     use aws_sdk_dynamodb::types::AttributeValue;
     use chrono::Utc;
     use std::collections::HashMap;
     use uuid::Uuid;
+
+    use crate::item::errors::ServerError;
     use crate::item::task_result::tests::{task_success_compile, task_success_compile_map};
 
     #[test]

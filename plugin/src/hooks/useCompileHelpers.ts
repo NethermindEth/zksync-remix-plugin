@@ -9,7 +9,7 @@ import { currentFilenameAtom, currentWorkspacePathAtom, remixClientAtom } from '
 import { CompiledArtifact, Contract } from '@/types/contracts'
 import { artifactFolder } from '@/utils/utils'
 import { useAtomValue, useSetAtom } from 'jotai'
-import { CompilationRequest, TaskFailure } from '@/api/types'
+import { ArtifactType, CompilationRequest, TaskFailure } from '@/api/types'
 
 export const useCompileHelpers = () => {
   const remixClient = useAtomValue(remixClientAtom)
@@ -115,14 +115,14 @@ export const useCompileHelpers = () => {
     const contractsToAdd: Contract[] = []
     if (compilationType === 'PROJECT') {
       for (const artifact of compilationArtifacts) {
-        if (!artifact.is_contract || !artifact.file_path.startsWith('contracts/')) continue
+        if (artifact.artifact_type !== ArtifactType.Contract || !artifact.file_path.startsWith('contracts/')) continue
 
         const contract = JSON.parse(artifact.file_content) as Contract
         contractsToAdd.push(contract)
       }
     } else {
       for (const artifact of compilationArtifacts) {
-        if (!artifact.is_contract || !artifact.file_path.includes(currentFilename)) continue
+        if (artifact.artifact_type !== ArtifactType.Contract || !artifact.file_path.includes(currentFilename)) continue
 
         const contract = JSON.parse(artifact.file_content) as Contract
         contractsToAdd.push(contract)

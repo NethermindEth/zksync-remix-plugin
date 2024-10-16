@@ -2,13 +2,12 @@ use aws_config::BehaviorVersion;
 use aws_sdk_dynamodb::types::AttributeValue;
 use lambda_http::http::StatusCode;
 use lambda_http::{
-    run, service_fn, Error as LambdaError, Request as LambdaRequest, RequestExt,
-    Response as LambdaResponse, Response,
+    run, service_fn, Error as LambdaError, Request as LambdaRequest, Response as LambdaResponse,
+    Response,
 };
 use serde::Deserialize;
 use tracing::{error, info, warn};
 use types::item::errors::ItemError;
-use types::item::task_result::TaskResult;
 use types::item::{Item, Status};
 use uuid::Uuid;
 
@@ -16,7 +15,7 @@ const TABLE_NAME_DEFAULT: &str = "zksync-table";
 const NO_SUCH_ITEM: &str = "No such item";
 
 mod common;
-use crate::common::{errors::Error, utils::extract_request};
+use crate::common::errors::Error;
 
 #[derive(Deserialize)]
 struct PollRequest {

@@ -100,7 +100,7 @@ impl Processor {
 
                 match result {
                     Ok(val) => TaskResult::Success(TaskSuccess::Compile {
-                        artifact_pairs: val,
+                        artifacts_info: val,
                     }),
                     Err(err) => TaskResult::Failure(err.into()),
                 }
