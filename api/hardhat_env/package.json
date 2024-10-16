@@ -13,8 +13,8 @@
   },
   "dependencies": {
     "hardhat": "^2.19.4",
-    "@matterlabs/hardhat-zksync-solc": "1.1.4",
-    "@matterlabs/hardhat-zksync-verify": "1.4.3",
+    "@matterlabs/hardhat-zksync-solc": "^1.2.5",
+    "@matterlabs/hardhat-zksync-verify": "^1.6.0",
     "@matterlabs/zksync-contracts": "^0.6.1",
     "@openzeppelin/contracts": "^4.6.0",
     "@openzeppelin/contracts-upgradeable": "^4.6.0",

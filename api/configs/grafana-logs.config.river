@@ -42,6 +42,7 @@ prometheus.scrape "metrics" {
         __address__ = "localhost:" + env("METRICS_PORT"),
         __metrics_path__ = "/metrics",
         environment = env("ENVIRONMENT"),
+        service_version = env("SERVICE_VERSION"),
     }]
     forward_to = [prometheus.remote_write.metrics.receiver]
 
