@@ -26,7 +26,7 @@ lazy_static! {
     static ref SPAWN_SEMAPHORE: Semaphore = Semaphore::new(PROCESS_SPAWN_LIMIT);
 }
 
-#[instrument]
+#[instrument(skip(engine))]
 #[get("/health")]
 pub async fn health(engine: &State<WorkerEngine>) -> HealthCheckResponse {
     info!("/health");
