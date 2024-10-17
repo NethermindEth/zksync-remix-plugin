@@ -3,6 +3,7 @@ members = ["crates/types", "crates/lambdas", "crates/worker"]
 exclude = ["api"]
 
 [workspace.dependencies]
+anyhow = "1.0.89"
 aws-config = "1.5.5"
 aws-sdk-s3 = "1.43.0"
 aws-sdk-sqs = "1.39.0"

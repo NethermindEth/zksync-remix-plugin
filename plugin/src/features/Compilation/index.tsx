@@ -2,8 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import Container from '@/ui_components/Container'
 import { type AccordianTabs } from '@/types/common'
-import { type CompilationResult } from '@/types/contracts'
-import { asyncPost } from '@/api/asyncRequests'
+import { asyncPost, COMPILE_LAMBDA_URL, downloadArtifacts, initializeTask, POLL_LAMBDA_URL } from '@/api/asyncRequests'
 import {
   compilationAtom,
   isCompilingAtom,
@@ -25,6 +24,7 @@ import { findFilesNotInContracts, getAllContractFiles, getContractTargetPath } f
 import { Tooltip } from '@/ui_components'
 import { FILES_NOT_IN_CONTRACTS_MESSAGE } from '@/utils/constants'
 import { useCompileHelpers } from '@/hooks/useCompileHelpers'
+import { TaskResult, tryIntoCompileFromSuccess, tryIntoFailureFromResult, tryIntoSuccessFromResult } from '@/api/types'
 
 interface CompilationProps {
   setAccordian: React.Dispatch<React.SetStateAction<AccordianTabs>>
@@ -47,7 +47,7 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
   const [compilationType, setCompilationType] = useAtom(compilationTypeAtom)
 
   const [isContractsFolderAvailable, setIsContractsFolderAvailable] = useState(true)
-  const { emitErrorToRemix, writeResultsToArtifacts, getDefaultWorkspaceContents, setCompiledContracts } =
+  const { emitErrorToRemix, writeResultsToArtifacts, getDefaultCompilationRequest, setCompiledContracts } =
     useCompileHelpers()
 
   useEffect(() => {
@@ -60,10 +60,7 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
         console.error(`Failed to read current workspace ${error.message}`)
       })
   }, [currentWorkspacePath, remixClient])
-
   async function handleCompile({ type }: { type: CompilationType }): Promise<void> {
-    const workspaceContents = getDefaultWorkspaceContents()
-
     setCompilationType(type)
     setIsCompiling(true)
     setDeployStatus('IDLE')
@@ -72,11 +69,12 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
     await remixClient.editor.clearAnnotations()
     try {
       const allContractFiles = await getAllContractFiles(remixClient, currentWorkspacePath)
-      workspaceContents.contracts = allContractFiles
+      const id = await initializeTask(allContractFiles)
 
+      const compilationRequest = getDefaultCompilationRequest(id)
       if (type === 'SINGLE_FILE') {
         const targetPath = getContractTargetPath(currentFilepath)
-        workspaceContents.target_path = targetPath
+        compilationRequest.config.target_path = targetPath
       } else {
         const filesNotInContractsFolder = findFilesNotInContracts(allContractFiles)
         if (filesNotInContractsFolder.length > 0) {
@@ -87,23 +85,30 @@ export const Compilation = ({ setAccordian }: CompilationProps) => {
         }
       }
 
-      const response = await asyncPost('compile-async', 'compile-result', workspaceContents)
-
-      if (!response.ok) throw new Error('Solidity Compilation Request Failed')
-      else {
-        await remixClient.call('notification' as any, 'toast', 'Solidity compilation request successful')
+      const taskResult = await asyncPost<TaskResult>(COMPILE_LAMBDA_URL, POLL_LAMBDA_URL, compilationRequest, id)
+      const taskFailed = tryIntoFailureFromResult(taskResult)
+      if (!!taskFailed) {
+        await emitErrorToRemix(taskFailed)
+        throw new Error(`Compilation failed. ${taskFailed.error_type}: ${taskFailed.message}`)
       }
 
-      const compileResult = JSON.parse(await response.text()) as CompilationResult
-
-      if (compileResult.status !== 'Success') {
-        await emitErrorToRemix(compileResult)
+      const taskSuccess = tryIntoSuccessFromResult(taskResult)
+      if (!taskSuccess) {
+        throw new Error(`Invalid result format: ${taskResult}`)
       }
-      console.log('compile result', compileResult)
-      setCompiledContracts(compileResult, type)
-      writeResultsToArtifacts(compileResult)
 
+      const compileSuccess = tryIntoCompileFromSuccess(taskSuccess)
+      if (!compileSuccess) {
+        throw new Error(`Expected compilation result, got: ${taskSuccess}`)
+      }
+
+      await remixClient.call('notification' as any, 'toast', 'Solidity compilation request successful')
+
+      const compilationArtifacts = await downloadArtifacts(compileSuccess.artifacts_info)
+      setCompiledContracts(compilationArtifacts, type)
+      await writeResultsToArtifacts(compilationArtifacts)
       setCompileStatus('done')
+
       setAccordian('deploy')
     } catch (e) {
       setCompileStatus('failed')

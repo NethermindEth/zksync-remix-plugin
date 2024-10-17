@@ -1,15 +1,18 @@
-use anyhow::Context;
+use anyhow::{anyhow, Context};
 use aws_sdk_s3::presigning::PresigningConfig;
+use futures::future::join_all;
+use futures::StreamExt;
+use std::path::Path;
 use std::time::Duration;
 use tracing::error;
 use types::item::errors::ServerError;
-use types::item::task_result::{TaskFailure, TaskResult, TaskSuccess};
+use types::item::task_result::{ArtifactInfo, TaskFailure, TaskResult, TaskSuccess};
 use types::{CompilationRequest, ARTIFACTS_FOLDER};
 use uuid::Uuid;
 
 use crate::clients::s3_clients::wrapper::S3ClientWrapper;
 use crate::clients::sqs_clients::wrapper::SqsClientWrapper;
-use crate::commands::compile::{do_compile, CompilationOutput};
+use crate::commands::compile::{do_compile, ArtifactData, CompilationOutput};
 use crate::processor::errors::CompileProcessorError;
 use crate::processor::input_preparator::CompileInputPreparator;
 use crate::purgatory::Purgatory;
@@ -57,7 +60,7 @@ impl CompileProcessor {
         &self,
         message: CompilationRequest,
         receipt_handle: String,
-    ) -> Result<Vec<String>, CompileProcessorError> {
+    ) -> Result<Vec<ArtifactInfo>, CompileProcessorError> {
         let id = message.id;
 
         self.validate_message(&message).await.map_err(|err| {
@@ -95,35 +98,21 @@ impl CompileProcessor {
             })?;
 
         let compilation_output = do_compile(compilation_input).await?;
-        let file_keys = self.upload_artifacts(id, compilation_output).await?;
-
-        // Reckoned as independent piece
+        match self
+            .handle_output(id, &compilation_output, receipt_handle)
+            .await
         {
-            let dir = s3_compilation_files_dir(id.to_string().as_str());
-            let s3_client = self.s3_client.clone();
-            let sqs_client = self.sqs_client.clone();
-            tokio::spawn(async move {
-                // Clean compilation input files right away
-                if let Err(err) = s3_client.delete_dir(&dir).await {
-                    error!("Filed to delete compilation file: {err}")
-                }
-                if let Err(err) = sqs_client.delete_message(receipt_handle).await {
-                    error!("Failed to delete message from sqs: {err}");
-                }
-            });
-        }
-
-        match self.generate_presigned_urls(&file_keys).await {
-            Ok(presigned_urls) => {
+            Ok(artifact_pairs) => {
                 self.purgatory
                     .add_record(
                         id,
                         TaskResult::Success(TaskSuccess::Compile {
-                            presigned_urls: presigned_urls.clone(),
+                            artifacts_info: artifact_pairs.clone(),
                         }),
                     )
                     .await;
-                Ok(presigned_urls)
+
+                Ok(artifact_pairs)
             }
             Err(err) => {
                 let task_result = TaskResult::Failure(TaskFailure {
@@ -137,56 +126,117 @@ impl CompileProcessor {
         }
     }
 
-    async fn upload_artifacts(
+    async fn handle_output(
         &self,
         id: Uuid,
-        compilation_output: CompilationOutput,
-    ) -> anyhow::Result<Vec<String>> {
+        compilation_output: &CompilationOutput,
+        receipt_handle: String,
+    ) -> anyhow::Result<Vec<ArtifactInfo>> {
         let auto_clean_up = AutoCleanUp {
-            dirs: vec![compilation_output.artifacts_dir.to_str().unwrap()],
+            dirs: vec![compilation_output.workspace_dir.as_path()],
         };
 
-        let mut file_keys = Vec::with_capacity(compilation_output.artifacts_data.len());
-        for el in compilation_output.artifacts_data {
-            let absolute_path = compilation_output.artifacts_dir.join(&el.file_path);
-            let file_content = tokio::fs::File::open(absolute_path.clone())
-                .await
-                .map_err(anyhow::Error::from)
-                .with_context(|| format!("Couldn't open file: {}", absolute_path.display()))?;
+        let file_keys = self.upload_artifacts(id, &compilation_output).await?;
 
-            let file_key = format!(
-                "{}/{}/{}",
-                ARTIFACTS_FOLDER,
-                id,
-                el.file_path.to_str().unwrap()
-            );
-            self.s3_client
-                .put_object(&file_key, file_content)
-                .await
-                .map_err(anyhow::Error::from)
-                .with_context(|| "Couldn't upload artifact")?; // TODO: TODO(101)
-            file_keys.push(file_key);
+        // Reckoned as independent piece
+        {
+            let dir = s3_compilation_files_dir(id.to_string().as_str());
+            let s3_client = self.s3_client.clone();
+            let sqs_client = self.sqs_client.clone();
+            tokio::spawn(async move {
+                // Clean compilation input files right away
+                if let Err(err) = s3_client.delete_dir(&dir).await {
+                    error!("Failed to delete compilation file: {err}")
+                }
+                if let Err(err) = sqs_client.delete_message(receipt_handle).await {
+                    error!("Failed to delete message from sqs: {err}");
+                }
+            });
         }
 
         auto_clean_up.clean_up().await;
+        Ok(self
+            .generate_artifact_infos(&file_keys, compilation_output.artifacts_data.as_slice())
+            .await?)
+    }
+
+    async fn upload_artifact(
+        &self,
+        id: Uuid,
+        artifacts_dir: &Path,
+        el: &ArtifactData,
+    ) -> anyhow::Result<String> {
+        let absolute_path = artifacts_dir.join(&el.file_path);
+        let file_content = tokio::fs::File::open(absolute_path.clone())
+            .await
+            .map_err(anyhow::Error::from)
+            .with_context(|| format!("Couldn't open file: {}", absolute_path.display()))?;
+
+        let file_key = format!(
+            "{}/{}/{}",
+            ARTIFACTS_FOLDER,
+            id,
+            el.file_path
+                .to_str()
+                .ok_or(anyhow!("Couldn't convert file_path to utf-8"))?
+        );
+        self.s3_client
+            .put_object(&file_key, file_content)
+            .await
+            .map_err(anyhow::Error::from)
+            .with_context(|| "Couldn't upload artifact")?; // TODO: TODO(101)
+
+        Ok(file_key)
+    }
+
+    async fn upload_artifacts(
+        &self,
+        id: Uuid,
+        compilation_output: &CompilationOutput,
+    ) -> anyhow::Result<Vec<String>> {
+        let upload_futures = compilation_output
+            .artifacts_data
+            .iter()
+            .map(|el| self.upload_artifact(id, &compilation_output.artifacts_dir, el))
+            .collect::<Vec<_>>();
+        let results = join_all(upload_futures).await;
+        let file_keys: Vec<String> = results.into_iter().collect::<Result<Vec<_>, _>>()?;
+
         Ok(file_keys)
     }
 
-    async fn generate_presigned_urls(&self, file_keys: &[String]) -> anyhow::Result<Vec<String>> {
+    async fn generate_artifact_info(&self, file_key: &str, artifact_data: &ArtifactData) -> anyhow::Result<ArtifactInfo> {
         const DOWNLOAD_URL_EXPIRATION: Duration = Duration::from_secs(5 * 60 * 60);
+        let expires_in = PresigningConfig::expires_in(DOWNLOAD_URL_EXPIRATION).unwrap();
+        let presigned_request = self
+            .s3_client
+            .get_object_presigned(file_key, &expires_in)
+            .await
+            .map_err(anyhow::Error::from)?; // TODO: maybe extra handle in case chan closed TODO(101)
 
-        let mut presigned_urls = Vec::with_capacity(file_keys.len());
-        for el in file_keys {
-            let expires_in = PresigningConfig::expires_in(DOWNLOAD_URL_EXPIRATION).unwrap();
-            let presigned_request = self
-                .s3_client
-                .get_object_presigned(el.as_str(), &expires_in)
-                .await
-                .map_err(anyhow::Error::from)?; // TODO: maybe extra handle in case chan closed TODO(101)
+        Ok(ArtifactInfo {
+            artifact_type: artifact_data.artifact_type,
+            file_path: artifact_data
+                .file_path
+                .to_str()
+                .ok_or(anyhow!(format!(
+                        "Can't convert artifact_path to utf-8: {}",
+                        artifact_data.file_path.display()
+                    )))?
+                .to_string(),
+            presigned_url: presigned_request.uri().to_string(),
+        })
+    }
 
-            presigned_urls.push(presigned_request.uri().to_string());
-        }
+    async fn generate_artifact_infos(
+        &self,
+        file_keys: &[String],
+        artifacts_data: &[ArtifactData],
+    ) -> anyhow::Result<Vec<ArtifactInfo>> {
+        let generate_futures = file_keys.iter().zip(artifacts_data.iter()).map(|(file_key, artifact_data)| self.generate_artifact_info(file_key.as_str(), artifact_data)).collect::<Vec<_>>();
+        let results = join_all(generate_futures).await;
 
-        Ok(presigned_urls)
+        let artifact_pairs: Vec<ArtifactInfo> = results.into_iter().collect::<Result<Vec<_>, _>>()?;
+        Ok(artifact_pairs)
     }
 }

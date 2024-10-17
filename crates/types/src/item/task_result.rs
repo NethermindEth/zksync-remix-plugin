@@ -6,7 +6,7 @@ use std::fmt::Formatter;
 use crate::item::errors::{ItemError, ServerError};
 use crate::item::AttributeMap;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 #[cfg_attr(test, derive(PartialEq))]
 pub enum TaskResult {
     Success(TaskSuccess),
@@ -80,9 +80,8 @@ impl TryFrom<&AttributeMap> for TaskResult {
 
 #[derive(Debug, Clone, Serialize)]
 #[cfg_attr(test, derive(PartialEq))]
-#[serde(untagged)]
 pub enum TaskSuccess {
-    Compile { presigned_urls: Vec<String> },
+    Compile { artifacts_info: Vec<ArtifactInfo> },
     Verify { message: String },
 }
 
@@ -99,9 +98,11 @@ impl TaskSuccess {
 impl From<TaskSuccess> for AttributeMap {
     fn from(value: TaskSuccess) -> Self {
         match value {
-            TaskSuccess::Compile { presigned_urls } => HashMap::from([(
+            TaskSuccess::Compile {
+                artifacts_info: artifact_pairs,
+            } => HashMap::from([(
                 TaskSuccess::compile_attribute_name().into(),
-                AttributeValue::Ss(presigned_urls),
+                AttributeValue::L(artifact_pairs.into_iter().map(|pair| pair.into()).collect()),
             )]),
             TaskSuccess::Verify { message } => HashMap::from([(
                 TaskSuccess::verify_attribute_name().into(),
@@ -129,12 +130,17 @@ impl TryFrom<&AttributeMap> for TaskSuccess {
 
         match key.as_str() {
             "Compile" => {
-                let presigned_urls = value
-                    .as_ss()
+                let raw_artifact_pairs = value
+                    .as_l()
                     .map_err(|_| ItemError::FormatError("invalid type".into()))?;
 
+                let artifact_pairs = raw_artifact_pairs
+                    .into_iter()
+                    .map(|value| value.try_into())
+                    .collect::<Result<_, ItemError>>()?;
+
                 Ok(TaskSuccess::Compile {
-                    presigned_urls: presigned_urls.clone(),
+                    artifacts_info: artifact_pairs,
                 })
             }
             "Verify" => {
@@ -153,7 +159,7 @@ impl TryFrom<&AttributeMap> for TaskSuccess {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 #[cfg_attr(test, derive(PartialEq))]
 pub struct TaskFailure {
     pub error_type: ServerError,
@@ -202,22 +208,139 @@ impl TryFrom<&AttributeValue> for TaskFailure {
     }
 }
 
+#[derive(Debug, Clone, Copy, Serialize)]
+#[cfg_attr(test, derive(PartialEq))]
+#[serde(rename_all = "PascalCase")]
+pub enum ArtifactType {
+    Unknown,
+    Contract,
+    Dbg,
+}
+
+impl From<ArtifactType> for &'static str {
+    fn from(value: ArtifactType) -> Self {
+        match value {
+            ArtifactType::Unknown => "Unknown",
+            ArtifactType::Contract => "Contract",
+            ArtifactType::Dbg => "Dbg",
+        }
+    }
+}
+
+impl TryFrom<String> for ArtifactType {
+    type Error = ItemError;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        value.try_into()
+    }
+}
+
+impl TryFrom<&String> for ArtifactType {
+    type Error = ItemError;
+    fn try_from(value: &String) -> Result<Self, Self::Error> {
+        match value.as_str() {
+            "Unknown" => Ok(Self::Unknown),
+            "Contract" => Ok(Self::Contract),
+            "Dbg" => Ok(Self::Dbg),
+            _ => Err(ItemError::FormatError(format!(
+                "Unknown ArtifactType variant: {}",
+                value
+            ))),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[cfg_attr(test, derive(PartialEq))]
+pub struct ArtifactInfo {
+    pub artifact_type: ArtifactType,
+    pub file_path: String,
+    pub presigned_url: String,
+}
+
+impl ArtifactInfo {
+    pub const fn size() -> usize {
+        3
+    }
+}
+
+impl From<ArtifactInfo> for AttributeValue {
+    fn from(value: ArtifactInfo) -> Self {
+        AttributeValue::Ss(vec![
+            <ArtifactType as Into<&'static str>>::into(value.artifact_type).to_string(),
+            value.file_path,
+            value.presigned_url,
+        ])
+    }
+}
+
+impl TryFrom<&AttributeValue> for ArtifactInfo {
+    type Error = ItemError;
+    fn try_from(value: &AttributeValue) -> Result<Self, Self::Error> {
+        let data = value
+            .as_ss()
+            .map_err(|_| ItemError::FormatError("Artifact pair".into()))?;
+        if data.len() != ArtifactInfo::size() {
+            Err(ItemError::FormatError(format!(
+                "Invalid number of values: {}",
+                data.len()
+            )))
+        } else {
+            Ok(())
+        }?;
+
+        Ok(ArtifactInfo {
+            artifact_type: (&data[0]).try_into()?,
+            file_path: data[1].to_owned(),
+            presigned_url: data[2].to_owned(),
+        })
+    }
+}
+
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use super::*;
     use aws_sdk_dynamodb::types::AttributeValue;
     use std::collections::HashMap;
 
+    pub fn task_success_compile() -> TaskSuccess {
+        TaskSuccess::Compile {
+            artifacts_info: vec![
+                ArtifactInfo {
+                    artifact_type: ArtifactType::Contract,
+                    presigned_url: "url1".to_string(),
+                    file_path: "path1".to_string(),
+                },
+                ArtifactInfo {
+                    artifact_type: ArtifactType::Contract,
+                    presigned_url: "url2".to_string(),
+                    file_path: "path2".to_string(),
+                },
+            ],
+        }
+    }
+
+    pub fn task_success_compile_map() -> AttributeMap {
+        HashMap::from([(
+            "Compile".to_string(),
+            AttributeValue::L(vec![
+                AttributeValue::Ss(vec![
+                    "Contract".to_string(),
+                    "path1".to_string(),
+                    "url1".to_string(),
+                ]),
+                AttributeValue::Ss(vec![
+                    "Contract".to_string(),
+                    "path2".to_string(),
+                    "url2".to_string(),
+                ]),
+            ]),
+        )])
+    }
+
     #[test]
     fn test_task_success_compile_to_attribute_map() {
-        let task_success = TaskSuccess::Compile {
-            presigned_urls: vec!["url1".to_string(), "url2".to_string()],
-        };
-
-        let expected_map = HashMap::from([(
-            "Compile".to_string(),
-            AttributeValue::Ss(vec!["url1".to_string(), "url2".to_string()]),
-        )]);
+        let task_success = task_success_compile();
+        let expected_map = task_success_compile_map();
 
         let attribute_map: AttributeMap = task_success.into();
         assert_eq!(attribute_map, expected_map);
@@ -225,14 +348,8 @@ mod tests {
 
     #[test]
     fn test_task_success_compile_from_attribute_map() {
-        let attribute_map = HashMap::from([(
-            "Compile".to_string(),
-            AttributeValue::Ss(vec!["url1".to_string(), "url2".to_string()]),
-        )]);
-
-        let expected_task_success = TaskSuccess::Compile {
-            presigned_urls: vec!["url1".to_string(), "url2".to_string()],
-        };
+        let attribute_map = task_success_compile_map();
+        let expected_task_success = task_success_compile();
 
         let result: TaskSuccess = (&attribute_map).try_into().expect("Conversion failed");
         assert_eq!(result, expected_task_success);
@@ -308,16 +425,11 @@ mod tests {
 
     #[test]
     fn test_task_result_success_compile_to_attribute_map() {
-        let task_result = TaskResult::Success(TaskSuccess::Compile {
-            presigned_urls: vec!["url1".to_string(), "url2".to_string()],
-        });
+        let task_result = TaskResult::Success(task_success_compile());
 
         let expected_map = HashMap::from([(
             "Success".to_string(),
-            AttributeValue::M(HashMap::from([(
-                "Compile".to_string(),
-                AttributeValue::Ss(vec!["url1".to_string(), "url2".to_string()]),
-            )])),
+            AttributeValue::M(task_success_compile_map()),
         )]);
 
         let attribute_map: AttributeMap = task_result.into();
@@ -328,15 +440,10 @@ mod tests {
     fn test_task_result_success_compile_from_attribute_map() {
         let attribute_map = HashMap::from([(
             "Success".to_string(),
-            AttributeValue::M(HashMap::from([(
-                "Compile".to_string(),
-                AttributeValue::Ss(vec!["url1".to_string(), "url2".to_string()]),
-            )])),
+            AttributeValue::M(task_success_compile_map()),
         )]);
 
-        let expected_task_result = TaskResult::Success(TaskSuccess::Compile {
-            presigned_urls: vec!["url1".to_string(), "url2".to_string()],
-        });
+        let expected_task_result = TaskResult::Success(task_success_compile());
 
         let result: TaskResult = (&attribute_map).try_into().expect("Conversion failed");
         assert_eq!(result, expected_task_result);

@@ -5,6 +5,8 @@ use types::item::task_result::TaskFailure;
 pub enum CompilationError {
     #[error("CompilationFailureError: {0}")]
     CompilationFailureError(String),
+    #[error("Nothing to compile")]
+    NothingToCompileError,
     #[error("UnknownError: {0}")]
     UnknownError(#[from] anyhow::Error),
 }
