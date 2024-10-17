@@ -13,6 +13,7 @@ use types::{
 };
 
 mod common;
+use crate::common::utils::error_string_to_json;
 use crate::common::{errors::Error, utils::extract_request, BUCKET_NAME_DEFAULT};
 
 // TODO: remove on release. random change
@@ -20,7 +21,7 @@ const QUEUE_URL_DEFAULT: &str = "https://sqs.ap-southeast-2.amazonaws.com/266735
 const TABLE_NAME_DEFAULT: &str = "zksync-table";
 
 const NO_OBJECTS_TO_COMPILE_ERROR: &str = "There are no objects to compile";
-const RECOMPILATION_ATTEMPT_ERROR: &str = "Recompilation attemp";
+const RECOMPILATION_ATTEMPT_ERROR: &str = "Recompilation attempt";
 // impl Deserialize for Response {
 //     fn deserialize<'de, D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
 //         todo!()
@@ -62,8 +63,8 @@ async fn compile(
                 error!("Recompilation attempt, id: {}", request.id);
                 let response = lambda_http::Response::builder()
                     .status(StatusCode::CONFLICT)
-                    .header("content-type", "application/json")
-                    .body(RECOMPILATION_ATTEMPT_ERROR.into())
+                    .header("Content-Type", "application/json")
+                    .body(error_string_to_json(RECOMPILATION_ATTEMPT_ERROR).to_string())
                     .map_err(Error::from)?;
 
                 return Err(Error::HttpError(response));
@@ -114,7 +115,6 @@ async fn process_request(
     s3_client: &aws_sdk_s3::Client,
     bucket_name: &str,
 ) -> Result<LambdaResponse<String>, Error> {
-    info!("extract_request");
     let request = extract_request::<CompilationRequest>(&request)?;
 
     let objects = s3_client
@@ -124,22 +124,19 @@ async fn process_request(
         .send()
         .await
         .map_err(Box::new)?;
-    info!("list_objects_v2");
 
     if let None = &objects.contents {
         error!("No objects in folder: {}", request.id);
         let response = LambdaResponse::builder()
             .status(StatusCode::BAD_REQUEST)
             .header("Content-Type", "application/json")
-            .body(NO_OBJECTS_TO_COMPILE_ERROR.into())
+            .body(error_string_to_json(NO_OBJECTS_TO_COMPILE_ERROR).to_string())
             .map_err(Error::from)?;
 
         return Err(Error::HttpError(response));
     }
 
-    info!("Compile");
     compile(request, dynamo_client, table_name, sqs_client, queue_url).await?;
-
     let response = LambdaResponse::builder()
         .status(StatusCode::OK)
         .header("content-type", "application/json")

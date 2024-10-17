@@ -16,6 +16,7 @@ const NO_SUCH_ITEM: &str = "No such item";
 
 mod common;
 use crate::common::errors::Error;
+use crate::common::utils::error_string_to_json;
 
 #[derive(Deserialize)]
 struct PollRequest {
@@ -33,8 +34,8 @@ fn extract_uuid_from_request(request: &LambdaRequest) -> Result<Uuid, Error> {
                 info!("User supplied invalid uuid: {}", uuid_str);
                 let response = Response::builder()
                     .status(StatusCode::BAD_REQUEST)
-                    .header("content-type", "application/json")
-                    .body("Invalid UUID format".to_string())
+                    .header("Content-Type", "application/json")
+                    .body(error_string_to_json("Invalid UUID format").to_string())
                     .map_err(Box::new)?;
 
                 return Err(Error::HttpError(response));
@@ -44,8 +45,8 @@ fn extract_uuid_from_request(request: &LambdaRequest) -> Result<Uuid, Error> {
         info!("Invalid user request: {}", path);
         let response = Response::builder()
             .status(StatusCode::BAD_REQUEST)
-            .header("content-type", "application/json")
-            .body("Invalid url".to_string())
+            .header("Content-Type", "application/json")
+            .body(error_string_to_json("Invalid url").to_string())
             .map_err(Box::new)?;
 
         return Err(Error::HttpError(response));
@@ -78,7 +79,7 @@ async fn process_request(
         let response = LambdaResponse::builder()
             .status(StatusCode::NOT_FOUND)
             .header("Content-Type", "application/json")
-            .body(NO_SUCH_ITEM.to_string())
+            .body(error_string_to_json(NO_SUCH_ITEM).to_string())
             .map_err(Error::from);
 
         match response {
@@ -92,7 +93,7 @@ async fn process_request(
         let response = LambdaResponse::builder()
             .status(StatusCode::INTERNAL_SERVER_ERROR)
             .header("Content-Type", "application/json")
-            .body(err.to_string())
+            .body(error_string_to_json(&err).to_string())
             .map_err(Error::from);
 
         match response {
@@ -101,24 +102,26 @@ async fn process_request(
         }
     })?;
 
-    let task_result = if let Status::Done(task_result) = item.status {
-        Ok(task_result)
-    } else {
-        let response = LambdaResponse::builder()
-            .status(StatusCode::ACCEPTED)
-            .header("Content-Type", "application/json")
-            .body("Running".to_owned())
-            .map_err(Error::from)?;
+    match item.status {
+        Status::Pending | Status::InProgress => {
+            let response = LambdaResponse::builder()
+                .status(StatusCode::ACCEPTED)
+                .header("Content-Type", "application/json")
+                .body("Running".to_string())
+                .map_err(Error::from)?;
 
-        Err(Error::HttpError(response))
-    }?;
+            Err(Error::HttpError(response))
+        }
+        Status::Done(task_result) => {
+            let task_result_json = serde_json::to_string(&task_result)?;
+            let response = LambdaResponse::builder()
+                .status(StatusCode::OK)
+                .header("Content-Type", "application/json")
+                .body(task_result_json)?;
 
-    let response = LambdaResponse::builder()
-        .status(StatusCode::OK)
-        .header("Content-Type", "application/json")
-        .body(serde_json::to_string(&task_result)?)?;
-
-    Ok(response)
+            Ok(response)
+        }
+    }
 }
 
 #[tokio::main]
