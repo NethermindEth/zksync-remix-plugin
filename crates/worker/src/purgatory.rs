@@ -4,10 +4,11 @@ use std::marker::PhantomData;
 use std::ptr::NonNull;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::time::{interval, sleep};
+use tokio::time::interval;
 use tokio::{sync::Mutex, task::JoinHandle};
 use tracing::warn;
-use types::item::{Item, ItemError, Status, TaskResult};
+use types::item::errors::ItemError;
+use types::item::{task_result::TaskResult, Item, Status};
 use uuid::Uuid;
 
 use crate::clients::dynamodb_clients::wrapper::DynamoDBClientWrapper;
@@ -46,15 +47,15 @@ impl Purgatory {
         this
     }
 
-    pub async fn purge(&mut self) {
+    pub async fn purge(&self) {
         self.inner.lock().await.purge().await;
     }
 
-    pub async fn add_record(&mut self, id: Uuid, result: TaskResult) {
+    pub async fn add_record(&self, id: Uuid, result: TaskResult) {
         self.inner.lock().await.add_record(id, result);
     }
 
-    async fn daemon(mut self) {
+    async fn daemon(self) {
         const PURGE_INTERVAL: Duration = Duration::from_secs(60);
 
         let mut interval = interval(PURGE_INTERVAL);
@@ -144,6 +145,7 @@ impl Inner {
         id: &Uuid,
         status: &Status,
     ) -> Result<(), PurgeError> {
+        // TODO: recheck status of the item first
         match status {
             Status::InProgress => warn!("Item compiling for too long!"),
             Status::Pending => {
