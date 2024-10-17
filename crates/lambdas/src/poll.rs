@@ -1,11 +1,12 @@
 use aws_config::BehaviorVersion;
 use aws_sdk_dynamodb::types::AttributeValue;
 use lambda_http::http::StatusCode;
+use lambda_http::tower::util::Either;
 use lambda_http::{
     run, service_fn, Error as LambdaError, Request as LambdaRequest, Response as LambdaResponse,
-    Response,
 };
 use serde::Deserialize;
+use serde_json::json;
 use tracing::{error, info, warn};
 use types::item::errors::ItemError;
 use types::item::{Item, Status};
@@ -15,7 +16,6 @@ const TABLE_NAME_DEFAULT: &str = "zksync-table";
 const NO_SUCH_ITEM: &str = "No such item";
 
 mod common;
-use crate::common::errors::Error;
 use crate::common::utils::error_string_to_json;
 
 #[derive(Deserialize)]
@@ -23,42 +23,69 @@ struct PollRequest {
     pub id: Uuid,
 }
 
+#[derive(thiserror::Error, Debug)]
+enum Error {
+    #[error("{0}")]
+    BadRequestError(String),
+    #[error("{0}")]
+    NotFoundError(String),
+    #[error(transparent)]
+    InternalError(#[from] anyhow::Error),
+}
+
+impl TryInto<LambdaResponse<String>> for Error {
+    type Error = LambdaError;
+    fn try_into(self) -> Result<LambdaResponse<String>, Self::Error> {
+        match self {
+            Self::BadRequestError(err) => {
+                let response = LambdaResponse::builder()
+                    .status(StatusCode::BAD_REQUEST)
+                    .header("Content-Type", "application/json")
+                    .body(error_string_to_json(&err).to_string())?;
+                Ok(response)
+            }
+            Self::NotFoundError(err) => {
+                let response = LambdaResponse::builder()
+                    .status(StatusCode::NOT_FOUND)
+                    .header("Content-Type", "application/json")
+                    .body(error_string_to_json(&err).to_string())?;
+                Ok(response)
+            }
+            Self::InternalError(err) => {
+                let response = LambdaResponse::builder()
+                    .status(StatusCode::INTERNAL_SERVER_ERROR)
+                    .header("Content-Type", "application/json")
+                    .body(error_string_to_json(&err).to_string())?;
+                Ok(response)
+            }
+        }
+    }
+}
+
 #[tracing::instrument(skip(request))]
 fn extract_uuid_from_request(request: &LambdaRequest) -> Result<Uuid, Error> {
     let path = request.uri().path();
     let path_segments: Vec<&str> = path.split('/').collect();
-    if let Some(uuid_str) = path_segments.last() {
-        match Uuid::parse_str(uuid_str) {
-            Ok(uuid) => Ok(uuid),
-            Err(_) => {
-                info!("User supplied invalid uuid: {}", uuid_str);
-                let response = Response::builder()
-                    .status(StatusCode::BAD_REQUEST)
-                    .header("Content-Type", "application/json")
-                    .body(error_string_to_json("Invalid UUID format").to_string())
-                    .map_err(Box::new)?;
 
-                return Err(Error::HttpError(response));
-            }
-        }
-    } else {
+    let uuid_str = path_segments.last().ok_or_else(|| {
         info!("Invalid user request: {}", path);
-        let response = Response::builder()
-            .status(StatusCode::BAD_REQUEST)
-            .header("Content-Type", "application/json")
-            .body(error_string_to_json("Invalid url").to_string())
-            .map_err(Box::new)?;
+        Error::BadRequestError(format!("Invalid url: {}", path))
+    })?;
+    let uuid = Uuid::parse_str(uuid_str).map_err(|err| {
+        info!("User supplied invalid uuid: {}", uuid_str);
+        Error::BadRequestError(format!("Invalid UUID: {}", err.to_string()))
+    })?;
 
-        return Err(Error::HttpError(response));
-    }
+    Ok(uuid)
 }
 
+// Returns either Ok or Accepted
 #[tracing::instrument(skip(dynamo_client, table_name))]
 async fn process_request(
     request: LambdaRequest,
     dynamo_client: &aws_sdk_dynamodb::Client,
     table_name: &str,
-) -> Result<LambdaResponse<String>, Error> {
+) -> Result<Either<String, ()>, Error> {
     let request = PollRequest {
         id: extract_uuid_from_request(&request)?,
     };
@@ -72,54 +99,24 @@ async fn process_request(
         )
         .send()
         .await
-        .map_err(Box::new)?;
+        .map_err(anyhow::Error::from)?;
 
     let raw_item = output.item.ok_or_else(|| {
         info!("Requested non existing item: {}", request.id);
-        let response = LambdaResponse::builder()
-            .status(StatusCode::NOT_FOUND)
-            .header("Content-Type", "application/json")
-            .body(error_string_to_json(NO_SUCH_ITEM).to_string())
-            .map_err(Error::from);
-
-        match response {
-            Ok(response) => Error::HttpError(response),
-            Err(err) => err,
-        }
+        Error::NotFoundError(NO_SUCH_ITEM.to_string())
     })?;
 
     let item: Item = raw_item.try_into().map_err(|err: ItemError| {
         error!("Failed to deserialize item. id: {}", request.id);
-        let response = LambdaResponse::builder()
-            .status(StatusCode::INTERNAL_SERVER_ERROR)
-            .header("Content-Type", "application/json")
-            .body(error_string_to_json(&err).to_string())
-            .map_err(Error::from);
-
-        match response {
-            Ok(response) => Error::HttpError(response),
-            Err(err) => err,
-        }
+        Error::InternalError(err.into())
     })?;
 
     match item.status {
-        Status::Pending | Status::InProgress => {
-            let response = LambdaResponse::builder()
-                .status(StatusCode::ACCEPTED)
-                .header("Content-Type", "application/json")
-                .body("Running".to_string())
-                .map_err(Error::from)?;
-
-            Err(Error::HttpError(response))
-        }
+        Status::Pending | Status::InProgress => Ok(Either::B(())),
         Status::Done(task_result) => {
-            let task_result_json = serde_json::to_string(&task_result)?;
-            let response = LambdaResponse::builder()
-                .status(StatusCode::OK)
-                .header("Content-Type", "application/json")
-                .body(task_result_json)?;
-
-            Ok(response)
+            let task_result_json =
+                serde_json::to_string(&task_result).map_err(anyhow::Error::from)?;
+            Ok(Either::A(task_result_json))
         }
     }
 }
@@ -140,17 +137,26 @@ async fn main() -> Result<(), LambdaError> {
 
     run(service_fn(|request: LambdaRequest| async {
         let result = process_request(request, &dynamo_client, &table_name).await;
-
         match result {
-            Ok(val) => Ok(val),
-            Err(Error::HttpError(val)) => {
-                error!("HttpError: {}", val.body());
-                Ok(val)
+            Ok(Either::A(ok_json)) => {
+                let response = LambdaResponse::builder()
+                    .status(StatusCode::OK)
+                    .header("Content-Type", "application/json")
+                    .body(ok_json)?;
+
+                Ok(response)
             }
-            Err(Error::LambdaError(err)) => {
-                error!("LambdaError: {}", err.to_string());
-                Err(err)
+            Ok(Either::B(_)) => {
+                let response = LambdaResponse::builder()
+                    .status(StatusCode::ACCEPTED)
+                    .header("Content-Type", "application/json")
+                    .body(json!({
+                        "status": "Running"
+                    }).to_string())?;
+
+                Ok(response)
             }
+            Err(err) => Ok::<_, LambdaError>(err.try_into()?),
         }
     }))
     .await
