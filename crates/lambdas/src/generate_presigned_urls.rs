@@ -9,10 +9,11 @@ use std::{
     path::{Path, PathBuf},
     time::Duration,
 };
-use tracing::{error, info, warn};
+use tracing::{error, warn};
 use uuid::Uuid;
 
 mod common;
+use crate::common::utils::error_string_to_json;
 use crate::common::{errors::Error, utils::extract_request, BUCKET_NAME_DEFAULT};
 
 const MAX_FILES: usize = 300;
@@ -70,9 +71,9 @@ async fn process_request(
     if request.files.len() > MAX_FILES {
         warn!("MAX_FILES limit exceeded");
         let response = LambdaResponse::builder()
-            .status(400)
+            .status(StatusCode::BAD_REQUEST)
             .header("Content-Type", "application/json")
-            .body(EXCEEDED_MAX_FILES_ERROR.into())
+            .body(error_string_to_json(EXCEEDED_MAX_FILES_ERROR).to_string())
             .map_err(Box::new)?;
 
         return Err(Error::HttpError(response));

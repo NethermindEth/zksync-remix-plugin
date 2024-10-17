@@ -1,6 +1,7 @@
 use aws_config::BehaviorVersion;
 use aws_sdk_dynamodb::{error::SdkError, operation::put_item::PutItemError};
 use chrono::Utc;
+use lambda_http::http::StatusCode;
 use lambda_http::{
     run, service_fn, Error as LambdaError, Request as LambdaRequest, Response as LambdaResponse,
 };
@@ -12,6 +13,7 @@ use types::{
 };
 
 mod common;
+use crate::common::utils::error_string_to_json;
 use crate::common::{errors::Error, utils::extract_request, BUCKET_NAME_DEFAULT};
 
 // TODO: remove on release
@@ -49,9 +51,9 @@ async fn verify(
             PutItemError::ConditionalCheckFailedException(_) => {
                 error!("Reverification attempt, id: {}", request.id);
                 let response = lambda_http::Response::builder()
-                    .status(400)
-                    .header("content-type", "application/json")
-                    .body(RECOMPILATION_ATTEMPT_ERROR.into())
+                    .status(StatusCode::BAD_REQUEST)
+                    .header("Content-Type", "application/json")
+                    .body(error_string_to_json(RECOMPILATION_ATTEMPT_ERROR).to_string())
                     .map_err(Error::from)?;
 
                 return Err(Error::HttpError(response));
@@ -115,9 +117,9 @@ async fn process_request(
     if let None = &objects.contents {
         error!("No objects in folder: {}", request.id);
         let response = LambdaResponse::builder()
-            .status(400)
-            .header("content-type", "application/json")
-            .body(NO_OBJECTS_TO_COMPILE_ERROR.into())
+            .status(StatusCode::BAD_REQUEST)
+            .header("Content-Type", "application/json")
+            .body(error_string_to_json(NO_OBJECTS_TO_COMPILE_ERROR).to_string())
             .map_err(Error::from)?;
 
         return Err(Error::HttpError(response));
@@ -127,8 +129,8 @@ async fn process_request(
     verify(request, dynamo_client, table_name, sqs_client, queue_url).await?;
 
     let response = LambdaResponse::builder()
-        .status(200)
-        .header("content-type", "application/json")
+        .status(StatusCode::OK)
+        .header("Content-Type", "application/json")
         .body(Default::default())
         .map_err(Box::new)?;
 
