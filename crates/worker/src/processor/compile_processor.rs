@@ -1,5 +1,8 @@
 use anyhow::{anyhow, Context};
 use aws_sdk_s3::presigning::PresigningConfig;
+use futures::future::join_all;
+use futures::StreamExt;
+use std::path::Path;
 use std::time::Duration;
 use tracing::error;
 use types::item::errors::ServerError;
@@ -157,35 +160,47 @@ impl CompileProcessor {
             .await?)
     }
 
+    async fn upload_artifact(
+        &self,
+        id: Uuid,
+        artifacts_dir: &Path,
+        el: &ArtifactData,
+    ) -> anyhow::Result<String> {
+        let absolute_path = artifacts_dir.join(&el.file_path);
+        let file_content = tokio::fs::File::open(absolute_path.clone())
+            .await
+            .map_err(anyhow::Error::from)
+            .with_context(|| format!("Couldn't open file: {}", absolute_path.display()))?;
+
+        let file_key = format!(
+            "{}/{}/{}",
+            ARTIFACTS_FOLDER,
+            id,
+            el.file_path
+                .to_str()
+                .ok_or(anyhow!("Couldn't convert file_path to utf-8"))?
+        );
+        self.s3_client
+            .put_object(&file_key, file_content)
+            .await
+            .map_err(anyhow::Error::from)
+            .with_context(|| "Couldn't upload artifact")?; // TODO: TODO(101)
+
+        Ok(file_key)
+    }
+
     async fn upload_artifacts(
         &self,
         id: Uuid,
         compilation_output: &CompilationOutput,
     ) -> anyhow::Result<Vec<String>> {
-        let mut file_keys = Vec::with_capacity(compilation_output.artifacts_data.len());
-        for el in &compilation_output.artifacts_data {
-            let absolute_path = compilation_output.artifacts_dir.join(&el.file_path);
-            let file_content = tokio::fs::File::open(absolute_path.clone())
-                .await
-                .map_err(anyhow::Error::from)
-                .with_context(|| format!("Couldn't open file: {}", absolute_path.display()))?;
-
-            let file_key = format!(
-                "{}/{}/{}",
-                ARTIFACTS_FOLDER,
-                id,
-                el.file_path
-                    .to_str()
-                    .ok_or(anyhow!("Couldn't convert file_path to utf-8"))?
-            );
-            self.s3_client
-                .put_object(&file_key, file_content)
-                .await
-                .map_err(anyhow::Error::from)
-                .with_context(|| "Couldn't upload artifact")?; // TODO: TODO(101)
-
-            file_keys.push(file_key);
-        }
+        let upload_futures = compilation_output
+            .artifacts_data
+            .iter()
+            .map(|el| self.upload_artifact(id, &compilation_output.artifacts_dir, el))
+            .collect::<Vec<_>>();
+        let results = join_all(upload_futures).await;
+        let file_keys: Vec<String> = results.into_iter().collect::<Result<Vec<_>, _>>()?;
 
         Ok(file_keys)
     }
