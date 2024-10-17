@@ -136,7 +136,7 @@ pub async fn do_verify(verification_request: VerificationRequest) -> Result<Json
         .to_string_config();
 
     // create parent directories
-    tokio::fs::create_dir_all(hardhat_config_path.parent().unwrap())
+    tokio::fs::create_dir_all(workspace_path)
         .await
         .map_err(ApiError::FailedToWriteFile)?;
 
