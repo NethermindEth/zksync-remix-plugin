@@ -156,7 +156,7 @@ impl CompileProcessor {
 
         auto_clean_up.clean_up().await;
         Ok(self
-            .generate_artifact_pairs(&file_keys, compilation_output.artifacts_data.as_slice())
+            .generate_artifact_infos(&file_keys, compilation_output.artifacts_data.as_slice())
             .await?)
     }
 
@@ -205,36 +205,38 @@ impl CompileProcessor {
         Ok(file_keys)
     }
 
-    async fn generate_artifact_pairs(
-        &self,
-        file_keys: &[String],
-        artifact_paths: &[ArtifactData],
-    ) -> anyhow::Result<Vec<ArtifactInfo>> {
+    async fn generate_artifact_info(&self, file_key: &str, artifact_data: &ArtifactData) -> anyhow::Result<ArtifactInfo> {
         const DOWNLOAD_URL_EXPIRATION: Duration = Duration::from_secs(5 * 60 * 60);
+        let expires_in = PresigningConfig::expires_in(DOWNLOAD_URL_EXPIRATION).unwrap();
+        let presigned_request = self
+            .s3_client
+            .get_object_presigned(file_key, &expires_in)
+            .await
+            .map_err(anyhow::Error::from)?; // TODO: maybe extra handle in case chan closed TODO(101)
 
-        let mut artifact_pairs = Vec::with_capacity(file_keys.len());
-        for (file_key, artifact_data) in file_keys.iter().zip(artifact_paths.iter()) {
-            let expires_in = PresigningConfig::expires_in(DOWNLOAD_URL_EXPIRATION).unwrap();
-            let presigned_request = self
-                .s3_client
-                .get_object_presigned(file_key.as_str(), &expires_in)
-                .await
-                .map_err(anyhow::Error::from)?; // TODO: maybe extra handle in case chan closed TODO(101)
-
-            artifact_pairs.push(ArtifactInfo {
-                artifact_type: artifact_data.artifact_type,
-                file_path: artifact_data
-                    .file_path
-                    .to_str()
-                    .ok_or(anyhow!(format!(
+        Ok(ArtifactInfo {
+            artifact_type: artifact_data.artifact_type,
+            file_path: artifact_data
+                .file_path
+                .to_str()
+                .ok_or(anyhow!(format!(
                         "Can't convert artifact_path to utf-8: {}",
                         artifact_data.file_path.display()
                     )))?
-                    .to_string(),
-                presigned_url: presigned_request.uri().to_string(),
-            });
-        }
+                .to_string(),
+            presigned_url: presigned_request.uri().to_string(),
+        })
+    }
 
+    async fn generate_artifact_infos(
+        &self,
+        file_keys: &[String],
+        artifacts_data: &[ArtifactData],
+    ) -> anyhow::Result<Vec<ArtifactInfo>> {
+        let generate_futures = file_keys.iter().zip(artifacts_data.iter()).map(|(file_key, artifact_data)| self.generate_artifact_info(file_key.as_str(), artifact_data)).collect::<Vec<_>>();
+        let results = join_all(generate_futures).await;
+
+        let artifact_pairs: Vec<ArtifactInfo> = results.into_iter().collect::<Result<Vec<_>, _>>()?;
         Ok(artifact_pairs)
     }
 }
