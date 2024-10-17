@@ -10,8 +10,8 @@ use aws_config::BehaviorVersion;
 use aws_runtime::env_config::file::{EnvConfigFileKind, EnvConfigFiles};
 use std::num::NonZeroUsize;
 
-use crate::clients::dynamodb_client::DynamoDBClient;
-use crate::clients::s3_client::S3Client;
+use crate::clients::dynamodb_clients::wrapper::DynamoDBClientWrapper;
+use crate::clients::s3_clients::wrapper::S3ClientWrapper;
 use crate::clients::sqs_clients::wrapper::SqsClientWrapper;
 use crate::worker::EngineBuilder;
 
@@ -25,6 +25,13 @@ const BUCKET_NAME_DEFAULT: &str = "zksync-compilation-s3";
 
 #[tokio::main]
 async fn main() {
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::INFO)
+        .with_ansi(false)
+        .without_time() // CloudWatch will add the ingestion time
+        .with_target(false)
+        .init();
+
     let profile_name = std::env::var("AWS_PROFILE").unwrap_or(AWS_PROFILE_DEFAULT.into());
     let profile_files = EnvConfigFiles::builder()
         .with_file(EnvConfigFileKind::Credentials, "./credentials")
@@ -42,11 +49,11 @@ async fn main() {
 
     // Initialize DynamoDb client
     let db_client = aws_sdk_dynamodb::Client::new(&config);
-    let db_client = DynamoDBClient::new(db_client, TABLE_NAME_DEFAULT);
+    let db_client = DynamoDBClientWrapper::new(db_client, TABLE_NAME_DEFAULT);
 
     // Initialize S3 client
     let s3_client = aws_sdk_s3::Client::new(&config);
-    let s3_client = S3Client::new(s3_client, BUCKET_NAME_DEFAULT);
+    let s3_client = S3ClientWrapper::new(s3_client, BUCKET_NAME_DEFAULT);
 
     let engine = EngineBuilder::new(sqs_client, db_client, s3_client);
     let running_engine = engine.start(NonZeroUsize::new(10).unwrap());

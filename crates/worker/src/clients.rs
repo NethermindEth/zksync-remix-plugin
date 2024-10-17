@@ -1,4 +1,5 @@
-pub mod dynamodb_client;
+pub mod dynamodb_clients;
 pub mod errors;
-pub mod s3_client;
+mod retriable;
+pub mod s3_clients;
 pub mod sqs_clients;

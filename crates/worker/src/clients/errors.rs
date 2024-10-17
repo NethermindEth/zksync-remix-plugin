@@ -1,6 +1,7 @@
 use aws_sdk_dynamodb::config::http::HttpResponse;
 use aws_sdk_dynamodb::operation::delete_item::DeleteItemError;
 use aws_sdk_dynamodb::operation::get_item::GetItemError;
+use aws_sdk_dynamodb::operation::scan::ScanError;
 use aws_sdk_dynamodb::operation::update_item::UpdateItemError;
 use aws_sdk_s3::operation::delete_object::DeleteObjectError;
 use aws_sdk_s3::operation::get_object::GetObjectError;
@@ -19,8 +20,8 @@ pub(crate) type SqsDeleteError = SdkError<DeleteMessageError, HttpResponse>;
 // DynamoDB related errors
 pub(crate) type DBDeleteError = SdkError<DeleteItemError, HttpResponse>;
 pub(crate) type DBGetError = SdkError<GetItemError, HttpResponse>;
-
 pub(crate) type DBUpdateError = SdkError<UpdateItemError, HttpResponse>;
+pub(crate) type DBScanError = SdkError<ScanError, HttpResponse>;
 
 // S3 related errors
 pub(crate) type S3ListObjectsError = SdkError<ListObjectsV2Error, HttpResponse>;
@@ -46,6 +47,8 @@ pub enum DBError {
     ItemFormatError(#[from] ItemError),
     #[error(transparent)]
     UpdateItemError(#[from] DBUpdateError),
+    #[error(transparent)]
+    ScanError(#[from] DBScanError),
 }
 
 #[derive(thiserror::Error, Debug)]
