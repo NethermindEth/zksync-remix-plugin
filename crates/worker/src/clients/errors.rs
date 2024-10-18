@@ -11,7 +11,7 @@ use aws_sdk_sqs::error::SdkError;
 use aws_sdk_sqs::operation::delete_message::DeleteMessageError;
 use aws_sdk_sqs::operation::receive_message::ReceiveMessageError;
 use tracing::error;
-use types::item::ItemError;
+use types::item::errors::ItemError;
 
 // SQS related errors
 pub(crate) type SqsReceiveError = SdkError<ReceiveMessageError, HttpResponse>;

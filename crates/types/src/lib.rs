@@ -27,6 +27,7 @@ pub struct VerifyConfig {
     pub network: String,
     pub contract_address: String,
     pub inputs: Vec<String>,
+    pub target_contract: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -54,5 +55,23 @@ impl SqsMessage {
             SqsMessage::Compile { request } => request.id,
             SqsMessage::Verify { request } => request.id,
         }
+    }
+}
+
+#[derive(thiserror::Error, Debug)]
+pub enum SqsRawMessageError {
+    #[error("Empty message body")]
+    NoMessageBody,
+    #[error(transparent)]
+    SerdeJsonError(#[from] serde_json::Error),
+}
+
+impl TryFrom<aws_sdk_sqs::types::Message> for SqsMessage {
+    type Error = SqsRawMessageError;
+
+    fn try_from(value: aws_sdk_sqs::types::Message) -> Result<Self, Self::Error> {
+        let body = value.body.ok_or(SqsRawMessageError::NoMessageBody)?;
+        let sqs_message = serde_json::from_str::<SqsMessage>(&body)?;
+        Ok(sqs_message)
     }
 }

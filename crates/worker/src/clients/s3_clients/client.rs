@@ -15,7 +15,7 @@ use crate::clients::errors::{
     S3DeleteObjectError, S3Error, S3GetObjectError, S3ListObjectsError, S3PutObjectError,
 };
 use crate::clients::retriable::{handle_action_result, match_result, ActionHandler};
-use crate::commands::compile::CompilationFile;
+use crate::commands::CompilationFile;
 
 #[derive(Clone)]
 pub struct S3Client {
@@ -70,7 +70,7 @@ impl S3Client {
             Err(S3Error::GetObjectError(err)) => {
                 match_result!(S3GetObjectError, Err(err)).map_err(S3Error::from)
             }
-            result => result.map(|value| Some(value)),
+            result => result.map(Some),
         }
     }
 

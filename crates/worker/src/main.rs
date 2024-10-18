@@ -1,6 +1,7 @@
 mod clients;
 mod commands;
 mod errors;
+mod processor;
 mod purgatory;
 mod sqs_listener;
 mod utils;
@@ -13,6 +14,10 @@ use std::num::NonZeroUsize;
 use crate::clients::dynamodb_clients::wrapper::DynamoDBClientWrapper;
 use crate::clients::s3_clients::wrapper::S3ClientWrapper;
 use crate::clients::sqs_clients::wrapper::SqsClientWrapper;
+use crate::processor::compile_processor::CompileProcessor;
+use crate::processor::verify_processor::VerifyProcessor;
+use crate::processor::Processor;
+use crate::purgatory::Purgatory;
 use crate::worker::EngineBuilder;
 
 const AWS_PROFILE_DEFAULT: &str = "dev";
@@ -55,7 +60,24 @@ async fn main() {
     let s3_client = aws_sdk_s3::Client::new(&config);
     let s3_client = S3ClientWrapper::new(s3_client, BUCKET_NAME_DEFAULT);
 
-    let engine = EngineBuilder::new(sqs_client, db_client, s3_client);
+    let purgatory = Purgatory::new(db_client.clone(), s3_client.clone());
+
+    // Initialize processors
+    let compile_processor =
+        CompileProcessor::new(sqs_client.clone(), s3_client.clone(), purgatory.clone());
+    let verify_processor =
+        VerifyProcessor::new(sqs_client.clone(), s3_client.clone(), purgatory.clone());
+    let processor = Processor::new(
+        db_client,
+        s3_client,
+        sqs_client.clone(),
+        compile_processor,
+        verify_processor,
+        purgatory,
+    );
+
+    // Engine
+    let engine = EngineBuilder::new(sqs_client, processor);
     let running_engine = engine.start(NonZeroUsize::new(10).unwrap());
 
     running_engine.wait().await;

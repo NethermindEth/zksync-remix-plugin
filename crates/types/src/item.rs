@@ -1,25 +1,25 @@
 use aws_sdk_dynamodb::types::AttributeValue;
 use chrono::{DateTime, FixedOffset, Utc};
-use serde::{Deserialize, Serialize};
+use errors::ItemError;
 use std::collections::HashMap;
 use std::fmt;
 use std::fmt::Formatter;
 use uuid::Uuid;
 
+use crate::item::task_result::TaskResult;
+
+pub mod errors;
+pub mod task_result;
+
 pub type AttributeMap = HashMap<String, AttributeValue>;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum TaskResult {
-    Success { presigned_urls: Vec<String> },
-    Failure(String),
-}
-
 #[derive(Debug, Clone)]
+#[cfg_attr(test, derive(PartialEq))]
 pub enum Status {
     // TODO: add FilesUploaded(?)
     Pending,
     InProgress,
-    Done(TaskResult),
+    Done(TaskResult), // TODO: TaskResult will be generic probably
 }
 
 impl Status {
@@ -33,8 +33,7 @@ impl fmt::Display for Status {
         match self {
             Status::Pending => write!(f, "Pending"),
             Status::InProgress => write!(f, "InProgress"),
-            Status::Done(TaskResult::Success { .. }) => write!(f, "Success"),
-            Status::Done(TaskResult::Failure(msg)) => write!(f, "Failure: {}", msg),
+            Status::Done(val) => val.fmt(f),
         }
     }
 }
@@ -56,21 +55,6 @@ impl From<Status> for u32 {
     }
 }
 
-impl From<TaskResult> for AttributeMap {
-    fn from(value: TaskResult) -> Self {
-        match value {
-            TaskResult::Success { presigned_urls } => HashMap::from([(
-                Item::data_attribute_name().into(),
-                AttributeValue::Ss(presigned_urls),
-            )]),
-            TaskResult::Failure(message) => HashMap::from([(
-                Item::data_attribute_name().into(),
-                AttributeValue::S(message),
-            )]),
-        }
-    }
-}
-
 impl From<Status> for AttributeMap {
     fn from(value: Status) -> Self {
         let mut map = HashMap::from([(
@@ -80,7 +64,11 @@ impl From<Status> for AttributeMap {
 
         // For `Done` variant, reuse the conversion logic from `TaskResult`
         if let Status::Done(task_result) = value {
-            map.extend(AttributeMap::from(task_result));
+            let task_result_map = HashMap::from([(
+                TaskResult::attribute_name().into(),
+                AttributeValue::M(AttributeMap::from(task_result)),
+            )]);
+            map.extend(task_result_map);
         }
 
         map
@@ -97,60 +85,35 @@ impl TryFrom<&AttributeMap> for Status {
             .as_n()
             .map_err(|_| ItemError::invalid_attribute_type(Status::attribute_name(), "number"))?
             .parse::<u32>()?;
-        let status = match status {
-            0 => Status::Pending,
-            1 => Status::InProgress,
-            2 => {
-                let data = value.get(Item::data_attribute_name()).ok_or(
-                    ItemError::absent_attribute_error(Item::data_attribute_name()),
+
+        match status {
+            0 => Ok(Status::Pending),
+            1 => Ok(Status::InProgress),
+            2 | 3 => {
+                let data = value.get(TaskResult::attribute_name()).ok_or(
+                    ItemError::absent_attribute_error(TaskResult::attribute_name()),
                 )?;
-                let data = data.as_ss().map_err(|_| {
-                    ItemError::invalid_attribute_type(Item::data_attribute_name(), "string array")
+                let data = data.as_m().map_err(|_| {
+                    ItemError::invalid_attribute_type(TaskResult::attribute_name(), "map")
                 })?;
 
-                Status::Done(TaskResult::Success {
-                    presigned_urls: data.clone(),
-                })
-            }
-            3 => {
-                let data = value.get(Item::data_attribute_name()).ok_or(
-                    ItemError::absent_attribute_error(Item::data_attribute_name()),
-                )?;
-                let data = data.as_s().map_err(|_| {
-                    ItemError::invalid_attribute_type(Item::data_attribute_name(), "string")
-                })?;
-
-                Status::Done(TaskResult::Failure(data.clone()))
+                let task_result: TaskResult = data.try_into()?;
+                match (status, &task_result) {
+                    (2, TaskResult::Success(_)) => Ok(Status::Done(task_result)),
+                    (3, TaskResult::Failure(_)) => Ok(Status::Done(task_result)),
+                    _ => Err(ItemError::FormatError(format!(
+                        "status is {}, while actual value: {}",
+                        status, task_result
+                    ))),
+                }
             }
             val => return Err(ItemError::FormatError(format!("Status value is: {}", val))),
-        };
-
-        Ok(status)
+        }
     }
 }
 
-#[derive(thiserror::Error, Debug)]
-pub enum ItemError {
-    #[error("Invalid Item format: {0}")]
-    FormatError(String),
-    #[error(transparent)]
-    NumParseError(#[from] std::num::ParseIntError),
-    #[error(transparent)]
-    DataParseError(#[from] chrono::format::ParseError),
-}
-
-impl ItemError {
-    fn absent_attribute_error(attribute_name: &str) -> Self {
-        let err_str = format!("No {} attribute in item", attribute_name);
-        Self::FormatError(err_str)
-    }
-
-    fn invalid_attribute_type(attribute_name: &str, t: &str) -> Self {
-        let err_str = format!("{} attribute value isn't a {}", attribute_name, t);
-        Self::FormatError(err_str)
-    }
-}
-
+#[derive(Debug, Clone)]
+#[cfg_attr(test, derive(PartialEq))]
 pub struct Item {
     pub id: Uuid,
     pub status: Status,
@@ -161,10 +124,6 @@ pub struct Item {
 impl Item {
     pub const fn status_attribute_name() -> &'static str {
         Status::attribute_name()
-    }
-
-    pub const fn data_attribute_name() -> &'static str {
-        "Data"
     }
 
     pub const fn id_attribute_name() -> &'static str {
@@ -223,5 +182,208 @@ impl TryFrom<AttributeMap> for Item {
             status,
             created_at: created_at.into(),
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{task_result::*, *};
+
+    use crate::item::errors::ServerError;
+    use aws_sdk_dynamodb::types::AttributeValue;
+    use chrono::Utc;
+    use std::collections::HashMap;
+    use uuid::Uuid;
+
+    #[test]
+    fn test_status_pending_to_attribute_map() {
+        let status = Status::Pending;
+        let expected_map = HashMap::from([(
+            Status::attribute_name().to_string(),
+            AttributeValue::N("0".to_string()),
+        )]);
+
+        let attribute_map: AttributeMap = status.into();
+        assert_eq!(attribute_map, expected_map);
+    }
+
+    #[test]
+    fn test_status_pending_from_attribute_map() {
+        let attribute_map = HashMap::from([(
+            Status::attribute_name().to_string(),
+            AttributeValue::N("0".to_string()),
+        )]);
+
+        let result: Status = (&attribute_map).try_into().expect("Conversion failed");
+        assert_eq!(result, Status::Pending);
+    }
+
+    #[test]
+    fn test_status_inprogress_to_attribute_map() {
+        let status = Status::InProgress;
+        let expected_map = HashMap::from([(
+            Status::attribute_name().to_string(),
+            AttributeValue::N("1".to_string()),
+        )]);
+
+        let attribute_map: AttributeMap = status.into();
+        assert_eq!(attribute_map, expected_map);
+    }
+
+    #[test]
+    fn test_status_inprogress_from_attribute_map() {
+        let attribute_map = HashMap::from([(
+            Status::attribute_name().to_string(),
+            AttributeValue::N("1".to_string()),
+        )]);
+
+        let result: Status = (&attribute_map).try_into().expect("Conversion failed");
+        assert_eq!(result, Status::InProgress);
+    }
+
+    fn status_success_compile_map() -> AttributeMap {
+        HashMap::from([
+            (
+                Status::attribute_name().to_string(),
+                AttributeValue::N("2".to_string()),
+            ),
+            (
+                TaskResult::attribute_name().to_string(),
+                AttributeValue::M(HashMap::from([(
+                    TaskResult::success_attribute_name().to_string(),
+                    AttributeValue::M(HashMap::from([(
+                        TaskSuccess::compile_attribute_name().to_string(),
+                        AttributeValue::Ss(vec!["url1".to_string(), "url2".to_string()]),
+                    )])),
+                )])),
+            ),
+        ])
+    }
+
+    #[test]
+    fn test_status_done_compile_success_to_attribute_map() {
+        let expected_map = status_success_compile_map();
+
+        let task_result = TaskResult::Success(TaskSuccess::Compile {
+            presigned_urls: vec!["url1".to_string(), "url2".to_string()],
+        });
+        let status = Status::Done(task_result.clone());
+        let attribute_map: AttributeMap = status.into();
+
+        assert_eq!(attribute_map, expected_map);
+    }
+
+    #[test]
+    fn test_status_done_compile_success_from_attribute_map() {
+        let expected_result = Status::Done(TaskResult::Success(TaskSuccess::Compile {
+            presigned_urls: vec!["url1".to_string(), "url2".to_string()],
+        }));
+
+        let attribute_map = status_success_compile_map();
+        let result: Status = (&attribute_map).try_into().expect("Conversion failed");
+
+        assert_eq!(result, expected_result);
+    }
+
+    fn status_failure_compilation_map() -> AttributeMap {
+        HashMap::from([
+            (
+                Status::attribute_name().to_string(),
+                AttributeValue::N("3".to_string()),
+            ),
+            (
+                TaskResult::attribute_name().to_string(),
+                AttributeValue::M(HashMap::from([(
+                    TaskResult::failure_attribute_name().to_string(),
+                    AttributeValue::Ss(vec![
+                        "CompilationError".to_string(),
+                        "Compilation failed".to_string(),
+                    ]),
+                )])),
+            ),
+        ])
+    }
+
+    #[test]
+    fn test_status_done_failure_to_attribute_map() {
+        let expected_map = status_failure_compilation_map();
+
+        let task_result = TaskResult::Failure(TaskFailure {
+            error_type: ServerError::CompilationError,
+            message: "Compilation failed".to_string(),
+        });
+        let status = Status::Done(task_result);
+        let attribute_map: AttributeMap = status.into();
+
+        assert_eq!(attribute_map, expected_map);
+    }
+
+    #[test]
+    fn test_status_done_failure_from_attribute_map() {
+        let expected_result = Status::Done(TaskResult::Failure(TaskFailure {
+            error_type: ServerError::CompilationError,
+            message: "Compilation failed".to_string(),
+        }));
+
+        let attribute_map = status_failure_compilation_map();
+        let result: Status = (&attribute_map).try_into().expect("Conversion failed");
+
+        assert_eq!(result, expected_result);
+    }
+
+    #[test]
+    fn test_item_to_attribute_map() {
+        let item = Item {
+            id: Uuid::new_v4(),
+            status: Status::InProgress,
+            created_at: Utc::now(),
+        };
+
+        let expected_map = HashMap::from([
+            (
+                Item::id_attribute_name().to_string(),
+                AttributeValue::S(item.id.to_string()),
+            ),
+            (
+                Item::created_at_attribute_name().to_string(),
+                AttributeValue::S(item.created_at.to_rfc3339()),
+            ),
+            (
+                Status::attribute_name().to_string(),
+                AttributeValue::N("1".to_string()),
+            ),
+        ]);
+
+        let attribute_map: AttributeMap = item.clone().into();
+        assert_eq!(attribute_map, expected_map);
+    }
+
+    #[test]
+    fn test_item_from_attribute_map() {
+        let id = Uuid::new_v4();
+        let created_at = Utc::now();
+        let attribute_map = HashMap::from([
+            (
+                Item::id_attribute_name().to_string(),
+                AttributeValue::S(id.to_string()),
+            ),
+            (
+                Item::created_at_attribute_name().to_string(),
+                AttributeValue::S(created_at.to_rfc3339()),
+            ),
+            (
+                Status::attribute_name().to_string(),
+                AttributeValue::N("1".to_string()),
+            ),
+        ]);
+
+        let expected_item = Item {
+            id,
+            status: Status::InProgress,
+            created_at,
+        };
+
+        let result: Item = attribute_map.try_into().expect("Conversion failed");
+        assert_eq!(result, expected_item);
     }
 }

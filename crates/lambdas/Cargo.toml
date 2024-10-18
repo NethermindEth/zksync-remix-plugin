@@ -31,3 +31,8 @@ path = "src/generate_presigned_urls.rs"
 name = "compile"
 version = "0.0.1"
 path = "src/compile.rs"
+
+[[bin]]
+name = "verify"
+version = "0.0.1"
+path = "src/verify.rs"

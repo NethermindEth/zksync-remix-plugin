@@ -10,7 +10,7 @@ use tokio::io::{AsyncReadExt, AsyncSeekExt};
 use tokio::sync::{mpsc, oneshot};
 
 use crate::clients::s3_clients::client::{S3Action, S3Client};
-use crate::commands::compile::CompilationFile;
+use crate::commands::CompilationFile;
 
 #[derive(Clone)]
 pub struct S3ClientWrapper {
