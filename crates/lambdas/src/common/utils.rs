@@ -1,11 +1,14 @@
 use lambda_http::{Request, RequestPayloadExt, Response};
-use serde::de::DeserializeOwned;
+use serde::Deserialize;
 
 use crate::common::errors::{Error, Error::HttpError};
 
 const EMPTY_PAYLOAD_ERROR: &str = "Request payload is empty";
 
-pub fn extract_request<T: DeserializeOwned>(request: Request) -> Result<T, Error> {
+pub fn extract_request<T>(request: &Request) -> Result<T, Error>
+where
+    T: for<'de> Deserialize<'de>,
+{
     return match request.payload::<T>() {
         Ok(Some(val)) => Ok(val),
         Ok(None) => {

@@ -66,7 +66,7 @@ async fn process_request(
     bucket_name: &str,
     s3_client: &aws_sdk_s3::Client,
 ) -> Result<LambdaResponse<String>, Error> {
-    let request = extract_request::<Request>(request)?;
+    let request = extract_request::<Request>(&request)?;
     if request.files.len() > MAX_FILES {
         warn!("MAX_FILES limit exceeded");
         let response = LambdaResponse::builder()

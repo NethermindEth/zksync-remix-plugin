@@ -113,7 +113,7 @@ async fn process_request(
     s3_client: &aws_sdk_s3::Client,
     bucket_name: &str,
 ) -> Result<LambdaResponse<String>, Error> {
-    let request = extract_request::<CompilationRequest>(request)?;
+    let request = extract_request::<CompilationRequest>(&request)?;
 
     let objects = s3_client
         .list_objects_v2()

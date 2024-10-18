@@ -36,3 +36,8 @@ path = "src/compile.rs"
 name = "verify"
 version = "0.0.1"
 path = "src/verify.rs"
+
+[[bin]]
+name = "poll"
+version = "0.0.1"
+path = "src/poll.rs"
