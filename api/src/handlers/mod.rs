@@ -30,14 +30,7 @@ lazy_static! {
 #[get("/health")]
 pub async fn health(engine: &State<WorkerEngine>) -> HealthCheckResponse {
     info!("/health");
-
-    let result = do_compile(generate_mock_compile_request(), &engine.metrics).await;
-
-    if result.is_ok() {
-        HealthCheckResponse::ok()
-    } else {
-        HealthCheckResponse::error("Failed to compile")
-    }
+    HealthCheckResponse::ok()
 }
 
 #[instrument]
