@@ -1,33 +1,31 @@
-use lambda_http::{Request, RequestPayloadExt, Response};
+use lambda_http::ext::PayloadError;
+use lambda_http::{Request, RequestPayloadExt};
 use serde::Deserialize;
+use serde_json::json;
+use tracing::{error,  instrument, trace};
 
-use crate::common::errors::{Error, Error::HttpError};
+#[derive(thiserror::Error, Debug)]
+pub enum ExtractRequestError {
+    #[error("Request payload is empty")]
+    EmptyPayloadError,
+    #[error("PayloadError: {0}")]
+    PayloadError(#[from] PayloadError),
+}
 
-const EMPTY_PAYLOAD_ERROR: &str = "Request payload is empty";
-
-pub fn extract_request<T>(request: &Request) -> Result<T, Error>
+#[instrument(skip(request))]
+pub fn extract_request<T>(request: &Request) -> Result<T, ExtractRequestError>
 where
     T: for<'de> Deserialize<'de>,
 {
-    return match request.payload::<T>() {
-        Ok(Some(val)) => Ok(val),
-        Ok(None) => {
-            let response = Response::builder()
-                .status(400)
-                .header("content-type", "text/html")
-                .body(EMPTY_PAYLOAD_ERROR.into())
-                .map_err(Box::new)?;
+    trace!("extracting request");
+    let res = request
+        .payload::<T>()?
+        .ok_or(ExtractRequestError::EmptyPayloadError)?;
+    Ok(res)
+}
 
-            return Err(HttpError(response));
-        }
-        Err(err) => {
-            let response = Response::builder()
-                .status(400)
-                .header("content-type", "text/html")
-                .body(err.to_string().into())
-                .map_err(Box::new)?;
-
-            Err(HttpError(response))
-        }
-    };
+pub fn error_string_to_json<T: ToString + ?Sized>(error_str: &T) -> serde_json::Value {
+    json!({
+        "error": error_str.to_string()
+    })
 }

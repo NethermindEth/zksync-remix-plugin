@@ -9,11 +9,12 @@ use std::{
     path::{Path, PathBuf},
     time::Duration,
 };
-use tracing::warn;
+use tracing::{error, warn};
 use uuid::Uuid;
 
 mod common;
-use crate::common::{errors::Error, utils::extract_request, BUCKET_NAME_DEFAULT};
+use crate::common::utils::{error_string_to_json, ExtractRequestError};
+use crate::common::{utils::extract_request, BUCKET_NAME_DEFAULT};
 
 const MAX_FILES: usize = 300;
 const OBJECT_EXPIRATION_TIME: Duration = Duration::from_secs(24 * 60 * 60);
@@ -32,11 +33,50 @@ struct Response {
     pub presigned_urls: Vec<String>,
 }
 
+#[derive(thiserror::Error, Debug)]
+enum Error {
+    #[error("{0}")]
+    BadRequestError(String),
+    #[error(transparent)]
+    InternalError(#[from] anyhow::Error),
+}
+
+impl From<ExtractRequestError> for Error {
+    fn from(value: ExtractRequestError) -> Self {
+        Self::BadRequestError(value.to_string())
+    }
+}
+
+impl TryInto<LambdaResponse<String>> for Error {
+    type Error = LambdaError;
+
+    fn try_into(self) -> Result<LambdaResponse<String>, Self::Error> {
+        match self {
+            Self::BadRequestError(val) => {
+                let response = LambdaResponse::builder()
+                    .status(StatusCode::BAD_REQUEST)
+                    .header("Content-Type", "application/json")
+                    .body(error_string_to_json(&val).to_string())?;
+
+                Ok(response)
+            }
+            Self::InternalError(err) => {
+                let response = LambdaResponse::builder()
+                    .status(StatusCode::INTERNAL_SERVER_ERROR)
+                    .header("Content-Type", "application/json")
+                    .body(error_string_to_json(&err).to_string())?;
+
+                Ok(response)
+            }
+        }
+    }
+}
+
 async fn generate_presigned_urs(
     files: Vec<PathBuf>,
     bucket_name: &str,
     s3_client: &aws_sdk_s3::Client,
-) -> Result<Response, Error> {
+) -> Result<Response, anyhow::Error> {
     let uuid = Uuid::new_v4();
     let uuid_str = uuid.to_string();
     let uuid_dir = Path::new(&uuid_str);
@@ -48,8 +88,7 @@ async fn generate_presigned_urs(
             .bucket(bucket_name)
             .key(uuid_dir.join(file).to_string_lossy().to_string())
             .presigned(PresigningConfig::expires_in(OBJECT_EXPIRATION_TIME).map_err(Box::new)?)
-            .await
-            .map_err(Box::new)?;
+            .await?;
 
         output.push(presigned.uri().into());
     }
@@ -65,29 +104,20 @@ async fn process_request(
     request: LambdaRequest,
     bucket_name: &str,
     s3_client: &aws_sdk_s3::Client,
-) -> Result<LambdaResponse<String>, Error> {
+) -> Result<String, Error> {
     let request = extract_request::<Request>(&request)?;
     if request.files.len() > MAX_FILES {
         warn!("MAX_FILES limit exceeded");
-        let response = LambdaResponse::builder()
-            .status(400)
-            .header("content-type", "text/html")
-            .body(EXCEEDED_MAX_FILES_ERROR.into())
-            .map_err(Box::new)?;
-
-        return Err(Error::HttpError(response));
-    }
+        Err(Error::BadRequestError(EXCEEDED_MAX_FILES_ERROR.to_string()))
+    } else {
+        Ok(())
+    }?;
 
     let response = generate_presigned_urs(request.files, bucket_name, s3_client).await?;
-    let response = LambdaResponse::builder()
-        .status(StatusCode::OK)
-        .header("Content-Type", "application/json")
-        .body(serde_json::to_string(&response)?)?;
-
-    Ok(response)
+    let response_json = serde_json::to_string(&response).map_err(anyhow::Error::from)?;
+    Ok(response_json)
 }
 
-// TODO: setup ratelimiter for lambdas
 #[tokio::main]
 async fn main() -> Result<(), LambdaError> {
     tracing_subscriber::fmt()
@@ -103,11 +133,16 @@ async fn main() -> Result<(), LambdaError> {
 
     run(service_fn(|request: LambdaRequest| async {
         let result = process_request(request, &bucket_name, &s3_client).await;
-
         match result {
-            Ok(val) => Ok(val),
-            Err(Error::HttpError(val)) => Ok(val),
-            Err(Error::LambdaError(err)) => Err(err),
+            Ok(response_json) => {
+                let http_response = LambdaResponse::builder()
+                    .status(StatusCode::OK)
+                    .header("Content-Type", "application/json")
+                    .body(response_json)?;
+
+                Ok(http_response)
+            }
+            Err(err) => Ok::<LambdaResponse<String>, LambdaError>(err.try_into()?),
         }
     }))
     .await

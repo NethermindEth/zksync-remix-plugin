@@ -195,7 +195,6 @@ impl S3Client {
                 .client
                 .list_objects_v2()
                 .bucket(self.bucket_name.clone())
-                .delimiter('/')
                 .prefix(dir.to_string());
             if let Some(token) = continuation_token {
                 request = request.continuation_token(token);

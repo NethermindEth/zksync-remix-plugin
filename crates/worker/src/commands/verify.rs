@@ -70,7 +70,6 @@ pub async fn do_verify(
     // instantly create the directories
     tokio::fs::create_dir_all(&workspace_path)
         .await
-        .map_err(anyhow::Error::from)
         .with_context(|| {
             format!(
                 "Couldn't create workspace dir: {}",
@@ -79,7 +78,6 @@ pub async fn do_verify(
         })?;
     tokio::fs::create_dir_all(&artifacts_path)
         .await
-        .map_err(anyhow::Error::from)
         .with_context(|| {
             format!(
                 "Couldn't create artifacts dir: {}",
@@ -90,7 +88,7 @@ pub async fn do_verify(
     // when the compilation is done, clean up the directories
     // it will be called when the AutoCleanUp struct is dropped
     let auto_clean_up = AutoCleanUp {
-        dirs: vec![workspace_path.to_str().unwrap()],
+        dirs: vec![workspace_path.as_path()],
     };
 
     // write the hardhat config file
@@ -101,9 +99,8 @@ pub async fn do_verify(
         .to_string_config();
 
     // create parent directories
-    tokio::fs::create_dir_all(hardhat_config_path.parent().unwrap())
+    tokio::fs::create_dir_all(&workspace_path)
         .await
-        .map_err(anyhow::Error::from)
         .with_context(|| {
             format!(
                 "Couldn't create hardhat dir: {}",
@@ -112,13 +109,11 @@ pub async fn do_verify(
         })?;
     tokio::fs::write(hardhat_config_path, hardhat_config_content)
         .await
-        .map_err(anyhow::Error::from)
         .with_context(|| "Couldn't write hardhat.config file")?;
 
     // initialize the files
     initialize_files(&workspace_path, verification_request.contracts)
         .await
-        .map_err(anyhow::Error::from)
         .with_context(|| "Couldn't write contract to fs")?;
 
     // Limit number of spawned processes. RAII released
@@ -131,7 +126,6 @@ pub async fn do_verify(
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
-        .map_err(anyhow::Error::from)
         .with_context(|| "Couldn't spawn process")?;
 
     let output = process

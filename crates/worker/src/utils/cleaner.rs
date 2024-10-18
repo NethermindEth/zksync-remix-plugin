@@ -1,7 +1,7 @@
 use std::path::Path;
 
 pub struct AutoCleanUp<'a> {
-    pub(crate) dirs: Vec<&'a str>,
+    pub(crate) dirs: Vec<&'a Path>,
 }
 
 impl Drop for AutoCleanUp<'_> {
@@ -12,11 +12,11 @@ impl Drop for AutoCleanUp<'_> {
 
 impl AutoCleanUp<'_> {
     pub async fn clean_up(self) {
-        for path in self.dirs.iter() {
+        for path in &self.dirs {
             println!("Removing path: {:?}", path);
 
             // check if the path exists
-            if !Path::new(path).exists() {
+            if !path.exists() {
                 continue;
             }
 
@@ -27,11 +27,11 @@ impl AutoCleanUp<'_> {
     }
 
     fn clean_up_sync(&mut self) {
-        for path in self.dirs.iter() {
+        for path in &self.dirs {
             println!("Removing path: {:?}", path);
 
             // check if the path exists
-            if !Path::new(path).exists() {
+            if !path.exists() {
                 continue;
             }
 

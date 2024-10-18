@@ -8,9 +8,9 @@ import CompiledContracts from '@/components/CompiledContracts'
 import Container from '@/ui_components/Container'
 import { type AccordianTabs } from '@/types/common'
 import ConstructorInput, { ContractInputType } from '@/components/ConstructorInput'
-import { type VerificationResult, type DeployedContract } from '@/types/contracts'
+import { type DeployedContract } from '@/types/contracts'
 import { mockManualChain, type Transaction } from '@/types/transaction'
-import { asyncPost } from '@/api/asyncRequests'
+import { asyncPost, initializeTask, POLL_LAMBDA_URL, VERIFY_LAMBDA_URL } from '@/api/asyncRequests'
 import {
   transactionsAtom,
   accountAtom,
@@ -34,6 +34,14 @@ import {
 import './styles.css'
 import { getAllContractFiles } from '@/utils/remix_storage'
 import { parseContractInputs } from '@/utils/utils'
+import {
+  TaskResult,
+  tryIntoFailureFromResult,
+  tryIntoSuccessFromResult,
+  tryIntoVerifyFromSuccess,
+  VerificationRequest
+} from '@/api/types'
+import { handleCompilationFailure } from '@/features/Deployment/utils'
 
 interface DeploymentProps {
   setActiveTab: (tab: AccordianTabs) => void
@@ -88,114 +96,59 @@ export const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     setSelectedChainName(name)
   }, [provider, env])
 
-  async function verify(contract: DeployedContract | null): Promise<void> {
-    if (!contract) {
-      throw new Error('Not able to retrieve deployed contract for verification')
-    }
-
+  async function verify(contract: DeployedContract): Promise<void> {
     setIsVerifying(true)
     setDeployStatus('IN_PROGRESS')
     // clear current file annotations: inline syntax error reporting
     await remixClient.editor.clearAnnotations()
-    try {
-      const workspaceContents = {
-        config: {
-          zksolc_version: solidityVersion,
-          // solc_version: ,
-          network: selectedChainName ?? 'unknown',
-          contract_address: contract.address,
-          inputs: parseContractInputs(inputs)
-        },
-        contracts: [] as Array<{ file_name: string; file_content: string; is_contract: boolean }>
-      }
 
-      console.log(`currentWorkspacePath: ${currentWorkspacePath}`)
+    try {
       const workspaceFiles = await remixClient.fileManager.readdir(`${currentWorkspacePath}/`)
       console.log(`workspaceFiles: ${JSON.stringify(workspaceFiles)}`)
 
-      workspaceContents.contracts = await getAllContractFiles(remixClient, currentWorkspacePath)
-
-      const response = await asyncPost('verify-async', 'verify-result', workspaceContents)
-
-      if (!response.ok) {
-        setDeployStatus('ERROR')
-        throw new Error('Could not reach solidity verification server')
-      }
-
-      // get Json body from response
-      const verificationResult = JSON.parse(await response.text()) as VerificationResult
-
-      if (verificationResult.status !== 'Success') {
-        setDeployStatus('ERROR')
-        await remixClient.terminal.log({
-          value: verificationResult.message,
-          type: 'error'
-        })
-
-        const errorLets = verificationResult.message.trim().split('\n')
-
-        // remove last element if it's starts with `Error:`
-        if (errorLets[errorLets.length - 1].startsWith('Error:')) {
-          errorLets.pop()
+      const contracts = await getAllContractFiles(remixClient, currentWorkspacePath)
+      const id = await initializeTask(contracts)
+      const request: VerificationRequest = {
+        id: id,
+        config: {
+          zksolc_version: solidityVersion,
+          solc_version: undefined, // TODO: is that correct?
+          network: selectedChainName ?? 'unknown',
+          contract_address: contract.address,
+          inputs: parseContractInputs(inputs)
         }
-
-        // break the errorLets in array of arrays with first element contains the string `Plugin diagnostic`
-        const errorLetsArray = errorLets.reduce(
-          (acc: any, curr: any) => {
-            if (curr.startsWith('error:') || curr.startsWith('warning:')) {
-              acc.push([curr])
-            } else {
-              acc[acc.length - 1].push(curr)
-            }
-            return acc
-          },
-          [['errors diagnostic:']]
-        )
-
-        // remove the first array
-        errorLetsArray.shift()
-
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        errorLetsArray.forEach(async (errorLet: any) => {
-          const errorType = errorLet[0].split(':')[0].trim()
-          const errorTitle = errorLet[0].split(':').slice(1).join(':').trim()
-          const errorLine = errorLet[1].split(':')[1].trim()
-          const errorColumn = errorLet[1].split(':')[2].trim()
-          // join the rest of the array
-          const errorMsg = errorLet.slice(2).join('\n')
-
-          await remixClient.editor.addAnnotation({
-            row: Number(errorLine) - 1,
-            column: Number(errorColumn) - 1,
-            text: errorMsg + '\n' + errorTitle,
-            type: errorType
-          })
-        })
-
-        // trim sierra message to get last line
-        const lastLine = verificationResult.message.trim().split('\n').pop()?.trim()
-
-        remixClient.emit('statusChanged', {
-          key: 'failed',
-          type: 'error',
-          title: (lastLine ?? '').startsWith('Error') ? lastLine : 'Verification Failed'
-        })
-        throw new Error('Solidity Verification Failed, logs can be read in the terminal log')
-      } else {
-        remixClient.emit('statusChanged', {
-          key: 'succeed',
-          type: 'success',
-          title: 'Verification Successful'
-        })
-
-        await remixClient.terminal.log({
-          value: 'Verification successful.',
-          type: 'info'
-        })
-
-        await remixClient.call('notification' as any, 'toast', 'Verification successful.')
-        setDeployStatus('DONE')
       }
+
+      const taskResult = await asyncPost<TaskResult>(VERIFY_LAMBDA_URL, POLL_LAMBDA_URL, request, id)
+      const taskFailed = tryIntoFailureFromResult(taskResult)
+      if (!!taskFailed) {
+        await handleCompilationFailure(remixClient, taskFailed)
+        throw new Error('Solidity Verification Failed, logs can be read in the terminal log')
+      }
+
+      const taskSuccess = tryIntoSuccessFromResult(taskResult)
+      if (!taskSuccess) {
+        throw new Error(`Invalid result format: ${taskResult}`)
+      }
+
+      const verificationSuccess = tryIntoVerifyFromSuccess(taskSuccess)
+      if (!verificationSuccess) {
+        throw new Error(`Expected verification result, got ${verificationSuccess}`)
+      }
+
+      remixClient.emit('statusChanged', {
+        key: 'succeed',
+        type: 'success',
+        title: 'Verification Successful'
+      })
+
+      await remixClient.terminal.log({
+        value: 'Verification successful.',
+        type: 'info'
+      })
+
+      await remixClient.call('notification' as any, 'toast', 'Verification successful.')
+      setDeployStatus('DONE')
     } catch (e) {
       setDeployStatus('ERROR')
       if (e instanceof Error) {

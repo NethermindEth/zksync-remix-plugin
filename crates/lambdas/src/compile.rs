@@ -1,6 +1,7 @@
 use aws_config::BehaviorVersion;
 use aws_sdk_dynamodb::{error::SdkError, operation::put_item::PutItemError};
 use chrono::Utc;
+use lambda_http::http::StatusCode;
 use lambda_http::{
     run, service_fn, Error as LambdaError, Request as LambdaRequest, Response as LambdaResponse,
 };
@@ -12,14 +13,15 @@ use types::{
 };
 
 mod common;
-use crate::common::{errors::Error, utils::extract_request, BUCKET_NAME_DEFAULT};
+use crate::common::utils::{error_string_to_json, ExtractRequestError};
+use crate::common::{utils::extract_request, BUCKET_NAME_DEFAULT};
 
 // TODO: remove on release. random change
 const QUEUE_URL_DEFAULT: &str = "https://sqs.ap-southeast-2.amazonaws.com/266735844848/zksync-sqs";
 const TABLE_NAME_DEFAULT: &str = "zksync-table";
 
 const NO_OBJECTS_TO_COMPILE_ERROR: &str = "There are no objects to compile";
-const RECOMPILATION_ATTEMPT_ERROR: &str = "Recompilation attemp";
+const RECOMPILATION_ATTEMPT_ERROR: &str = "Recompilation attempt";
 // impl Deserialize for Response {
 //     fn deserialize<'de, D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
 //         todo!()
@@ -31,6 +33,51 @@ const RECOMPILATION_ATTEMPT_ERROR: &str = "Recompilation attemp";
 //     pub queue_url: String,
 //    // pub other_data: String
 // }
+
+#[derive(thiserror::Error, Debug)]
+enum Error {
+    #[error("{0}")]
+    BadRequestError(String),
+    #[error("{0}")]
+    ConflictError(String),
+    #[error(transparent)]
+    InternalError(#[from] anyhow::Error),
+}
+
+impl From<ExtractRequestError> for Error {
+    fn from(value: ExtractRequestError) -> Self {
+        Self::BadRequestError(value.to_string())
+    }
+}
+
+impl TryInto<LambdaResponse<String>> for Error {
+    type Error = LambdaError;
+    fn try_into(self) -> Result<LambdaResponse<String>, Self::Error> {
+        match self {
+            Self::BadRequestError(err) => {
+                let response = LambdaResponse::builder()
+                    .status(StatusCode::BAD_REQUEST)
+                    .header("Content-Type", "application/json")
+                    .body(error_string_to_json(&err).to_string())?;
+                Ok(response)
+            }
+            Self::ConflictError(err) => {
+                let response = LambdaResponse::builder()
+                    .status(StatusCode::CONFLICT)
+                    .header("Content-Type", "application/json")
+                    .body(error_string_to_json(&err).to_string())?;
+                Ok(response)
+            }
+            Self::InternalError(err) => {
+                let response = LambdaResponse::builder()
+                    .status(StatusCode::INTERNAL_SERVER_ERROR)
+                    .header("Content-Type", "application/json")
+                    .body(error_string_to_json(&err).to_string())?;
+                Ok(response)
+            }
+        }
+    }
+}
 
 async fn compile(
     request: CompilationRequest,
@@ -55,38 +102,35 @@ async fn compile(
         .await;
 
     match result {
-        Ok(value) => value,
-        Err(SdkError::ServiceError(val)) => match val.err() {
+        Ok(_) => Ok(()),
+        Err(SdkError::ServiceError(val)) => match val.into_err() {
             PutItemError::ConditionalCheckFailedException(_) => {
                 error!("Recompilation attempt, id: {}", request.id);
-                let response = lambda_http::Response::builder()
-                    .status(400)
-                    .header("content-type", "text/html")
-                    .body(RECOMPILATION_ATTEMPT_ERROR.into())
-                    .map_err(Error::from)?;
-
-                return Err(Error::HttpError(response));
+                Err(Error::ConflictError(
+                    RECOMPILATION_ATTEMPT_ERROR.to_string(),
+                ))
             }
-            _ => return Err(Box::new(SdkError::ServiceError(val)).into()),
+            err => Err(Error::InternalError(err.into())),
         },
-        Err(err) => return Err(Box::new(err).into()),
-    };
+        Err(err) => Err(Error::InternalError(err.into())),
+    }?;
 
     let message = SqsMessage::Compile { request };
     let message = match serde_json::to_string(&message) {
-        Ok(val) => val,
+        Ok(val) => Ok(val),
         Err(err) => {
             error!("Serialization failed, id: {:?}", message);
-            return Err(Box::new(err).into());
+            Err(anyhow::Error::from(err))
         }
-    };
+    }?;
+
     let message_output = sqs_client
         .send_message()
         .queue_url(queue_url)
         .message_body(message)
         .send()
         .await
-        .map_err(Box::new)?;
+        .map_err(anyhow::Error::from)?;
 
     info!(
         "message sent to sqs. message_id: {}",
@@ -112,39 +156,22 @@ async fn process_request(
     queue_url: &str,
     s3_client: &aws_sdk_s3::Client,
     bucket_name: &str,
-) -> Result<LambdaResponse<String>, Error> {
+) -> Result<(), Error> {
     let request = extract_request::<CompilationRequest>(&request)?;
-
     let objects = s3_client
         .list_objects_v2()
-        .delimiter('/')
-        .prefix(request.id.to_string().add("/"))
         .bucket(bucket_name)
+        .prefix(request.id.to_string().add("/"))
         .send()
         .await
-        .map_err(Box::new)?;
-
-    if let None = &objects.contents {
+        .map_err(anyhow::Error::from)?;
+    objects.contents.ok_or_else(|| {
         error!("No objects in folder: {}", request.id);
-        let response = LambdaResponse::builder()
-            .status(400)
-            .header("content-type", "text/html")
-            .body(NO_OBJECTS_TO_COMPILE_ERROR.into())
-            .map_err(Error::from)?;
+        Error::BadRequestError(NO_OBJECTS_TO_COMPILE_ERROR.to_string())
+    })?;
 
-        return Err(Error::HttpError(response));
-    }
-
-    info!("Compile");
     compile(request, dynamo_client, table_name, sqs_client, queue_url).await?;
-
-    let response = LambdaResponse::builder()
-        .status(200)
-        .header("content-type", "text/html")
-        .body(Default::default())
-        .map_err(Box::new)?;
-
-    return Ok(response);
+    Ok(())
 }
 
 #[tokio::main]
@@ -178,9 +205,16 @@ async fn main() -> Result<(), LambdaError> {
         .await;
 
         match result {
-            Ok(val) => Ok(val),
-            Err(Error::HttpError(val)) => Ok(val),
-            Err(Error::LambdaError(err)) => Err(err),
+            Ok(_) => {
+                let response = LambdaResponse::builder()
+                    .status(StatusCode::OK)
+                    .header("Content-Type", "application/json")
+                    .body(Default::default())
+                    .map_err(Box::new)?;
+
+                Ok(response)
+            }
+            Err(err) => Ok::<_, LambdaError>(err.try_into()?),
         }
     }))
     .await

@@ -1,4 +1,5 @@
 import type { EnvType } from './transaction'
+import { ArtifactType } from '@/api/types'
 
 interface Contract {
   contractName: string
@@ -12,7 +13,8 @@ interface Contract {
 }
 
 interface ContractFile {
-  file_name: string
+  // path without workspace
+  file_path: string
   file_content: string
   is_contract: boolean
 }
@@ -35,10 +37,9 @@ interface VerificationResult {
 }
 
 interface CompiledArtifact {
-  // Is a relative path to a file
-  file_name: string
+  file_path: string
   file_content: string
-  is_contract: boolean
+  artifact_type: ArtifactType
 }
 
 interface Input {
