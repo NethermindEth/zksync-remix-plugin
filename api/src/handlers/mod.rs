@@ -6,7 +6,6 @@ pub mod utils;
 pub mod verify;
 
 use lazy_static::lazy_static;
-use rocket::State;
 use tokio::sync::Semaphore;
 use tokio::time::Instant;
 use tracing::info;
@@ -18,26 +17,17 @@ use crate::handlers::compiler_version::do_compiler_version;
 use crate::handlers::types::{ApiCommand, ApiCommandResult, HealthCheckResponse};
 use crate::handlers::verify::{do_verify, VERIFICATION_LABEL_VALUE};
 use crate::metrics::Metrics;
-use crate::utils::lib::generate_mock_compile_request;
-use crate::worker::WorkerEngine;
 
 const PROCESS_SPAWN_LIMIT: usize = 8;
 lazy_static! {
     static ref SPAWN_SEMAPHORE: Semaphore = Semaphore::new(PROCESS_SPAWN_LIMIT);
 }
 
-#[instrument(skip(engine))]
+#[instrument]
 #[get("/health")]
-pub async fn health(engine: &State<WorkerEngine>) -> HealthCheckResponse {
+pub async fn health() -> HealthCheckResponse {
     info!("/health");
-
-    let result = do_compile(generate_mock_compile_request(), &engine.metrics).await;
-
-    if result.is_ok() {
-        HealthCheckResponse::ok()
-    } else {
-        HealthCheckResponse::error("Failed to compile")
-    }
+    HealthCheckResponse::ok()
 }
 
 #[instrument]

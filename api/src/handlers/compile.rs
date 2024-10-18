@@ -215,6 +215,7 @@ pub async fn do_compile(
         .action_successes_total
         .with_label_values(&[COMPILATION_LABEL_VALUE])
         .inc();
+
     Ok(Json(CompileResponse {
         file_content: file_contents,
         status: status_code_to_message(status.code()),
