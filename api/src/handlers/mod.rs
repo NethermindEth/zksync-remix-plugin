@@ -31,7 +31,7 @@ lazy_static! {
 pub async fn health(engine: &State<WorkerEngine>) -> HealthCheckResponse {
     info!("/health");
 
-    let result = do_compile(generate_mock_compile_request(), &engine.metrics).await;
+    let result = do_compile(generate_mock_compile_request(), &engine.metrics, true).await;
 
     if result.is_ok() {
         HealthCheckResponse::ok()
@@ -59,7 +59,7 @@ pub async fn dispatch_command(
             Err(e) => Err(e),
         },
         ApiCommand::Compile(request) => {
-            let res = match do_compile(request, metrics).await {
+            let res = match do_compile(request, metrics, false).await {
                 Ok(compile_response) => {
                     Ok(ApiCommandResult::Compile(compile_response.into_inner()))
                 }
