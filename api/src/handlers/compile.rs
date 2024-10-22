@@ -32,7 +32,7 @@ pub async fn compile(
 ) -> Json<CompileResponse> {
     info!("/compile/{:?}", request_json.config);
 
-    do_compile(request_json.0, &engine.metrics)
+    do_compile(request_json.0, &engine.metrics, false)
         .await
         .unwrap_or_else(|e| {
             Json(CompileResponse {
@@ -71,6 +71,7 @@ pub async fn get_compile_result(process_id: String, engine: &State<WorkerEngine>
 pub async fn do_compile(
     compilation_request: CompilationRequest,
     metrics: &Metrics,
+    is_health_check: bool,
 ) -> Result<Json<CompileResponse>> {
     let zksolc_version = compilation_request.config.version;
 
@@ -170,10 +171,13 @@ pub async fn do_compile(
             "Compilation error: {}",
             String::from_utf8_lossy(&output.stderr)
         );
-        metrics
-            .action_failures_total
-            .with_label_values(&[COMPILATION_LABEL_VALUE])
-            .inc();
+
+        if !is_health_check {
+            metrics
+                .action_failures_total
+                .with_label_values(&[COMPILATION_LABEL_VALUE])
+                .inc();
+        }
 
         return Ok(Json(CompileResponse {
             file_content: vec![],
@@ -211,10 +215,13 @@ pub async fn do_compile(
     // calling here explicitly to avoid dropping the AutoCleanUp struct
     auto_clean_up.clean_up().await;
 
-    metrics
-        .action_successes_total
-        .with_label_values(&[COMPILATION_LABEL_VALUE])
-        .inc();
+    if !is_health_check {
+        metrics
+            .action_successes_total
+            .with_label_values(&[COMPILATION_LABEL_VALUE])
+            .inc();
+    }
+
     Ok(Json(CompileResponse {
         file_content: file_contents,
         status: status_code_to_message(status.code()),
