@@ -3,6 +3,7 @@ use prometheus::{Encoder, GaugeVec, IntCounter, IntCounterVec, Opts, Registry, T
 use rocket::fairing::{Fairing, Info, Kind};
 use rocket::http::Method;
 use rocket::{Data, Request, State};
+use tracing::debug;
 use tracing::instrument;
 
 use crate::errors::CoreError;
@@ -29,8 +30,17 @@ impl Fairing for Metrics {
         }
     }
 
+    #[instrument(skip(self, req, _data))]
     async fn on_request(&self, req: &mut Request<'_>, _data: &mut Data<'_>) {
         self.requests_total.inc();
+        if let Some(val) = req.client_ip() {
+            let ip = val.to_string();
+            let ip = ip.as_str();
+            debug!("Plugin launched by: {}", ip);
+            debug!("Headers: {:?}", req.headers());
+
+            self.num_distinct_users.with_label_values(&[ip]).inc();
+        }
 
         match req.method() {
             Method::Options => {}
@@ -41,14 +51,6 @@ impl Fairing for Metrics {
 
 impl Metrics {
     fn update_metrics(&self, req: &mut Request<'_>) {
-        if let Some(val) = req.client_ip() {
-            let ip = val.to_string();
-            let ip = ip.as_str();
-            info!("Plugin launched by: {}", ip);
-
-            self.num_distinct_users.with_label_values(&[ip]).inc();
-        }
-
         match req.uri().path().as_str() {
             "/compile" | "/compile-async" => self.num_of_compilations.inc(),
             "/on-plugin-launched" => self.num_plugin_launches.inc(),
