@@ -1,3 +1,5 @@
+use serde::Serialize;
+
 #[derive(thiserror::Error, Debug)]
 pub enum ItemError {
     #[error("Invalid Item format: {0}")]
@@ -20,11 +22,13 @@ impl ItemError {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Serialize)]
 #[cfg_attr(test, derive(PartialEq))]
+#[serde(rename_all = "PascalCase")]
 pub enum ServerError {
     UnsupportedCompilerVersion,
     CompilationError,
+    NothingToCompile,
     UnknownNetworkError,
     VerificationError,
     InternalError,
@@ -35,6 +39,7 @@ impl Into<&'static str> for ServerError {
         match self {
             ServerError::UnsupportedCompilerVersion => "UnsupportedCompilerVersion",
             ServerError::CompilationError => "CompilationError",
+            ServerError::NothingToCompile => "NothingToCompile",
             ServerError::InternalError => "InternalError",
             ServerError::UnknownNetworkError => "UnknownNetworkError",
             ServerError::VerificationError => "VerificationError",
@@ -62,7 +67,8 @@ impl Into<http::StatusCode> for ServerError {
             Self::UnsupportedCompilerVersion
             | Self::CompilationError
             | Self::UnknownNetworkError
-            | Self::VerificationError => http::StatusCode::BAD_REQUEST,
+            | Self::VerificationError
+            | Self::NothingToCompile => http::StatusCode::BAD_REQUEST,
             Self::InternalError => http::StatusCode::INTERNAL_SERVER_ERROR,
         }
     }

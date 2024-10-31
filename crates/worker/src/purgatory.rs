@@ -150,6 +150,12 @@ impl Inner {
             Status::InProgress => warn!("Item compiling for too long!"),
             Status::Pending => {
                 warn!("Item pending for too long");
+                // Second would give neater replies
+                // TODO: Lock item
+                db_client
+                    .delete_item(id.to_string().as_str())
+                    .await
+                    .map_err(DBError::from)?;
 
                 // Remove compilation files
                 let files_dir = s3_compilation_files_dir(id.to_string().as_str());
@@ -158,20 +164,15 @@ impl Inner {
                 // Remove artifacts
                 let artifacts_dir = s3_compilation_files_dir(id.to_string().as_str());
                 s3_client.delete_dir(&artifacts_dir).await?;
-
-                // Second would give neater replies
-                db_client
-                    .delete_item(id.to_string().as_str())
-                    .await
-                    .map_err(DBError::from)?;
             }
             Status::Done(_) => {
-                let dir = s3_artifacts_dir(id.to_string().as_str());
-                s3_client.delete_dir(&dir).await?;
                 db_client
                     .delete_item(id.to_string().as_str())
                     .await
                     .map_err(DBError::from)?;
+
+                let dir = s3_artifacts_dir(id.to_string().as_str());
+                s3_client.delete_dir(&dir).await?;
             }
         }
 

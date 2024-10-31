@@ -2,13 +2,13 @@
 
 use anyhow::Context;
 use std::path::{Path, PathBuf};
-use std::process::Stdio;
-use tracing::{error, info};
+use std::process::{Output, Stdio};
+use tracing::error;
+use types::item::task_result::ArtifactType;
 use types::CompilationConfig;
 
 use crate::commands::errors::CompilationError;
 use crate::commands::{CompilationFile, SPAWN_SEMAPHORE};
-use crate::utils::cleaner::AutoCleanUp;
 use crate::utils::hardhat_config::HardhatConfigBuilder;
 use crate::utils::lib::{initialize_files, list_files_in_directory, DEFAULT_SOLIDITY_VERSION};
 
@@ -21,12 +21,32 @@ pub struct CompilationInput {
 
 pub struct ArtifactData {
     pub file_path: PathBuf,
-    pub is_contract: bool,
+    pub artifact_type: ArtifactType,
 }
 
 pub struct CompilationOutput {
+    pub workspace_dir: PathBuf,
     pub artifacts_dir: PathBuf,
     pub artifacts_data: Vec<ArtifactData>,
+}
+
+fn process_output(process_output: Output) -> Result<(), CompilationError> {
+    const NOTHING_TO_COMPILE: &str = "Nothing to compile";
+
+    if !process_output.status.success() {
+        let err_msg = String::from_utf8_lossy(&process_output.stderr);
+        error!("Compilation error: {}", err_msg);
+        Err(CompilationError::CompilationFailureError(
+            err_msg.to_string(),
+        ))
+    } else {
+        let message = String::from_utf8_lossy(&process_output.stdout).to_string();
+        if message.contains(NOTHING_TO_COMPILE) {
+            Err(CompilationError::NothingToCompileError)
+        } else {
+            Ok(())
+        }
+    }
 }
 
 pub async fn do_compile(
@@ -59,12 +79,6 @@ pub async fn do_compile(
             )
         })?;
 
-    // when the compilation is done, clean up the directories
-    // it will be called when the AutoCleanUp struct is dropped
-    let auto_clean_up = AutoCleanUp {
-        dirs: vec![workspace_path.to_str().unwrap()],
-    };
-
     // write the hardhat config file
     let zksolc_version = compilation_input.config.version;
     let mut hardhat_config_builder = HardhatConfigBuilder::new();
@@ -78,7 +92,7 @@ pub async fn do_compile(
     let hardhat_config_content = hardhat_config_builder.build().to_string_config();
 
     // create parent directories
-    tokio::fs::create_dir_all(hardhat_config_path.parent().unwrap())
+    tokio::fs::create_dir_all(&workspace_path)
         .await
         .map_err(anyhow::Error::from)
         .with_context(|| {
@@ -122,18 +136,7 @@ pub async fn do_compile(
         .wait_with_output()
         .await
         .map_err(anyhow::Error::from)?;
-
-    let status = output.status;
-    let message = String::from_utf8_lossy(&output.stdout).to_string();
-    info!("Output: \n{:?}", message);
-
-    if !status.success() {
-        let err_msg = String::from_utf8_lossy(&output.stderr);
-        error!("Compilation error: {}", err_msg);
-        return Err(CompilationError::CompilationFailureError(
-            err_msg.to_string(),
-        ));
-    }
+    process_output(output)?;
 
     // fetch the files in the artifacts directory
     let file_paths = list_files_in_directory(&artifacts_path)
@@ -148,19 +151,24 @@ pub async fn do_compile(
                 .strip_prefix(&artifacts_path)
                 .expect("Unexpected prefix");
 
-            let is_contract =
-                !relative_path.ends_with(".dbg.json") && relative_path.ends_with(".json");
+            // Work on original string since Path::ends_with matches whole segment
+            let artifact_type = if file_path.ends_with(".dbg.json") {
+                ArtifactType::Dbg
+            } else if file_path.ends_with(".json") {
+                ArtifactType::Contract
+            } else {
+                ArtifactType::Unknown
+            };
 
             ArtifactData {
                 file_path: relative_path.to_path_buf(),
-                is_contract,
+                artifact_type,
             }
         })
         .collect();
 
-    // calling here explicitly to avoid dropping the AutoCleanUp struct
-    auto_clean_up.clean_up().await;
     Ok(CompilationOutput {
+        workspace_dir: workspace_path,
         artifacts_dir: artifacts_path,
         artifacts_data,
     })

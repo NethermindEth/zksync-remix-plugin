@@ -6,9 +6,10 @@ import {
   solidityVersionAtom
 } from '@/atoms'
 import { currentFilenameAtom, currentWorkspacePathAtom, remixClientAtom } from '@/stores/remixClient'
-import { CompilationResult, Contract } from '@/types/contracts'
+import { CompiledArtifact, Contract } from '@/types/contracts'
 import { artifactFolder } from '@/utils/utils'
 import { useAtomValue, useSetAtom } from 'jotai'
+import { ArtifactType, CompilationRequest, TaskFailure } from '@/api/types'
 
 export const useCompileHelpers = () => {
   const remixClient = useAtomValue(remixClientAtom)
@@ -19,21 +20,21 @@ export const useCompileHelpers = () => {
   const setContracts = useSetAtom(contractsAtom)
   const setSelectedContract = useSetAtom(selectedContractAtom)
 
-  const getDefaultWorkspaceContents: any = () => ({
+  const getDefaultCompilationRequest = (id: string): CompilationRequest => ({
+    id,
     config: {
-      version: solidityVersion,
+      version: '1.4.1' || solidityVersion,
       user_libraries: []
-    },
-    contracts: [] as Array<{ file_name: string; file_content: string; is_contract: boolean }>
+    }
   })
 
-  const emitErrorToRemix = async (compileResult: CompilationResult) => {
+  const emitErrorToRemix = async (taskFailure: TaskFailure) => {
     await remixClient.terminal.log({
-      value: compileResult.message,
+      value: `${taskFailure.error_type}: ${taskFailure.message}`,
       type: 'error'
     })
 
-    const errorLets = compileResult.message.trim().split('\n')
+    const errorLets = taskFailure.message.trim().split('\n')
     // remove last element if it's starts with `Error:`
     if (errorLets[errorLets.length - 1].startsWith('Error:')) {
       errorLets.pop()
@@ -70,7 +71,7 @@ export const useCompileHelpers = () => {
         type: errorType
       })
     })
-    const lastLine = compileResult.message.trim().split('\n').pop()?.trim()
+    const lastLine = taskFailure.message.trim().split('\n').pop()?.trim()
 
     remixClient.emit('statusChanged', {
       key: 'failed',
@@ -81,13 +82,17 @@ export const useCompileHelpers = () => {
     throw new Error('Solidity Compilation Failed, logs can be read in the terminal log')
   }
 
-  const writeResultsToArtifacts = async (compileResult: CompilationResult) => {
-    const artifacts: string[] = []
-    for (const file of compileResult.file_content) {
-      const artifactsPath = `${artifactFolder(currentWorkspacePath)}/${file.file_name}`
-      artifacts.push(artifactsPath)
+  const writeResultsToArtifacts = async (artifacts: CompiledArtifact[]) => {
+    for (const artifact of artifacts) {
+      const artifactsPath = `${artifactFolder(currentWorkspacePath)}/${artifact.file_path}`
+
       try {
-        await remixClient.call('fileManager', 'writeFile', artifactsPath, file.file_content)
+        await remixClient.call('fileManager', 'writeFile', artifactsPath, artifact.file_content)
+        remixClient.emit('statusChanged', {
+          key: 'succeed',
+          type: 'info',
+          title: 'Saved artifacts'
+        })
       } catch (e) {
         if (e instanceof Error) {
           await remixClient.call(
@@ -96,38 +101,35 @@ export const useCompileHelpers = () => {
             e.message + ' try deleting the files: ' + artifactsPath
           )
         }
+
         remixClient.emit('statusChanged', {
           key: 'succeed',
           type: 'warning',
           title: 'Failed to save artifacts'
         })
-      } finally {
-        remixClient.emit('statusChanged', {
-          key: 'succeed',
-          type: 'info',
-          title: 'Saved artifacts'
-        })
       }
     }
   }
 
-  const setCompiledContracts = (compileResult: CompilationResult, compilationType: CompilationType) => {
+  const setCompiledContracts = (compilationArtifacts: CompiledArtifact[], compilationType: CompilationType) => {
     const contractsToAdd: Contract[] = []
     if (compilationType === 'PROJECT') {
-      for (const file of compileResult.file_content) {
-        if (!file.is_contract || !file.file_name.startsWith('contracts/')) continue
+      for (const artifact of compilationArtifacts) {
+        if (artifact.artifact_type !== ArtifactType.Contract || !artifact.file_path.startsWith('contracts/')) continue
 
-        const contract = JSON.parse(file.file_content) as Contract
+        const contract = JSON.parse(artifact.file_content) as Contract
         contractsToAdd.push(contract)
       }
     } else {
-      for (const file of compileResult.file_content) {
-        if (!file.is_contract || !file.file_name.includes(currentFilename)) continue
+      for (const artifact of compilationArtifacts) {
+        if (artifact.artifact_type !== ArtifactType.Contract || !artifact.file_path.includes(currentFilename)) continue
 
-        const contract = JSON.parse(file.file_content) as Contract
+        const contract = JSON.parse(artifact.file_content) as Contract
         contractsToAdd.push(contract)
       }
     }
+
+    console.log('contractsToAdd:', contractsToAdd)
     setContracts(contractsToAdd)
     setSelectedContract(contractsToAdd[0])
   }
@@ -135,7 +137,7 @@ export const useCompileHelpers = () => {
   return {
     emitErrorToRemix,
     writeResultsToArtifacts,
-    getDefaultWorkspaceContents,
+    getDefaultCompilationRequest,
     setCompiledContracts
   }
 }

@@ -37,6 +37,7 @@ impl Fairing for Metrics {
         }
     }
 }
+
 pub(crate) fn create_metrics(registry: Registry) -> Result<Metrics, CoreError> {
     let opts = Opts::new("num_distinct_users", "Number of distinct users").namespace(NAMESPACE);
     let num_distinct_users = IntCounterVec::new(opts, &["ip"])?;

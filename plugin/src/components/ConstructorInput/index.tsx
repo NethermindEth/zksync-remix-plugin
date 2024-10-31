@@ -24,7 +24,7 @@ const ConstructorInput: React.FC<ConstructorContractsProps> = ({ inputs, setInpu
   const [constructor, setConstructor] = useState<AbiElement | undefined>(undefined)
 
   useEffect(() => {
-    const foundConstructor = selectedContract?.abi.find((abiElement: AbiElement) => {
+    const foundConstructor = selectedContract?.abi?.find((abiElement: AbiElement) => {
       return abiElement.type === 'constructor'
     })
 

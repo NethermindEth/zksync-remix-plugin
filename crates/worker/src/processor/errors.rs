@@ -16,6 +16,10 @@ pub enum CompileProcessorError {
 impl Into<TaskFailure> for CompileProcessorError {
     fn into(self) -> TaskFailure {
         match self {
+            Self::CompilationError(CompilationError::NothingToCompileError) => TaskFailure {
+                error_type: ServerError::NothingToCompile,
+                message: "Nothing to compile".to_string(),
+            },
             Self::CompilationError(err) => TaskFailure {
                 error_type: ServerError::CompilationError,
                 message: err.to_string(),
